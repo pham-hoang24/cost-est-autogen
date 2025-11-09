@@ -6,8 +6,6 @@ Utility helpers for generating COCOMO II Post-Architecture estimates that
 conform to the `EstimationOutput` schema defined in `tools/schema.py`.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import date, timedelta
 import math

@@ -20,7 +20,7 @@ def build_storypoints_agent(llm_config):
             "Clarify missing agile inputs when necessary."
         ),
         llm_config=llm_config,
-        tools=[generate_storypoints_estimation],
+        functions=[generate_storypoints_estimation],
         max_consecutive_auto_reply=1,
         human_input_mode="NEVER",
     )

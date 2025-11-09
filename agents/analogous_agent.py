@@ -20,7 +20,7 @@ def build_analogous_agent(llm_config):
             "If historical data is missing, explain what is required."
         ),
         llm_config=llm_config,
-        tools=[generate_analogous_estimation],
+        functions=[generate_analogous_estimation],
         max_consecutive_auto_reply=1,
         human_input_mode="NEVER",
     )

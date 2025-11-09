@@ -6,8 +6,6 @@ Helpers for producing Story Point–driven estimates conforming to the shared
 `EstimationOutput` schema.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import date, timedelta
 import math

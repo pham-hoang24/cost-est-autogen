@@ -1,8 +1,9 @@
 # agents/decision_engine.py
-from autogen import ConversableAgent, GroupChat, GroupChatManager, SelectorAgent
+from autogen.agentchat import ConversableAgent, GroupChat, GroupChatManager
+
 
 def build_decision_engine(llm_config, members):
-    selector = SelectorAgent(
+    selector = ConversableAgent(
         name="TechniqueSelector",
         llm_config=llm_config,
         system_message=(
@@ -16,6 +17,8 @@ def build_decision_engine(llm_config, members):
             "If multiple fit, invoke 2-3 and blend with confidence weights. "
             "If missing inputs, return a short list of required fields."
         ),
+        human_input_mode="NEVER",
+        max_consecutive_auto_reply=1,
     )
-    chat = GroupChat(agents=[selector] + members, messages=[], max_round=3)
+    chat = GroupChat(agents=[selector] + list(members), messages=[], max_round=3)
     return GroupChatManager(groupchat=chat, llm_config=llm_config)

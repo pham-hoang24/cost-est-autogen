@@ -6,8 +6,6 @@ Parametric estimation helpers to convert size metrics (FP, LOC, modules, etc.)
 into costs and schedules using calibrated rates.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Iterable, List, Optional

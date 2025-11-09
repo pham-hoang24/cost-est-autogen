@@ -6,8 +6,6 @@ Analogous estimation utilities leverage historical project records to infer
 effort, schedule, and cost for a new initiative based on similarity scoring.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple

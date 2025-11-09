@@ -21,7 +21,7 @@ def build_fpa_agent(llm_config):
             "If inputs are missing, ask for them explicitly."
         ),
         llm_config=llm_config,
-        tools=[generate_fpa_estimation],
+        functions=[generate_fpa_estimation],
         max_consecutive_auto_reply=1,
         human_input_mode="NEVER",
     )

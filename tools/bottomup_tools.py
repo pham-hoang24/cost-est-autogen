@@ -5,8 +5,6 @@ tools/bottomup_tools.py
 Provide Bottom-Up estimation helpers that aggregate detailed task breakdowns.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Iterable, List, Optional

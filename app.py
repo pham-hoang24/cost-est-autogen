@@ -10,7 +10,8 @@ from agents.parametric_agent import build_parametric_agent
 from agents.storypoints_agent import build_storypoints_agent
 from tools.schema import EstimationOutput
 
-LLM_CFG = {"model": "gpt-4o-mini", "temperature": 0}
+#change model to gpt-4o-mini later
+LLM_CFG = {"model": "gpt-4o", "temperature": 0}
 
 
 def build_service():
@@ -29,7 +30,13 @@ def build_service():
     )
 
     # User entry
-    user = UserProxyAgent(name="PM", code_execution_config=False)
+    user = UserProxyAgent(
+        name="PM",
+        code_execution_config=False,
+        human_input_mode="NEVER",
+        max_consecutive_auto_reply=1,
+        default_auto_reply="",
+    )
 
     return user, engine
 

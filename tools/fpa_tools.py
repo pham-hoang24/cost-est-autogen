@@ -6,8 +6,6 @@ Utilities for producing Function Point Analysis (FPA) based estimates that
 conform to the shared `EstimationOutput` schema.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 import math

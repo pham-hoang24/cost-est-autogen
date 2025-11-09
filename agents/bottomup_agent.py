@@ -20,7 +20,7 @@ def build_bottomup_agent(llm_config):
             "If work packages are incomplete, request clarifications."
         ),
         llm_config=llm_config,
-        tools=[generate_bottom_up_estimation],
+        functions=[generate_bottom_up_estimation],
         max_consecutive_auto_reply=1,
         human_input_mode="NEVER",
     )
