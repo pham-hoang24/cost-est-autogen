@@ -1,4 +1,6 @@
 # app.py
+import os
+
 from autogen import UserProxyAgent
 
 from agents.analogous_agent import build_analogous_agent
@@ -10,8 +12,14 @@ from agents.parametric_agent import build_parametric_agent
 from agents.storypoints_agent import build_storypoints_agent
 from tools.schema import EstimationOutput
 
-#change model to gpt-4o-mini later
-LLM_CFG = {"model": "gpt-4o", "temperature": 0}
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise EnvironmentError(
+        "OPENAI_API_KEY is not set. Populate .env and export it before running the app."
+    )
+
+# change model to gpt-4o-mini later
+LLM_CFG = False
 
 
 def build_service():
