@@ -9,6 +9,7 @@ agent has produced a structured payload.
 from autogen import ConversableAgent  # type: ignore[import]
 
 from tools.cocomo_tools import generate_cocomo_ii_estimation
+from tools.fpa_tools import generate_fpa_estimation
 from tools.parametric_tools import generate_parametric_estimation
 from tools.storypoints_tools import generate_storypoints_estimation
 
@@ -16,6 +17,7 @@ ESTIMATORS = {
     "cocomo": generate_cocomo_ii_estimation,
     "storypoints": generate_storypoints_estimation,
     "parametric": generate_parametric_estimation,
+    "fpa": generate_fpa_estimation,
 }
 
 

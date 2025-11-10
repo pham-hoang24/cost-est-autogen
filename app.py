@@ -7,6 +7,7 @@ from autogen import GroupChat, GroupChatManager, UserProxyAgent  # type: ignore[
 from agents.intake_agent import build_intake_agent
 from agents.runner_agent import build_runner_agent
 from tools.cocomo_tools import generate_cocomo_ii_estimation
+from tools.fpa_tools import generate_fpa_estimation
 from tools.intake_tools import (
     consume_final_payload,
     offline_intake_flow,
@@ -29,6 +30,7 @@ ESTIMATORS = {
     "storypoints": generate_storypoints_estimation,
     "cocomo": generate_cocomo_ii_estimation,
     "parametric": generate_parametric_estimation,
+    "fpa": generate_fpa_estimation,
 }
 
 

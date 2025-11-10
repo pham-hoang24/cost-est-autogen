@@ -71,6 +71,9 @@ python app.py
 During the conversation you can answer in natural language; the agent will clarify
 what it still needs (e.g., total story points, KSLOC, or unit rates).
 
+- For Function Point Analysis, be ready to supply approximate counts for EI/EO/EQ/ILF/EIF
+  and the total GSC score. The intake flow will prompt for these when it detects FPA intent.
+
 ### GUI integration
 
 - `app.build_team_for_gui()` returns a dictionary containing the `GroupChatManager`,

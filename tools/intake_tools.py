@@ -17,6 +17,38 @@ _COMPLETED_PAYLOADS: Dict[str, Dict[str, Any]] = {}
 
 _FLOAT_RE = re.compile(r"(-?\d+(?:\.\d+)?)")
 
+_BASELINE_FIELDS: Dict[str, Dict[str, Any]] = {
+    "project_type": {
+        "question": (
+            "Select the project type (software development, ai/ml project, system integration, "
+            "cloud migration, mobile application, web application):"
+        ),
+        "validator": lambda value: value.strip(),
+    },
+    "complexity": {
+        "question": (
+            "What is the project complexity? (low, medium, high, very high):"
+        ),
+        "validator": lambda value: value.strip(),
+    },
+    "tech_stack": {
+        "question": (
+            "Which technologies or platforms are in focus? "
+            "(e.g., web technologies, mobile development, ai/ml technologies, cloud technology, enterprise systems)"
+        ),
+        "validator": lambda value: value.strip(),
+    },
+    "team_pref": {
+        "question": "Desired team size (number of people) for delivery?",
+        "validator": lambda value: int(float(value)),
+    },
+    "region": {
+        "question": "Primary delivery region (for salary benchmarks)?",
+        "validator": lambda value: value.strip(),
+    },
+}
+_BASELINE_ORDER = list(_BASELINE_FIELDS.keys())
+
 _METHOD_SPEC: Dict[str, Dict[str, Any]] = {
     "storypoints": {
         "keywords": ["story point", "velocity", "sprint", "agile"],
@@ -55,6 +87,30 @@ _METHOD_SPEC: Dict[str, Dict[str, Any]] = {
             "project_name": "What is the project name?"
         },
     },
+    "fpa": {
+        "keywords": ["function point", "fpa", "fp analysis"],
+        "required": [
+            "ei_count",
+            "eo_count",
+            "eq_count",
+            "ilf_count",
+            "eif_count",
+            "gsc_total",
+        ],
+        "optional": ["hours_per_fp", "hourly_rate", "project_name"],
+        "questions": {
+            "method": "Which estimation technique should we use? Options: storypoints, cocomo, parametric, fpa.",
+            "ei_count": "How many External Inputs (EI) are planned?",
+            "eo_count": "How many External Outputs (EO) are planned?",
+            "eq_count": "How many External Inquiries (EQ) are planned?",
+            "ilf_count": "How many Internal Logical Files (ILF) are planned?",
+            "eif_count": "How many External Interface Files (EIF) are planned?",
+            "gsc_total": "What is the total GSC score (sum of the 14 General System Characteristics)?",
+            "hours_per_fp": "How many hours per Function Point should we assume?",
+            "hourly_rate": "What hourly rate should we use (USD)?",
+            "project_name": "What is the project name?"
+        },
+    },
 }
 
 _FIELD_LABELS: Dict[str, Dict[str, List[str]]] = {
@@ -77,6 +133,17 @@ _FIELD_LABELS: Dict[str, Dict[str, List[str]]] = {
         "team_productivity_units_per_week": ["units per week", "throughput"],
         "project_name": ["project", "initiative"],
     },
+    "fpa": {
+        "ei_count": ["external input", "ei"],
+        "eo_count": ["external output", "eo"],
+        "eq_count": ["external inquiry", "eq"],
+        "ilf_count": ["internal logical file", "ilf"],
+        "eif_count": ["external interface file", "eif"],
+        "gsc_total": ["gsc", "general system characteristic", "total gsc"],
+        "hours_per_fp": ["hours per function point", "hours/fp"],
+        "hourly_rate": ["hourly rate", "rate per hour"],
+        "project_name": ["project", "initiative"],
+    },
 }
 
 
@@ -91,7 +158,9 @@ def _ensure_session(session_id: str) -> Dict[str, Any]:
         _SESSION_STORE[session_id] = {
             "method": None,
             "fields": {},
+            "baseline": {},
             "pending_field": None,
+            "pending_baseline": None,
         }
     return _SESSION_STORE[session_id]
 
@@ -143,6 +212,29 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
     text = user_text.strip()
     lowered = text.lower()
 
+    # Handle pending baseline field
+    if session.get("pending_baseline"):
+        baseline_field = session["pending_baseline"]
+        validator = _BASELINE_FIELDS[baseline_field]["validator"]
+        try:
+            value = validator(text)
+            session["baseline"][baseline_field] = value
+        except Exception:
+            response.update(
+                {
+                    "message": f"Couldn't parse {baseline_field}. {_BASELINE_FIELDS[baseline_field]['question']}",
+                    "baseline_collected": session["baseline"],
+                    "method": session["method"],
+                    "collected": session["fields"],
+                    "missing": [],
+                    "ready": False,
+                    "next_question": _BASELINE_FIELDS[baseline_field]["question"],
+                }
+            )
+            return response
+        finally:
+            session["pending_baseline"] = None
+
     if session["pending_field"]:
         field = session["pending_field"]
         if field == "project_name" and text:
@@ -152,6 +244,25 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
             if value is not None:
                 session["fields"][field] = value
         session["pending_field"] = None
+
+    # Determine missing baseline inputs
+    missing_baseline = [field for field in _BASELINE_ORDER if field not in session["baseline"]]
+    if missing_baseline:
+        next_baseline = missing_baseline[0]
+        session["pending_baseline"] = next_baseline
+        question = _BASELINE_FIELDS[next_baseline]["question"]
+        response.update(
+            {
+                "message": "Before selecting an estimation method, please provide more project context.",
+                "baseline_collected": session["baseline"],
+                "method": session["method"],
+                "collected": session["fields"],
+                "missing": [],
+                "ready": False,
+                "next_question": question,
+            }
+        )
+        return response
 
     if session["method"] is None:
         inferred = _infer_method(lowered)
@@ -204,6 +315,7 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
         {
             "message": f"Target method: {method}. Currently captured -> {summary}",
             "method": method,
+            "baseline_collected": session.get("baseline", {}),
             "collected": session["fields"],
             "missing": missing_fields,
             "ready": ready,
@@ -274,6 +386,31 @@ def _default_payload(method: str, fields: Dict[str, Any]) -> Dict[str, Any]:
             )
         return payload
 
+    if method == "fpa":
+        required = {"ei_count", "eo_count", "eq_count", "ilf_count", "eif_count", "gsc_total"}
+        if not required.issubset(fields.keys()):
+            missing = required.difference(fields.keys())
+            raise ValueError(f"FPA estimation missing fields: {', '.join(sorted(missing))}")
+        payload = {
+            "method": method,
+            "kwargs": {
+                "project_name": project_name,
+                "component_counts": {
+                    "ei": float(fields["ei_count"]),
+                    "eo": float(fields["eo_count"]),
+                    "eq": float(fields["eq_count"]),
+                    "ilf": float(fields["ilf_count"]),
+                    "eif": float(fields["eif_count"]),
+                },
+                "gsc_total": float(fields["gsc_total"]),
+            },
+        }
+        if "hours_per_fp" in fields:
+            payload["kwargs"]["hours_per_fp"] = float(fields["hours_per_fp"])
+        if "hourly_rate" in fields:
+            payload["kwargs"]["hourly_rate"] = float(fields["hourly_rate"])
+        return payload
+
     raise ValueError(f"Unsupported method '{method}'.")
 
 
@@ -282,11 +419,14 @@ def intake_snapshot(session_id: str) -> Dict[str, Any]:
     session = _SESSION_STORE.get(session_id)
     if not session:
         raise ValueError("Intake session not found.")
+    baseline = session.get("baseline", {})
     method = session.get("method")
     fields = session.get("fields", {})
     if not method:
         raise ValueError("Method is still unknown.")
-    return _default_payload(method, fields)
+    payload = _default_payload(method, fields)
+    payload["baseline"] = baseline
+    return payload
 
 
 def intake_finalize(session_id: str) -> Dict[str, Any]:
@@ -299,6 +439,7 @@ def intake_finalize(session_id: str) -> Dict[str, Any]:
     if not method:
         raise ValueError("Method was never determined.")
     payload = _default_payload(method, fields)
+    payload["baseline"] = session.get("baseline", {})
     _COMPLETED_PAYLOADS[session_id] = payload
     reset_session(session_id)
     return payload
