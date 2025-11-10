@@ -3,4 +3,5 @@ openai
 pydantic
 numpy
 scikit-learn
+pyyaml
 

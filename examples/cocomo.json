@@ -1,0 +1,25 @@
+{
+  "project_name": "Checkout Revamp",
+  "ksloc": 85.0,
+  "scale_factor_ratings": {
+    "prec": "high",
+    "flex": "nominal",
+    "resl": "high",
+    "team": "nominal",
+    "pmat": "nominal"
+  },
+  "cost_driver_ratings": {
+    "rely": "high",
+    "data": "nominal",
+    "cplx": "high",
+    "ruse": "nominal",
+    "docu": "nominal",
+    "acap": "high",
+    "pcap": "nominal",
+    "tool": "nominal",
+    "site": "high",
+    "sced": "nominal"
+  },
+  "hourly_rate": 125.0
+}
+

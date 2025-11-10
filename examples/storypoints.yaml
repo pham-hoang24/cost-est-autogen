@@ -1,0 +1,13 @@
+project_name: Sprint 1 Launch
+total_story_points: 320
+team_velocity: 40
+sprint_length_weeks: 2
+hours_per_point: 6.0
+features:
+  - name: Core Delivery
+    effort_percent: 50
+  - name: Technical Debt & QA
+    effort_percent: 30
+  - name: Release Support
+    effort_percent: 20
+

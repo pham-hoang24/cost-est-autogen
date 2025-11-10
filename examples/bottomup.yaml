@@ -1,0 +1,15 @@
+project_name: Mobile App Expansion
+hourly_rate: 125
+work_packages:
+  - name: API Layer Enhancements
+    hours: 180
+    role: developer
+  - name: Mobile UI Refresh
+    hours: 140
+    role: designer
+  - name: Automation Testing
+    hours: 160
+    role: qa
+  - name: Deployment & Monitoring
+    hours: 80
+    role: devops

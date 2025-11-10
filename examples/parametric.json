@@ -1,0 +1,27 @@
+{
+  "project_name": "Data Warehouse Migration",
+  "total_units": 520,
+  "cost_per_unit": 180.0,
+  "hours_per_unit": 1.3,
+  "team_productivity_units_per_week": 48,
+  "unit_breakdown": [
+    {
+      "name": "ETL Pipelines",
+      "units": 200,
+      "rate_per_unit": 170.0
+    },
+    {
+      "name": "Reporting Views",
+      "units": 180,
+      "rate_per_unit": 185.0
+    },
+    {
+      "name": "Validation Scripts",
+      "units": 140,
+      "rate_per_unit": 160.0
+    }
+  ],
+  "other_expenses_pct": 0.06,
+  "infrastructure_pct": 0.12
+}
+
