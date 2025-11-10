@@ -1,0 +1,149 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 2,
+  "description": "Intake agent gathers requirements; runner agent executes estimators using project code.",
+  "label": "Cost Estimation Team",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "IntakeAgent",
+        "description": "Conversational intake specialist that captures estimation inputs.",
+        "config": {
+          "name": "IntakeAgent",
+          "description": "Conversational intake specialist that captures estimation inputs.",
+          "system_message": "You are an estimation intake specialist. Call intake_step_tool on each user message, summarise missing fields, confirm via intake_snapshot_tool, then finalise via intake_finalize_tool.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenAIChatCompletionClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "IntakeTools",
+              "description": "Wrappers around intake helper functions.",
+              "config": {
+                "name": "intake_tools",
+                "description": "Expose intake helpers from tools.intake_tools.",
+                "source_code": "import sys\nfrom pathlib import Path\nfrom uuid import uuid4\n\nROOT = Path.cwd()\nif str(ROOT) not in sys.path:\n    sys.path.insert(0, str(ROOT))\n\nfrom tools.intake_tools import intake_step, intake_snapshot, intake_finalize, reset_session\n\n_SESSION = {\"id\": None}\n\n\ndef _ensure_session():\n    if _SESSION[\"id\"] is None:\n        _SESSION[\"id\"] = str(uuid4())\n    return _SESSION[\"id\"]\n\n\ndef intake_step_tool(user_text: str):\n    session_id = _ensure_session()\n    return intake_step(session_id=session_id, user_text=user_text)\n\n\ndef intake_snapshot_tool():\n    session_id = _ensure_session()\n    return intake_snapshot(session_id=session_id)\n\n\ndef intake_finalize_tool():\n    session_id = _ensure_session()\n    payload = intake_finalize(session_id=session_id)\n    _SESSION[\"id\"] = None\n    return payload\n\n\ndef intake_reset_tool():\n    if _SESSION[\"id\"] is not None:\n        reset_session(_SESSION[\"id\"])\n    _SESSION[\"id\"] = None\n    return {\"status\": \"reset\"}\n",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "EstimatorRunner",
+        "description": "Executes estimation helpers once the payload is prepared.",
+        "config": {
+          "name": "EstimatorRunner",
+          "description": "Executes estimation helpers once the payload is prepared.",
+          "system_message": "When the intake agent provides a structured payload, call run_estimation_tool with it and share the formatted result. Request clarifications if the payload is incomplete.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenAIChatCompletionClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "RunEstimation",
+              "description": "Call project estimation helpers.",
+              "config": {
+                "name": "run_estimation_tool",
+                "description": "Execute the appropriate estimation helper and return JSON.",
+                "source_code": "import sys\nfrom pathlib import Path\n\nROOT = Path.cwd()\nif str(ROOT) not in sys.path:\n    sys.path.insert(0, str(ROOT))\n\nfrom tools.cocomo_tools import generate_cocomo_ii_estimation\nfrom tools.storypoints_tools import generate_storypoints_estimation\nfrom tools.parametric_tools import generate_parametric_estimation\n\n_ESTIMATORS = {\n    \"cocomo\": generate_cocomo_ii_estimation,\n    \"storypoints\": generate_storypoints_estimation,\n    \"parametric\": generate_parametric_estimation,\n}\n\ndef run_estimation_tool(payload: dict):\n    method = payload.get(\"method\")\n    kwargs = payload.get(\"kwargs\", {})\n    if method not in _ESTIMATORS:\n        raise ValueError(f\"Unsupported estimation method '{method}'.\")\n    result = _ESTIMATORS[method](**kwargs)\n    return result.model_dump_json(indent=2)\n",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 2,
+      "label": "DefaultTermination",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 2,
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 2,
+            "config": {
+              "max_messages": 20,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "speaker_selection_method": "round_robin",
+    "emit_team_events": false
+  }
+}
+

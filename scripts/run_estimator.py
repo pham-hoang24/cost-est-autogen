@@ -29,6 +29,7 @@ from tools.analogous_tools import HistoricalProject, generate_analogous_estimati
 from tools.bottomup_tools import WorkPackage, generate_bottom_up_estimation
 from tools.cocomo_tools import generate_cocomo_ii_estimation
 from tools.fpa_tools import FeatureInput as FPAFeatureInput, generate_fpa_estimation
+from tools.intake_tools import offline_intake_flow
 from tools.parametric_tools import UnitBreakdown, generate_parametric_estimation
 from tools.storypoints_tools import FeatureInput as StoryFeatureInput, generate_storypoints_estimation
 
@@ -61,6 +62,11 @@ def parse_args() -> argparse.Namespace:
         "--list-methods",
         action="store_true",
         help="List available estimation methods and exit.",
+    )
+    parser.add_argument(
+        "--intake",
+        action="store_true",
+        help="Use the offline intake flow to gather inputs interactively.",
     )
     return parser.parse_args()
 
@@ -95,6 +101,29 @@ def main() -> int:
         print("Available methods:")
         for name in sorted(ESTIMATORS):
             print(f" - {name}")
+        return 0
+
+    if args.intake:
+        prompt = input("Describe your project goals and constraints: ")
+        try:
+            payload = offline_intake_flow(prompt)
+        except Exception as exc:
+            print(f"Intake failed: {exc}", file=sys.stderr)
+            return 1
+        method_name = payload["method"]
+        estimator = ESTIMATORS.get(method_name)
+        if estimator is None:
+            print(f"No estimator configured for method '{method_name}'.", file=sys.stderr)
+            return 1
+        try:
+            result = estimator(**payload["kwargs"])
+        except Exception as exc:
+            print(f"Estimation failed: {exc}", file=sys.stderr)
+            return 1
+        if hasattr(result, "model_dump_json"):
+            print(result.model_dump_json(indent=2))
+        else:
+            print(json.dumps(result, indent=2))
         return 0
 
     method_name = prompt_missing(args.method, "Select method (cocomo, fpa, storypoints, parametric, bottomup, analogous): ")
