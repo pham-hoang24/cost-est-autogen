@@ -23,67 +23,72 @@
    - Offline testing: set `LLM_CFG = False` in `app.py`.
    - Live agent runs: restore `LLM_CFG` to a dict containing `model`, `temperature`, and `api_key`.
 
-## 2. Run the Estimator CLI
+## 2. Run the Workflow CLI
 
-Use the helper script from the project root to invoke estimators directly:
+The primary entry point now walks through the orchestrated multi-agent workflow
+without requiring a live LLM:
+
+```bash
+python app.py
+```
+
+You will be prompted for the baseline fields (project type, complexity, tech stack,
+team size, region) followed by a free-form project description. The CLI then:
+
+1. Persists the baseline via `WorkflowOrchestrator`.
+2. Generates a deterministic semantic expansion for review.
+3. Computes method-selection scores and highlights missing inputs.
+4. Renders the explainer summary (if estimator outputs have been attached).
+
+If the pipeline still needs more data the CLI clearly lists the follow-up questions.
+
+## 3. Running the Multi-Agent Team
+
+The Autogen configuration mirrors the workflow agents:
+
+```bash
+python - <<'PY'
+from app import run_workflow_conversation
+
+run_workflow_conversation("Let's start a new estimation session.")
+PY
+```
+
+- Set `OPENAI_API_KEY` and ensure `USE_WORKFLOW_LLM` (or the default) is truthy to
+  run with live LLMs.
+- Unset the key or export `USE_WORKFLOW_LLM=0` to run in deterministic offline mode
+  using `DummyModelClient`.
+- Import `autogen_team_descriptor.json` into Autogen Studio to drive the same team
+  through the GUI.
+
+## 4. End-to-End Tests
+
+Pytest is the recommended harness for validating the workflow services. The new
+test suite spins up an in-memory repository, walks through the orchestrator
+pipeline, attaches a deterministic Story Points estimate, and verifies that the
+explainer produces a structured summary.
+
+```bash
+pytest tests/test_workflow_end_to_end.py -q
+```
+
+The test data mirrors `examples/workflow_session.json`, which you can use as a
+fixture when experimenting with API integrations.
+
+## 5. Estimator Utilities
+
+`scripts/run_estimator.py` remains available for calling the deterministic
+calculators directly:
 
 ```bash
 python scripts/run_estimator.py --method fpa --input examples/fpa.json
-python scripts/run_estimator.py --method storypoints --input examples/storypoints.yaml
-python scripts/run_estimator.py --intake
 ```
 
-- Omit `--method` or `--input` to be prompted interactively.
-- Use `--list-methods` to view available techniques.
-- YAML support requires `pyyaml` (already included in `requirements.txt`).
+- Use `--list-methods` to display available estimators.
+- Provide `--intake` to try the legacy offline intake flow (still useful for
+  quick checks even though the orchestrator supersedes it).
 
-The tool prints the `EstimationOutput` JSON so you can diff or pipe the results:
-
-```bash
-python scripts/run_estimator.py -m cocomo -i examples/cocomo.json > output.json
-```
-
-- The `--intake` flag runs the offline conversational flow, collects answers,
-  and automatically calls the correct estimator based on your responses.
-
-## 3. Conversational Intake
-
-The main application (`python app.py`) now launches a conversational intake flow:
-
-- If `OPENAI_API_KEY` is set and `USE_INTAKE_LLM` is not `0`, an Autogen intake agent
-  uses the OpenAI model to interpret free-form descriptions, ask follow-up questions,
-  and hand off structured data to the estimator.
-- When no LLM is available (unset key or `USE_INTAKE_LLM=0`), a deterministic
-  question tree walks through the required fields directly in the console.
-
-### Switching modes
-
-```bash
-# Online (default when OPENAI_API_KEY present)
-export USE_INTAKE_LLM=1
-python app.py
-
-# Offline / fallback mode
-export USE_INTAKE_LLM=0
-python app.py
-```
-
-During the conversation you can answer in natural language; the agent will clarify
-what it still needs (e.g., total story points, KSLOC, or unit rates).
-
-- For Function Point Analysis, be ready to supply approximate counts for EI/EO/EQ/ILF/EIF
-  and the total GSC score. The intake flow will prompt for these when it detects FPA intent.
-
-### GUI integration
-
-- `app.build_team_for_gui()` returns a dictionary containing the `GroupChatManager`,
-  the `UserProxyAgent`, and the current intake `session_id`. Autogen Studio (or
-  other GUI tooling) can call this helper to create the team programmatically.
-- Alternatively, import `autogen_team_descriptor.json` into the GUI; it mirrors the
-  same intake/runner configuration with both agents running inside a round-robin
-  group chat.
-
-## 3. Sample Payloads
+## 6. Sample Payloads
 
 Starter payloads live under `examples/`:
 

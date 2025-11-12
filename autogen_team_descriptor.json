@@ -2,9 +2,9 @@
   "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
   "component_type": "team",
   "version": 1,
-  "component_version": 2,
-  "description": "Intake agent gathers requirements; runner agent executes estimators using project code.",
-  "label": "Cost Estimation Team",
+  "component_version": 3,
+  "description": "Multi-agent workflow team coordinating baseline intake, semantic expansion, method selection, and explanation.",
+  "label": "Workflow Estimation Team",
   "config": {
     "participants": [
       {
@@ -12,21 +12,19 @@
         "component_type": "agent",
         "version": 1,
         "component_version": 2,
-        "label": "IntakeAgent",
-        "description": "Conversational intake specialist that captures estimation inputs.",
+        "label": "ConversationalAgent",
+        "description": "Collects baseline inputs, manages confirmation loops, and relays orchestrator updates.",
         "config": {
-          "name": "IntakeAgent",
-          "description": "Conversational intake specialist that captures estimation inputs.",
-          "system_message": "You are an estimation intake specialist. Call intake_step_tool on each user message, summarise missing fields, confirm via intake_snapshot_tool, then finalise via intake_finalize_tool.",
+          "name": "ConversationalAgent",
+          "description": "User-facing orchestrator liaison.",
+          "system_message": "You are the Conversational agent. Start every session by calling `start_new_project_tool` to obtain a project identifier. Collect baseline fields in this order: project_type, complexity, tech_stack, team_pref, region. For each response call `record_baseline_field_tool`. Once baseline information is complete, gather a concise project description and submit it via `submit_user_description_tool`. Afterward coordinate the remaining workflow by presenting expansion drafts, notifying the user about method recommendations, and sharing explanations. Keep responses concise and clearly separate captured data from outstanding questions.",
           "model_client": {
-            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "provider": "offline_model_client.DummyModelClient",
             "component_type": "model",
             "version": 1,
-            "component_version": 2,
-            "label": "OpenAIChatCompletionClient",
-            "config": {
-              "model": "gpt-4o-mini"
-            }
+            "component_version": 1,
+            "label": "DummyModelClient",
+            "config": {}
           },
           "model_context": {
             "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
@@ -43,12 +41,12 @@
               "component_type": "tool",
               "version": 1,
               "component_version": 2,
-              "label": "IntakeTools",
-              "description": "Wrappers around intake helper functions.",
+              "label": "ConversationalTools",
+              "description": "Wrappers exposing orchestrator functions for the conversational agent.",
               "config": {
-                "name": "intake_tools",
-                "description": "Expose intake helpers from tools.intake_tools.",
-                "source_code": "import sys\nfrom pathlib import Path\nfrom uuid import uuid4\n\nROOT = Path.cwd()\nif str(ROOT) not in sys.path:\n    sys.path.insert(0, str(ROOT))\n\nfrom tools.intake_tools import intake_step, intake_snapshot, intake_finalize, reset_session\n\n_METHOD_SPEC_OVERRIDES = {\n    \"method\": \"Which estimation technique should we use? Options: storypoints, cocomo, parametric, fpa.\"\n}\n\n_SESSION = {\"id\": None}\n\n\ndef _ensure_session():\n    if _SESSION[\"id\"] is None:\n        _SESSION[\"id\"] = str(uuid4())\n    return _SESSION[\"id\"]\n\n\ndef intake_step_tool(user_text: str):\n    session_id = _ensure_session()\n    return intake_step(session_id=session_id, user_text=user_text)\n\n\ndef intake_snapshot_tool():\n    session_id = _ensure_session()\n    return intake_snapshot(session_id=session_id)\n\n\ndef intake_finalize_tool():\n    session_id = _ensure_session()\n    payload = intake_finalize(session_id=session_id)\n    _SESSION[\"id\"] = None\n    return payload\n\n\ndef intake_reset_tool():\n    if _SESSION[\"id\"] is not None:\n        reset_session(_SESSION[\"id\"])\n    _SESSION[\"id\"] = None\n    return {\"status\": \"reset\"}\n",
+                "name": "conversational_orchestrator_tools",
+                "description": "Expose workflow control helpers.",
+                "source_code": "import sys\nfrom pathlib import Path\n\nROOT = Path.cwd()\nif str(ROOT) not in sys.path:\n    sys.path.insert(0, str(ROOT))\n\nfrom tools import orchestrator_tools as _ot\n\nstart_new_project_tool = _ot.start_new_project_tool\nrecord_baseline_field_tool = _ot.record_baseline_field_tool\nsubmit_user_description_tool = _ot.submit_user_description_tool\ndraft_expansion_tool = _ot.draft_expansion_tool\nconfirm_expansion_tool = _ot.confirm_expansion_tool\nevaluate_methods_tool = _ot.evaluate_methods_tool\ngenerate_explanation_tool = _ot.generate_explanation_tool\nget_project_context_tool = _ot.get_project_context_tool\nregister_estimate_tool = _ot.register_estimate_tool\n",
                 "global_imports": [],
                 "has_cancellation_support": false
               }
@@ -64,21 +62,19 @@
         "component_type": "agent",
         "version": 1,
         "component_version": 2,
-        "label": "EstimatorRunner",
-        "description": "Executes estimation helpers once the payload is prepared.",
+        "label": "InterpreterAgent",
+        "description": "Produces semantic expansions and highlights missing signals.",
         "config": {
-          "name": "EstimatorRunner",
-          "description": "Executes estimation helpers once the payload is prepared.",
-          "system_message": "When the intake agent provides a structured payload, call run_estimation_tool with it and share the formatted result. Request clarifications if the payload is incomplete.",
+          "name": "InterpreterAgent",
+          "description": "Semantic expansion specialist.",
+          "system_message": "You are the Interpreter agent. When invoked, call `draft_expansion_tool` with the project identifier to generate an ExpansionV1 draft. Summarize the findings and surface up to three clarifying questions if important gaps remain. Do not ask users for baseline fields; coordinate with the Conversational agent instead.",
           "model_client": {
-            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "provider": "offline_model_client.DummyModelClient",
             "component_type": "model",
             "version": 1,
-            "component_version": 2,
-            "label": "OpenAIChatCompletionClient",
-            "config": {
-              "model": "gpt-4o-mini"
-            }
+            "component_version": 1,
+            "label": "DummyModelClient",
+            "config": {}
           },
           "model_context": {
             "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
@@ -95,12 +91,112 @@
               "component_type": "tool",
               "version": 1,
               "component_version": 2,
-              "label": "RunEstimation",
-              "description": "Call project estimation helpers.",
+              "label": "InterpreterTools",
+              "description": "Expansion + context helpers.",
               "config": {
-                "name": "run_estimation_tool",
-                "description": "Execute the appropriate estimation helper and return JSON.",
-                "source_code": "import sys\nfrom pathlib import Path\n\nROOT = Path.cwd()\nif str(ROOT) not in sys.path:\n    sys.path.insert(0, str(ROOT))\n\nfrom tools.cocomo_tools import generate_cocomo_ii_estimation\nfrom tools.fpa_tools import generate_fpa_estimation\nfrom tools.storypoints_tools import generate_storypoints_estimation\nfrom tools.parametric_tools import generate_parametric_estimation\n\n_ESTIMATORS = {\n    \"cocomo\": generate_cocomo_ii_estimation,\n    \"storypoints\": generate_storypoints_estimation,\n    \"parametric\": generate_parametric_estimation,\n    \"fpa\": generate_fpa_estimation,\n}\n\ndef run_estimation_tool(payload: dict):\n    method = payload.get(\"method\")\n    kwargs = payload.get(\"kwargs\", {})\n    if method not in _ESTIMATORS:\n        raise ValueError(f\"Unsupported estimation method '{method}'.\")\n    result = _ESTIMATORS[method](**kwargs)\n    return result.model_dump_json(indent=2)\n",
+                "name": "interpreter_orchestrator_tools",
+                "description": "Expose interpreter workflow helpers.",
+                "source_code": "import sys\nfrom pathlib import Path\n\nROOT = Path.cwd()\nif str(ROOT) not in sys.path:\n    sys.path.insert(0, str(ROOT))\n\nfrom tools import orchestrator_tools as _ot\n\ndraft_expansion_tool = _ot.draft_expansion_tool\nget_project_context_tool = _ot.get_project_context_tool\n",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "MethodSelectorAgent",
+        "description": "Evaluates estimation techniques and reports completeness gaps.",
+        "config": {
+          "name": "MethodSelectorAgent",
+          "description": "Method selection engine.",
+          "system_message": "You are the Method Selector agent. When prompted, call `evaluate_methods_tool` to retrieve the SelectionPayload. Outline the recommended primary method, backup options, confidence, and any missing inputs. Do not execute estimations yourself.",
+          "model_client": {
+            "provider": "offline_model_client.DummyModelClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "DummyModelClient",
+            "config": {}
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "MethodSelectorTools",
+              "description": "Selection + context helpers.",
+              "config": {
+                "name": "selector_orchestrator_tools",
+                "description": "Expose method-selection helpers.",
+                "source_code": "import sys\nfrom pathlib import Path\n\nROOT = Path.cwd()\nif str(ROOT) not in sys.path:\n    sys.path.insert(0, str(ROOT))\n\nfrom tools import orchestrator_tools as _ot\n\nevaluate_methods_tool = _ot.evaluate_methods_tool\nget_project_context_tool = _ot.get_project_context_tool\n",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "ExplainerAgent",
+        "description": "Translates estimator outputs into user-facing summaries.",
+        "config": {
+          "name": "ExplainerAgent",
+          "description": "Narrative explainer.",
+          "system_message": "You are the Explainer agent. After estimates are attached, call `generate_explanation_tool` to retrieve the latest summary and improvement prompts. Present the results in clear sections and highlight the next best inputs the user should provide.",
+          "model_client": {
+            "provider": "offline_model_client.DummyModelClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "DummyModelClient",
+            "config": {}
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "ExplainerTools",
+              "description": "Explanation + context helpers.",
+              "config": {
+                "name": "explainer_orchestrator_tools",
+                "description": "Expose explanation helpers.",
+                "source_code": "import sys\nfrom pathlib import Path\n\nROOT = Path.cwd()\nif str(ROOT) not in sys.path:\n    sys.path.insert(0, str(ROOT))\n\nfrom tools import orchestrator_tools as _ot\n\ngenerate_explanation_tool = _ot.generate_explanation_tool\nget_project_context_tool = _ot.get_project_context_tool\n",
                 "global_imports": [],
                 "has_cancellation_support": false
               }
@@ -135,7 +231,7 @@
             "version": 1,
             "component_version": 2,
             "config": {
-              "max_messages": 20,
+              "max_messages": 30,
               "include_agent_event": false
             }
           }

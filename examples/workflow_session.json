@@ -1,0 +1,77 @@
+{
+  "project_id": "sample-web-platform",
+  "baseline": {
+    "project_type": "software development",
+    "complexity": "medium",
+    "tech_stack": "web technologies",
+    "team_pref": 8,
+    "region": "North America"
+  },
+  "selection": {
+    "primary": "agile_sp",
+    "backups": [
+      "parametric",
+      "analogous"
+    ],
+    "confidence_level": "medium",
+    "rationale": "agile_sp selected with completeness 0.90. Backup methods: parametric, analogous.",
+    "required_inputs": [
+      {
+        "field": "reuse_profile",
+        "prompt": "Share reuse percentages for design, code, integration, testing (if applicable).",
+        "priority": "high"
+      }
+    ],
+    "completeness_scores": {
+      "agile_sp": 0.9,
+      "parametric": 0.6,
+      "analogous": 0.5,
+      "cocomo2": 0.45,
+      "fpa": 0.3,
+      "bottomup": 0.4
+    }
+  },
+  "estimates": [
+    {
+      "method": "agile_sp",
+      "cost_range": {
+        "min": 185000.0,
+        "likely": 205000.0,
+        "max": 235000.0,
+        "currency": "USD"
+      },
+      "duration_range": {
+        "min": 4.5,
+        "likely": 5.0,
+        "max": 5.5,
+        "unit": "months"
+      },
+      "team": [
+        {"role": "senior delivery lead", "count": 2, "hourly_rate": 150.0},
+        {"role": "mid engineer", "count": 3, "hourly_rate": 120.0},
+        {"role": "junior engineer", "count": 3, "hourly_rate": 90.0}
+      ],
+      "drivers": [
+        {"factor": "Labor cost", "contribution_pct": 78.0, "note": "Story points converted to labor hours and blended rate"},
+        {"factor": "Infrastructure uplift", "contribution_pct": 12.0, "note": "10.0% applied to labor cost"},
+        {"factor": "Other expenses", "contribution_pct": 10.0, "note": "5.0% contingency"}
+      ],
+      "assumptions": [
+        {"text": "Velocity is assumed to remain steady across sprints.", "type": "default", "impact": "medium"},
+        {"text": "Cost multipliers for infrastructure and other expenses use configured percentages.", "type": "default", "impact": "medium"}
+      ],
+      "milestones": [
+        {"name": "Discovery & Planning", "duration_days": 28, "dependencies": []},
+        {"name": "Build & Iteration", "duration_days": 84, "dependencies": []},
+        {"name": "Stabilization & Launch", "duration_days": 28, "dependencies": []}
+      ],
+      "recommendations": [
+        "Maintain sprint velocity within ±10% of target.",
+        "Meet Definition of Done for each sprint without scope spillover.",
+        "Deploy a production-ready increment by the final stabilization milestone."
+      ]
+    }
+  ],
+  "explanation": "## Estimation Summary\n- Project `sample-web-platform` assessed using **AGILE_SP**\n- Confidence level: **Medium**\n\n### Cost & Schedule\n- Estimated cost: USD 185,000 – 205,000 – 235,000\n- Estimated duration: 4.5 – 5.0 – 5.5 months\n- Indicative team composition: 2 × senior delivery lead, 3 × mid engineer, 3 × junior engineer\n\n### Top Drivers\n  - Labor cost (78.0% impact) – Story points converted to labor hours and blended rate\n  - Infrastructure uplift (12.0% impact) – 10.0% applied to labor cost\n  - Other expenses (10.0% impact) – 5.0% contingency\n\n### Key Assumptions\n  - (medium/default) Velocity is assumed to remain steady across sprints.\n  - (medium/default) Cost multipliers for infrastructure and other expenses use configured percentages.\n\n### Improve This Estimate\n  - Share reuse percentages for design, code, integration, testing (if applicable).\n\n_Backup methods available_: parametric, analogous"
+}
+

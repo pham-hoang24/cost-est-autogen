@@ -9,17 +9,16 @@ Helpers for producing Story Point–driven estimates conforming to the shared
 from dataclasses import dataclass
 from datetime import date, timedelta
 import math
-from typing import Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 from .schema import (
-    CostEstimate,
+    Assumption,
+    CostRange,
+    Driver,
+    DurationRange,
     EstimationOutput,
-    FeatureCost,
-    Milestone,
-    RoleCount,
-    TeamComposition,
-    TimelineEstimate,
-    TimelineTask,
+    MilestoneDetail,
+    TeamRoleCount,
 )
 
 
@@ -50,48 +49,53 @@ def _normalize_features(features: Optional[Iterable[FeatureInput]]) -> List[Feat
     return normalized
 
 
-def _build_team_composition(team_size: int) -> TeamComposition:
+def _build_team_roles(team_size: int, hourly_rate: float) -> List[TeamRoleCount]:
+    if team_size <= 0:
+        return []
     if team_size <= 2:
-        distribution = {"senior": team_size}
-    else:
-        distribution = {
-            "senior": max(1, math.floor(team_size * 0.35)),
-            "mid": max(1, math.floor(team_size * 0.4)),
-            "junior": max(0, team_size - math.floor(team_size * 0.35) - math.floor(team_size * 0.4)),
-        }
-    developers = [
-        RoleCount(level=level, count=count)
-        for level, count in distribution.items()
-        if count > 0
-    ]
-    return TeamComposition(developers=developers, designers=[])
+        return [
+            TeamRoleCount(role="senior delivery lead", count=team_size, hourly_rate=round(hourly_rate * 1.25, 2))
+        ]
+
+    senior = max(1, math.floor(team_size * 0.35))
+    mid = max(1, math.floor(team_size * 0.4))
+    junior = max(0, team_size - senior - mid)
+
+    roles: List[TeamRoleCount] = []
+    if senior > 0:
+        roles.append(TeamRoleCount(role="senior engineer", count=senior, hourly_rate=round(hourly_rate * 1.25, 2)))
+    if mid > 0:
+        roles.append(TeamRoleCount(role="mid engineer", count=mid, hourly_rate=round(hourly_rate, 2)))
+    if junior > 0:
+        roles.append(TeamRoleCount(role="junior engineer", count=junior, hourly_rate=round(hourly_rate * 0.75, 2)))
+    return roles
 
 
-def _build_timeline(sprints: int, sprint_length_weeks: int, start: date) -> List[TimelineTask]:
-    tasks: List[TimelineTask] = []
+def _build_timeline(sprints: int, sprint_length_weeks: int, start: date) -> List[Dict[str, str]]:
+    tasks: List[Dict[str, str]] = []
     current = start
     for idx in range(1, sprints + 1):
         end = current + timedelta(weeks=sprint_length_weeks)
         tasks.append(
-            TimelineTask(
-                task=f"Sprint {idx}",
-                start_date=current.isoformat(),
-                end_date=(end - timedelta(days=1)).isoformat(),
-            )
+            {
+                "task": f"Sprint {idx}",
+                "start_date": current.isoformat(),
+                "end_date": (end - timedelta(days=1)).isoformat(),
+            }
         )
         current = end
     return tasks
 
 
-def _build_milestones(sprints: int, sprint_length_weeks: int) -> List[Milestone]:
+def _build_milestones(sprints: int, sprint_length_weeks: int) -> List[MilestoneDetail]:
     total_weeks = sprints * sprint_length_weeks
     discovery = max(1, round(total_weeks * 0.2))
     build = max(1, round(total_weeks * 0.6))
     stabilize = max(1, total_weeks - discovery - build)
     return [
-        Milestone(name="Discovery & Planning", duration=f"{discovery} weeks"),
-        Milestone(name="Build & Iteration", duration=f"{build} weeks"),
-        Milestone(name="Stabilization & Launch", duration=f"{stabilize} weeks"),
+        MilestoneDetail(name="Discovery & Planning", duration_days=discovery * 7),
+        MilestoneDetail(name="Build & Iteration", duration_days=build * 7),
+        MilestoneDetail(name="Stabilization & Launch", duration_days=stabilize * 7),
     ]
 
 
@@ -130,7 +134,7 @@ def generate_storypoints_estimation(
     effort_pm = total_hours / 152.0
 
     team_size = planned_team_size or max(1, round(team_velocity / 20))
-    team_composition = _build_team_composition(team_size)
+    team_roles = _build_team_roles(team_size, hourly_rate)
 
     start_date = start or date.today()
     timeline_tasks = _build_timeline(sprints, sprint_length_weeks, start_date)
@@ -142,16 +146,16 @@ def generate_storypoints_estimation(
     total_cost = labor_cost + infrastructure_cost + other_expenses
 
     feature_inputs = _normalize_features(features)
-    feature_costs: List[FeatureCost] = []
+    feature_costs: List[Dict[str, float]] = []
     for feature in feature_inputs:
         hours = total_hours * (feature.effort_percent / 100.0)
         cost = hours * hourly_rate
         feature_costs.append(
-            FeatureCost(
-                name=feature.name,
-                hours=round(hours, 2),
-                cost=round(cost, 2),
-            )
+            {
+                "name": feature.name,
+                "hours": round(hours, 2),
+                "cost": round(cost, 2),
+            }
         )
 
     executive_summary = (
@@ -179,35 +183,80 @@ def generate_storypoints_estimation(
         "Release readiness checklist and deployment playbook.",
     ]
 
-    return EstimationOutput(
-        executive_summary=executive_summary,
-        team_composition=team_composition,
-        cost_estimate=CostEstimate(
-            total_cost=round(total_cost, 2),
-            labor_cost=round(labor_cost, 2),
-            infrastructure_cost=round(infrastructure_cost, 2),
-            other_expenses=round(other_expenses, 2),
-        ),
-        timeline_estimate=TimelineEstimate(
-            total_duration=f"{schedule_months:.1f} months",
-            milestones=milestones,
-        ),
-        resource_allocation={
-            "project_name": project_name,
-            "total_story_points": total_story_points,
-            "team_velocity": team_velocity,
-            "sprint_length_weeks": sprint_length_weeks,
+    inputs_snapshot = {
+        "project_name": project_name,
+        "total_story_points": total_story_points,
+        "team_velocity": team_velocity,
+        "sprint_length_weeks": sprint_length_weeks,
+        "hours_per_point": hours_per_point,
+        "hourly_rate": hourly_rate,
+        "planned_team_size": planned_team_size,
+    }
+
+    cost_range = CostRange(
+        min=round(total_cost * 0.9, 2),
+        likely=round(total_cost, 2),
+        max=round(total_cost * 1.1, 2),
+    )
+
+    duration_range = DurationRange(
+        min=round(schedule_months * 0.9, 2),
+        likely=round(schedule_months, 2),
+        max=round(schedule_months * 1.1, 2),
+    )
+
+    results_block = {
+        "effort_pm": round(effort_pm, 2),
+        "labor_cost": round(labor_cost, 2),
+        "infrastructure_cost": round(infrastructure_cost, 2),
+        "other_expenses": round(other_expenses, 2),
+        "feature_breakdown": feature_costs,
+        "timeline": timeline_tasks,
+        "agile": {
             "sprints": sprints,
-            "effort_person_months": round(effort_pm, 2),
-            "estimated_duration_months": round(schedule_months, 2),
+            "velocity": team_velocity,
             "hours_per_point": hours_per_point,
-            "team_size": team_size,
         },
-        explanation=explanation,
-        success_criteria=success_criteria,
-        deliverables=deliverables,
-        features=feature_costs,
-        timeline=timeline_tasks,
+        "deliverables": deliverables,
+        "executive_summary": executive_summary,
+        "explanation": explanation,
+    }
+
+    drivers = [
+        Driver(
+            factor="Labor cost",
+            contribution_pct=round((labor_cost / total_cost) * 100, 2),
+            note="Story points converted to labor hours and blended rate",
+        ),
+        Driver(
+            factor="Infrastructure uplift",
+            contribution_pct=round((infrastructure_cost / total_cost) * 100, 2),
+            note=f"{infrastructure_pct * 100:.1f}% applied to labor cost",
+        ),
+        Driver(
+            factor="Other expenses",
+            contribution_pct=round((other_expenses / total_cost) * 100, 2),
+            note=f"{other_expenses_pct * 100:.1f}% contingency",
+        ),
+    ]
+
+    assumptions_objects = [
+        Assumption(text="Velocity is assumed to remain steady across sprints."),
+        Assumption(text="Cost multipliers for infrastructure and other expenses use configured percentages."),
+    ]
+
+    return EstimationOutput(
+        method="agile_sp",
+        inputs_snapshot=inputs_snapshot,
+        results=results_block,
+        drivers=drivers,
+        confidence=0.5,
+        assumptions=assumptions_objects,
+        cost_range=cost_range,
+        duration_range=duration_range,
+        team=team_roles,
+        milestones=milestones,
+        recommendations=success_criteria,
     )
 
 

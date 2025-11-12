@@ -8,17 +8,16 @@ into costs and schedules using calibrated rates.
 
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 from .schema import (
-    CostEstimate,
+    Assumption,
+    CostRange,
+    Driver,
+    DurationRange,
     EstimationOutput,
-    FeatureCost,
-    Milestone,
-    RoleCount,
-    TeamComposition,
-    TimelineEstimate,
-    TimelineTask,
+    MilestoneDetail,
+    TeamRoleCount,
 )
 
 
@@ -29,48 +28,54 @@ class UnitBreakdown:
     rate_per_unit: float
 
 
-def _build_team_composition(team_size: int) -> TeamComposition:
-    if team_size <= 1:
-        developers = [RoleCount(level="senior", count=1)]
-    else:
-        developers = [
-            RoleCount(level="senior", count=max(1, round(team_size * 0.3))),
-            RoleCount(level="mid", count=max(1, round(team_size * 0.5))),
-        ]
-        junior_count = team_size - sum(role.count for role in developers)
-        if junior_count > 0:
-            developers.append(RoleCount(level="junior", count=junior_count))
-    return TeamComposition(developers=developers, designers=[])
+def _build_team_roles(team_size: int, hourly_rate: float) -> List[TeamRoleCount]:
+    if team_size <= 0:
+        return []
+    if team_size == 1:
+        return [TeamRoleCount(role="senior analyst", count=1, hourly_rate=round(hourly_rate * 1.2, 2))]
+
+    senior = max(1, round(team_size * 0.3))
+    mid = max(1, round(team_size * 0.5))
+    junior = max(0, team_size - senior - mid)
+
+    roles: List[TeamRoleCount] = []
+    if senior:
+        roles.append(TeamRoleCount(role="senior analyst", count=senior, hourly_rate=round(hourly_rate * 1.2, 2)))
+    if mid:
+        roles.append(TeamRoleCount(role="mid analyst", count=mid, hourly_rate=round(hourly_rate, 2)))
+    if junior:
+        roles.append(TeamRoleCount(role="junior analyst", count=junior, hourly_rate=round(hourly_rate * 0.7, 2)))
+    return roles
 
 
-def _build_timeline(total_units: float, productivity: float, start: date) -> List[TimelineTask]:
+def _build_timeline(total_units: float, productivity: float, start: date) -> List[Dict[str, str]]:
     total_weeks = max(1, round((total_units / max(productivity, 1e-6)) / 40.0))
     phases = [
         ("Calibration & Setup", 0.2),
         ("Execution", 0.6),
         ("Validation & Rollout", 0.2),
     ]
-    timeline: List[TimelineTask] = []
+    timeline: List[Dict[str, str]] = []
     current = start
     for name, ratio in phases:
         weeks = max(1, round(total_weeks * ratio))
         end = current + timedelta(weeks=weeks)
         timeline.append(
-            TimelineTask(
-                task=name,
-                start_date=current.isoformat(),
-                end_date=(end - timedelta(days=1)).isoformat(),
-            )
+            {
+                "task": name,
+                "start_date": current.isoformat(),
+                "end_date": (end - timedelta(days=1)).isoformat(),
+            }
         )
         current = end
     return timeline
 
 
-def _build_milestones(total_months: float) -> List[Milestone]:
+def _build_milestones(total_months: float) -> List[MilestoneDetail]:
     return [
-        Milestone(name="Calibration Complete", duration="1 month"),
-        Milestone(name="Execution Complete", duration=f"{max(1, round(total_months - 1))} months"),
-        Milestone(name="Validation & Launch", duration="1 month"),
+        MilestoneDetail(name="Calibration Complete", duration_days=30),
+        MilestoneDetail(name="Execution Complete", duration_days=max(30, round(max(total_months - 1, 1) * 30))),
+        MilestoneDetail(name="Validation & Launch", duration_days=30),
     ]
 
 
@@ -109,7 +114,7 @@ def generate_parametric_estimation(
     schedule_months = max(1.0, total_weeks / 4.345)
 
     team_size = assumed_team_size or max(1, round((total_hours / schedule_months) / 152.0))
-    team_composition = _build_team_composition(team_size)
+    team_roles = _build_team_roles(team_size, hourly_rate)
 
     start_date = start or date.today()
     timeline = _build_timeline(total_units, team_productivity, start_date)
@@ -121,20 +126,20 @@ def generate_parametric_estimation(
 
     if unit_breakdown:
         features = [
-            FeatureCost(
-                name=item.name,
-                hours=round(item.units * hours_per_unit, 2),
-                cost=round(item.units * item.rate_per_unit, 2),
-            )
+            {
+                "name": item.name,
+                "hours": round(item.units * hours_per_unit, 2),
+                "cost": round(item.units * item.rate_per_unit, 2),
+            }
             for item in unit_breakdown
         ]
     else:
         features = [
-            FeatureCost(
-                name="Aggregated Units",
-                hours=round(total_hours, 2),
-                cost=round(labor_cost, 2),
-            )
+            {
+                "name": "Aggregated Units",
+                "hours": round(total_hours, 2),
+                "cost": round(labor_cost, 2),
+            }
         ]
 
     executive_summary = (
@@ -160,34 +165,82 @@ def generate_parametric_estimation(
         "Variance analysis and mitigation plan updated bi-weekly.",
     ]
 
+    inputs_snapshot = {
+        "project_name": project_name,
+        "total_units": total_units,
+        "cost_per_unit": cost_per_unit,
+        "hours_per_unit": hours_per_unit,
+        "team_productivity_units_per_week": team_productivity_units_per_week,
+        "hourly_rate": hourly_rate,
+        "assumed_team_size": assumed_team_size,
+    }
+
+    cost_range = CostRange(
+        min=round(total_cost * 0.9, 2),
+        likely=round(total_cost, 2),
+        max=round(total_cost * 1.1, 2),
+    )
+
+    duration_range = DurationRange(
+        min=round(schedule_months * 0.9, 2),
+        likely=round(schedule_months, 2),
+        max=round(schedule_months * 1.1, 2),
+    )
+
+    resource_allocation: Dict[str, float] = {
+        "effort_person_months": round(effort_pm, 2),
+        "estimated_duration_months": round(schedule_months, 2),
+        "team_size": team_size,
+        "productivity_units_per_week": round(team_productivity, 2),
+    }
+
+    results_block = {
+        "labor_cost": round(labor_cost, 2),
+        "infrastructure_cost": round(infrastructure_cost, 2),
+        "other_expenses": round(other_expenses, 2),
+        "feature_breakdown": features,
+        "timeline": timeline,
+        "resource_allocation": resource_allocation,
+        "deliverables": deliverables,
+        "executive_summary": executive_summary,
+        "explanation": explanation,
+    }
+
+    drivers = [
+        Driver(
+            factor="Labor cost",
+            contribution_pct=round((labor_cost / total_cost) * 100, 2),
+            note="Primary driver via cost-per-unit calibration",
+        ),
+        Driver(
+            factor="Infrastructure uplift",
+            contribution_pct=round((infrastructure_cost / total_cost) * 100, 2),
+            note=f"{infrastructure_pct * 100:.1f}% applied to labor cost",
+        ),
+        Driver(
+            factor="Other expenses",
+            contribution_pct=round((other_expenses / total_cost) * 100, 2),
+            note=f"{other_expenses_pct * 100:.1f}% contingency and tooling",
+        ),
+    ]
+
+    assumptions_objects = [
+        Assumption(text="Productivity remains steady across delivery weeks."),
+        Assumption(text="Unit cost calibration reflects blended labor assumptions."),
+    ]
+
     return EstimationOutput(
-        executive_summary=executive_summary,
-        team_composition=team_composition,
-        cost_estimate=CostEstimate(
-            total_cost=round(total_cost, 2),
-            labor_cost=round(labor_cost, 2),
-            infrastructure_cost=round(infrastructure_cost, 2),
-            other_expenses=round(other_expenses, 2),
-        ),
-        timeline_estimate=TimelineEstimate(
-            total_duration=f"{schedule_months:.1f} months",
-            milestones=milestones,
-        ),
-        resource_allocation={
-            "project_name": project_name,
-            "total_units": total_units,
-            "cost_per_unit": cost_per_unit,
-            "hours_per_unit": hours_per_unit,
-            "team_productivity_units_per_week": team_productivity,
-            "effort_person_months": round(effort_pm, 2),
-            "estimated_duration_months": round(schedule_months, 2),
-            "team_size": team_size,
-        },
-        explanation=explanation,
-        success_criteria=success_criteria,
-        deliverables=deliverables,
-        features=features,
-        timeline=timeline,
+        method="parametric",
+        inputs_snapshot=inputs_snapshot,
+        results=results_block,
+        drivers=drivers,
+        confidence=0.55,
+        assumptions=assumptions_objects,
+        cost_range=cost_range,
+        duration_range=duration_range,
+        team=team_roles,
+        milestones=milestones,
+        recommendations=success_criteria,
     )
 
 

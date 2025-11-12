@@ -31,7 +31,11 @@ from tools.cocomo_tools import generate_cocomo_ii_estimation
 from tools.fpa_tools import FeatureInput as FPAFeatureInput, generate_fpa_estimation
 from tools.intake_tools import offline_intake_flow
 from tools.parametric_tools import UnitBreakdown, generate_parametric_estimation
-from tools.storypoints_tools import FeatureInput as StoryFeatureInput, generate_storypoints_estimation
+from tools.storypoints_tools import (
+    FeatureInput as StoryFeatureInput,
+    generate_storypoints_estimation,
+)
+from workflow.channels import CLIChannel
 
 Estimator = Callable[..., Any]
 
@@ -85,17 +89,18 @@ def load_payload(path: Path) -> Dict[str, Any]:
     raise ValueError(f"Unsupported input format '{ext}'. Use .json, .yaml, or .yml.")
 
 
-def prompt_missing(value: str | None, message: str) -> str:
+def prompt_missing(channel: CLIChannel, value: str | None, message: str) -> str:
     if value:
         return value
     try:
-        return input(message).strip()
+        return channel.ask(message)
     except EOFError:
         raise RuntimeError("Missing required input and no interactive terminal available.")
 
 
 def main() -> int:
     args = parse_args()
+    channel = CLIChannel()
 
     if args.list_methods:
         print("Available methods:")
@@ -104,9 +109,9 @@ def main() -> int:
         return 0
 
     if args.intake:
-        prompt = input("Describe your project goals and constraints: ")
+        prompt = channel.ask("Describe your project goals and constraints:")
         try:
-            payload = offline_intake_flow(prompt)
+            payload = offline_intake_flow(channel, prompt)
         except Exception as exc:
             print(f"Intake failed: {exc}", file=sys.stderr)
             return 1
@@ -126,12 +131,16 @@ def main() -> int:
             print(json.dumps(result, indent=2))
         return 0
 
-    method_name = prompt_missing(args.method, "Select method (cocomo, fpa, storypoints, parametric, bottomup, analogous): ")
+    method_name = prompt_missing(
+        channel,
+        args.method,
+        "Select method (cocomo, fpa, storypoints, parametric, bottomup, analogous): ",
+    )
     if method_name not in ESTIMATORS:
         print(f"Unknown method '{method_name}'. Use --list-methods to view options.", file=sys.stderr)
         return 1
 
-    input_path = prompt_missing(args.input, "Path to JSON/YAML payload: ")
+    input_path = prompt_missing(channel, args.input, "Path to JSON/YAML payload: ")
     payload = load_payload(Path(input_path))
 
     estimator = ESTIMATORS[method_name]

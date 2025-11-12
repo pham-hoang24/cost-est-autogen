@@ -1,0 +1,98 @@
+from __future__ import annotations
+
+from typing import Any, Dict, Optional
+
+from workflow import ProjectContext, WorkflowOrchestrator
+
+_ORCHESTRATOR = WorkflowOrchestrator()
+_BASELINE_FIELDS = ["project_type", "complexity", "tech_stack", "team_pref", "region"]
+
+
+def start_new_project_tool(project_id: Optional[str] = None) -> Dict[str, object]:
+    context = _ORCHESTRATOR.start_new_project(project_id=project_id)
+    return _serialize_context(context)
+
+
+def record_baseline_field_tool(project_id: str, field: str, value: str) -> Dict[str, object]:
+    if field not in _BASELINE_FIELDS:
+        raise ValueError(f"Unsupported baseline field '{field}'. Expected one of {_BASELINE_FIELDS}.")
+    context = _ORCHESTRATOR.record_baseline_field(project_id, field, value)
+    return _serialize_context(context)
+
+
+def submit_user_description_tool(project_id: str, description: str) -> Dict[str, object]:
+    context = _ORCHESTRATOR.submit_description(project_id, description)
+    return _serialize_context(context)
+
+
+def draft_expansion_tool(project_id: str) -> Dict[str, object]:
+    context = _ORCHESTRATOR.generate_expansion(project_id)
+    return _serialize_context(context)
+
+
+def confirm_expansion_tool(project_id: str, approval_text: str = "approve") -> Dict[str, object]:
+    context = _ORCHESTRATOR.confirm_expansion(project_id, approval_text)
+    return _serialize_context(context)
+
+
+def evaluate_methods_tool(project_id: str) -> Dict[str, object]:
+    context = _ORCHESTRATOR.evaluate_methods(project_id)
+    return _serialize_context(context)
+
+
+def generate_explanation_tool(project_id: str) -> Dict[str, object]:
+    context = _ORCHESTRATOR.generate_explanation(project_id)
+    return _serialize_context(context)
+
+
+def get_project_context_tool(project_id: str) -> Dict[str, object]:
+    context = _ORCHESTRATOR.load_context(project_id, create_if_missing=True)
+    return _serialize_context(context)
+
+
+def register_estimate_tool(project_id: str, estimate: Dict[str, Any], mark_complete: bool = True) -> Dict[str, object]:
+    context = _ORCHESTRATOR.attach_estimate(project_id, estimate, mark_complete=mark_complete)
+    return _serialize_context(context)
+
+
+def _serialize_context(context: ProjectContext) -> Dict[str, object]:
+    payload: Dict[str, object] = {
+        "project_id": context.project_id,
+        "status": context.status,
+        "version": context.version,
+        "baseline": context.baseline.model_dump(exclude_none=True),
+        "user_description": context.user_description,
+        "missing_baseline": _missing_baseline(context),
+        "events": [event.model_dump() for event in context.events],
+    }
+    if context.expansion_draft:
+        payload["expansion_draft"] = context.expansion_draft.model_dump()
+    if context.expansion_confirmed:
+        payload["expansion_confirmed"] = context.expansion_confirmed.model_dump()
+    if context.parsed_context:
+        payload["parsed_context"] = context.parsed_context.model_dump()
+    if context.selection:
+        payload["selection"] = context.selection.model_dump()
+    if context.estimates:
+        payload["estimates"] = context.estimates
+    if context.explanation:
+        payload["explanation"] = context.explanation
+    return payload
+
+
+def _missing_baseline(context: ProjectContext) -> Dict[str, str]:
+    prompts = {
+        "project_type": "Select project type (software development, ai/ml project, system integration, cloud migration, mobile application, web application).",
+        "complexity": "Specify complexity (low, medium, high, very high).",
+        "tech_stack": "Describe the technology focus (web technologies, mobile development, ai/ml technologies, cloud technology, enterprise systems).",
+        "team_pref": "Provide desired team size (numeric).",
+        "region": "Provide the primary delivery region (e.g., North America, EMEA).",
+    }
+    missing: Dict[str, str] = {}
+    baseline = context.baseline.model_dump()
+    for field in _BASELINE_FIELDS:
+        value = baseline.get(field)
+        if value in (None, "", 0):
+            missing[field] = prompts[field]
+    return missing
+

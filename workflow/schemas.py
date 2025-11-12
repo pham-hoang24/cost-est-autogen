@@ -7,13 +7,16 @@ from pydantic import BaseModel, Field, validator
 
 SourceType = Literal["user", "inferred"]
 PlatformType = Literal["web", "ios", "android", "desktop", "cloud", "other"]
-MethodType = Literal["cocomo2", "fpa", "agile_sp", "analogous", "parametric", "blend"]
+MethodType = Literal["cocomo2", "fpa", "agile_sp", "analogous", "parametric", "bottomup", "blend"]
 StatusType = Literal["OK", "NEEDS_CONFIRMATION", "BLOCKED", "ERROR"]
 
 
 class NamedItem(BaseModel):
     name: str
     source: SourceType = Field(..., description="Origin of the information.")
+    confidence: Optional[float] = Field(
+        default=None, ge=0.0, le=1.0, description="Confidence score when inferred."
+    )
 
 
 class TraceEntry(BaseModel):
@@ -41,6 +44,7 @@ class ExpansionV1(BaseModel):
     constraints: List[ConstraintEntry] = Field(default_factory=list)
     assumptions: List[str] = Field(default_factory=list)
     trace: List[TraceEntry] = Field(default_factory=list)
+    missing_signals: List[str] = Field(default_factory=list)
 
 
 class ParsedSize(BaseModel):
@@ -119,6 +123,12 @@ class SelectionPayload(BaseModel):
     backups: List[MethodType] = Field(default_factory=list)
     rationale: str
     completeness_scores: Dict[MethodType, float] = Field(default_factory=dict)
+    required_inputs: List[Dict[str, str]] = Field(
+        default_factory=list,
+        description="List of missing inputs with prompts and priorities.",
+    )
+    confidence_level: Literal["high", "medium", "low"] = "medium"
+    blend_weights: Optional[Dict[MethodType, float]] = None
 
     @validator("completeness_scores")
     def _clip_scores(cls, value: Dict[MethodType, float]) -> Dict[MethodType, float]:
@@ -126,6 +136,15 @@ class SelectionPayload(BaseModel):
         for method, score in value.items():
             clipped[method] = max(0.0, min(1.0, score))
         return clipped
+
+    @validator("blend_weights")
+    def _normalize_blend(cls, value: Optional[Dict[MethodType, float]]) -> Optional[Dict[MethodType, float]]:
+        if value is None:
+            return None
+        total = sum(value.values())
+        if total <= 0:
+            return None
+        return {method: weight / total for method, weight in value.items()}
 
 
 class EventEntry(BaseModel):
@@ -142,4 +161,38 @@ class ResponseEnvelope(BaseModel):
     estimates: List[Dict[str, Any]] = Field(default_factory=list)
     events: List[EventEntry] = Field(default_factory=list)
     message_to_user: str = ""
+
+
+class BaselineInputs(BaseModel):
+    project_type: Optional[str] = None
+    complexity: Optional[str] = None
+    tech_stack: Optional[str] = None
+    team_pref: Optional[int] = None
+    region: Optional[str] = None
+
+
+class ProjectContext(BaseModel):
+    project_id: str
+    version: int = 0
+    status: Literal[
+        "NEW",
+        "BASELINE_COLLECTED",
+        "AWAITING_EXPANSION",
+        "EXPANSION_CONFIRMED",
+        "METHOD_SELECTION",
+        "METHOD_SELECTED",
+        "INPUTS_REQUESTED",
+        "EXECUTING_ESTIMATION",
+        "ESTIMATION_COMPLETE",
+        "EXPLANATION_READY",
+    ] = "NEW"
+    baseline: BaselineInputs = Field(default_factory=BaselineInputs)
+    user_description: str = ""
+    expansion_draft: Optional[ExpansionV1] = None
+    expansion_confirmed: Optional[ExpansionV1] = None
+    parsed_context: Optional[ParsedContextV1] = None
+    selection: Optional[SelectionPayload] = None
+    estimates: List[Dict[str, Any]] = Field(default_factory=list)
+    explanation: Optional[str] = None
+    events: List[EventEntry] = Field(default_factory=list)
 

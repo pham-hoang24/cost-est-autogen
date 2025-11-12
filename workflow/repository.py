@@ -1,84 +1,80 @@
+"""
+workflow/repository.py
+======================
+
+Provides a persistence layer for storing and retrieving project context
+across conversational sessions. Replaces the in-memory `_SESSION_STORE`
+with a database-backed repository.
+"""
+
 from __future__ import annotations
 
-import json
-from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 
-from .schemas import EventEntry, ResponseEnvelope
+from .schemas import EventEntry, ProjectContext
 
 
 class ProjectContextRecord(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    project_id: str = Field(index=True)
-    version: int = Field(index=True)
-    payload: str = Field(default="{}")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    """
+    Database representation of a project context snapshot.
+    """
+
+    project_id: str = Field(primary_key=True)
+    version: int = Field(default=0)
+    context_json: str
 
 
 class ProjectContextRepository:
     """
-    Thin persistence layer for project contexts, snapshots, and audit events.
-
-    Uses SQLite via SQLModel for now; swapping the backend only requires replacing
-    this repository.
+    Manages persistence of ProjectContext objects using SQLite.
     """
 
-    def __init__(self, database_url: Optional[str] = None) -> None:
-        self._database_url = database_url or "sqlite:///app/autogen04202.db"
-        self._engine = create_engine(self._database_url, echo=False)
-        SQLModel.metadata.create_all(self._engine)
+    def __init__(self, db_path: str = "app/autogen04202.db"):
+        self.engine = create_engine(f"sqlite:///{db_path}")
+        SQLModel.metadata.create_all(self.engine)
 
-    def _session(self) -> Session:
-        return Session(self._engine)
+    def list_project_ids(self) -> List[str]:
+        with Session(self.engine) as session:
+            results = session.exec(select(ProjectContextRecord.project_id))
+            return list(results)
 
-    def get_latest(self, project_id: str) -> Optional[ResponseEnvelope]:
-        with self._session() as session:
-            statement = (
-                select(ProjectContextRecord)
-                .where(ProjectContextRecord.project_id == project_id)
-                .order_by(ProjectContextRecord.version.desc())
-                .limit(1)
-            )
-            record = session.exec(statement).first()
+    def load(self, project_id: str) -> Optional[ProjectContext]:
+        with Session(self.engine) as session:
+            record = session.get(ProjectContextRecord, project_id)
             if not record:
                 return None
-            data = json.loads(record.payload)
-            return ResponseEnvelope(**data)
+            return ProjectContext.model_validate_json(record.context_json)
 
-    def save_snapshot(self, project_id: str, version: int, envelope: ResponseEnvelope) -> ResponseEnvelope:
-        record = ProjectContextRecord(
-            project_id=project_id,
-            version=version,
-            payload=envelope.json(),
-        )
-        with self._session() as session:
+    def save(self, context: ProjectContext) -> ProjectContext:
+        with Session(self.engine) as session:
+            record = session.get(ProjectContextRecord, context.project_id)
+            context.version += 1
+            if record:
+                record.version = context.version
+                record.context_json = context.model_dump_json()
+            else:
+                record = ProjectContextRecord(
+                    project_id=context.project_id,
+                    version=context.version,
+                    context_json=context.model_dump_json(),
+                )
             session.add(record)
             session.commit()
-        return envelope
+            session.refresh(record)
+            return ProjectContext.model_validate_json(record.context_json)
 
-    def append_event(self, project_id: str, event: EventEntry) -> EventEntry:
-        current = self.get_latest(project_id)
-        if current is None:
-            raise ValueError(f"No context found for project_id '{project_id}'.")
-        current.events.append(event)
-        self.save_latest(project_id, current)
-        return event
+    def delete(self, project_id: str) -> None:
+        with Session(self.engine) as session:
+            record = session.get(ProjectContextRecord, project_id)
+            if record:
+                session.delete(record)
+                session.commit()
 
-    def _next_version(self, project_id: str) -> int:
-        with self._session() as session:
-            statement = (
-                select(ProjectContextRecord.version)
-                .where(ProjectContextRecord.project_id == project_id)
-                .order_by(ProjectContextRecord.version.desc())
-                .limit(1)
-            )
-            latest = session.exec(statement).first()
-            return (latest or 0) + 1
-
-    def save_latest(self, project_id: str, envelope: ResponseEnvelope) -> ResponseEnvelope:
-        version = self._next_version(project_id)
-        return self.save_snapshot(project_id, version, envelope)
-
-
+    def append_event(self, project_id: str, event: EventEntry) -> ProjectContext:
+        context = self.load(project_id)
+        if context is None:
+            context = ProjectContext(project_id=project_id)
+        context.events.append(event)
+        return self.save(context)

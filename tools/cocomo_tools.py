@@ -12,14 +12,13 @@ import math
 from typing import Dict, Iterable, List, Mapping, MutableMapping, Optional, Union
 
 from .schema import (
-    CostEstimate,
+    Assumption,
+    CostRange,
+    Driver,
+    DurationRange,
     EstimationOutput,
-    FeatureCost,
-    Milestone,
-    RoleCount,
-    TeamComposition,
-    TimelineEstimate,
-    TimelineTask,
+    MilestoneDetail,
+    TeamRoleCount,
 )
 
 Number = Union[int, float]
@@ -184,27 +183,28 @@ def _normalize_features(features: Optional[Iterable[FeatureInput]], count: int =
     return normalized
 
 
-def _build_team_composition(staff_count: int) -> TeamComposition:
-    """Derive a rough team distribution across seniority levels."""
+def _build_team_roles(staff_count: int, base_rate: float) -> List[TeamRoleCount]:
+    """Derive a rough team distribution across seniority levels with indicative rates."""
+    if staff_count <= 0:
+        return []
+
     if staff_count <= 2:
-        distribution = {"senior": staff_count}
-    else:
-        distribution = {
-            "senior": max(1, math.floor(staff_count * 0.3)),
-            "mid": max(1, math.floor(staff_count * 0.45)),
-            "junior": max(0, staff_count - math.floor(staff_count * 0.3) - math.floor(staff_count * 0.45)),
-        }
+        return [
+            TeamRoleCount(role="senior engineer", count=staff_count, hourly_rate=round(base_rate * 1.25, 2))
+        ]
 
-    roles = [
-        RoleCount(level=level, count=count)
-        for level, count in distribution.items()
-        if count > 0
-    ]
+    senior = max(1, math.floor(staff_count * 0.3))
+    mid = max(1, math.floor(staff_count * 0.45))
+    junior = max(0, staff_count - senior - mid)
 
-    return TeamComposition(
-        developers=roles,
-        designers=[],
-    )
+    team: List[TeamRoleCount] = []
+    if senior > 0:
+        team.append(TeamRoleCount(role="senior engineer", count=senior, hourly_rate=round(base_rate * 1.3, 2)))
+    if mid > 0:
+        team.append(TeamRoleCount(role="mid engineer", count=mid, hourly_rate=round(base_rate, 2)))
+    if junior > 0:
+        team.append(TeamRoleCount(role="junior engineer", count=junior, hourly_rate=round(base_rate * 0.75, 2)))
+    return team
 
 
 def generate_cocomo_ii_estimation(
@@ -309,25 +309,20 @@ def generate_cocomo_ii_estimation(
     start_date = start or date.today()
 
     feature_inputs = _normalize_features(features)
-    feature_costs: List[FeatureCost] = []
+    feature_costs: List[Dict[str, float]] = []
     for feature in feature_inputs:
         hours = labor_hours * (feature.effort_percent / 100.0)
         cost = hours * hourly_rate
         feature_costs.append(
-            FeatureCost(
-                name=feature.name,
-                hours=round(hours, 2),
-                cost=round(cost, 2),
-            )
+            {
+                "name": feature.name,
+                "hours": round(hours, 2),
+                "cost": round(cost, 2),
+            }
         )
 
-    milestones = [
-        Milestone(name="Inception & Requirements", duration=f"{schedule_months * 0.25:.1f} months"),
-        Milestone(name="Construction & Iteration", duration=f"{schedule_months * 0.5:.1f} months"),
-        Milestone(name="Stabilization & Deployment", duration=f"{schedule_months * 0.25:.1f} months"),
-    ]
-
-    timeline_tasks: List[TimelineTask] = []
+    milestones: List[MilestoneDetail] = []
+    timeline_tasks: List[Dict[str, str]] = []
     current_date = start_date
     phase_ratios = [0.25, 0.5, 0.25]
     phase_names = ["Inception & Requirements", "Construction & Iteration", "Stabilization & Deployment"]
@@ -335,10 +330,17 @@ def generate_cocomo_ii_estimation(
         duration_days = max(1, round(schedule_months * ratio * 30))
         end_date = current_date + timedelta(days=duration_days)
         timeline_tasks.append(
-            TimelineTask(
-                task=name,
-                start_date=current_date.isoformat(),
-                end_date=end_date.isoformat(),
+            {
+                "task": name,
+                "start_date": current_date.isoformat(),
+                "end_date": end_date.isoformat(),
+            }
+        )
+        milestones.append(
+            MilestoneDetail(
+                name=name,
+                duration_days=duration_days,
+                dependencies=[],
             )
         )
         current_date = end_date
@@ -380,23 +382,97 @@ def generate_cocomo_ii_estimation(
         "Risk mitigation plan for elevated cost drivers",
     ]
 
+    inputs_snapshot = {
+        "project_name": project_name,
+        "ksloc": ksloc,
+        "scale_factor_ratings": dict(sf_inputs),
+        "cost_driver_ratings": dict(cd_inputs),
+        "hourly_rate": hourly_rate,
+        "infrastructure_pct": infrastructure_pct,
+        "other_expenses_pct": other_expenses_pct,
+    }
+
+    cost_range = CostRange(
+        min=round(total_cost * 0.85, 2),
+        likely=round(total_cost, 2),
+        max=round(total_cost * 1.15, 2),
+    )
+
+    duration_range = DurationRange(
+        min=round(schedule_months * 0.9, 2),
+        likely=round(schedule_months, 2),
+        max=round(schedule_months * 1.1, 2),
+    )
+
+    results_block: Dict[str, Union[float, List[Dict[str, float]], Dict[str, float]]] = {
+        "effort_pm": round(effort_pm, 2),
+        "labor_hours": round(labor_hours, 2),
+        "staffing": staff,
+        "cost_breakdown": [
+            {"category": "Engineering Labor", "cost": round(labor_cost, 2)},
+            {"category": "Infrastructure", "cost": round(infrastructure_cost, 2)},
+            {"category": "Other Expenses", "cost": round(other_expenses, 2)},
+        ],
+        "feature_costs": feature_costs,
+        "timeline": timeline_tasks,
+        "resource_allocation": resource_allocation,
+        "deliverables": deliverables,
+        "executive_summary": executive_summary,
+        "explanation": explanation,
+    }
+
+    sum_sf = sum(normalised_sf.values()) or 1.0
+    driver_entries: List[Driver] = []
+    for name, value in sorted(normalised_sf.items(), key=lambda item: item[1], reverse=True)[:3]:
+        weight_pct = (value / sum_sf) * 100
+        driver_entries.append(
+            Driver(
+                factor=f"scale_factor:{name}",
+                contribution_pct=round(weight_pct, 2),
+                note="Higher rating increases effort exponent",
+            )
+        )
+
+    cost_driver_impacts = sorted(normalised_cd.items(), key=lambda item: abs(item[1] - 1.0), reverse=True)[:3]
+    for name, value in cost_driver_impacts:
+        delta_pct = (value - 1.0) * 100
+        if abs(delta_pct) < 1e-3:
+            continue
+        driver_entries.append(
+            Driver(
+                factor=f"cost_driver:{name}",
+                contribution_pct=round(delta_pct, 2),
+                note="Above nominal" if value > 1.0 else "Below nominal",
+            )
+        )
+
+    if not driver_entries:
+        driver_entries.append(
+            Driver(
+                factor="cost_driver:nominal",
+                contribution_pct=0.0,
+                note="All drivers nominal",
+            )
+        )
+
+    assumptions_objects = [
+        Assumption(text="Scale factor ratings default to nominal where unspecified."),
+        Assumption(text="Cost drivers default to nominal where unspecified."),
+        Assumption(text="Reuse adjustments beyond provided ratings are assumed nominal."),
+    ]
+
+    team_roles = _build_team_roles(staff, hourly_rate)
+
     return EstimationOutput(
-        executive_summary=executive_summary,
-        team_composition=_build_team_composition(staff),
-        cost_estimate=CostEstimate(
-            total_cost=round(total_cost, 2),
-            labor_cost=round(labor_cost, 2),
-            infrastructure_cost=round(infrastructure_cost, 2),
-            other_expenses=round(other_expenses, 2),
-        ),
-        timeline_estimate=TimelineEstimate(
-            total_duration=f"{schedule_months:.1f} months",
-            milestones=milestones,
-        ),
-        resource_allocation=resource_allocation,
-        explanation=explanation,
-        success_criteria=success_criteria,
-        deliverables=deliverables,
-        features=feature_costs,
-        timeline=timeline_tasks,
+        method="cocomo2",
+        inputs_snapshot=inputs_snapshot,
+        results=results_block,
+        drivers=driver_entries,
+        confidence=0.65,
+        assumptions=assumptions_objects,
+        cost_range=cost_range,
+        duration_range=duration_range,
+        team=team_roles,
+        milestones=milestones,
+        recommendations=success_criteria,
     )

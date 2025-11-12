@@ -4,4 +4,6 @@ pydantic
 numpy
 scikit-learn
 pyyaml
+sqlmodel
+pytest
 

@@ -12,14 +12,13 @@ import math
 from typing import Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Union
 
 from .schema import (
-    CostEstimate,
+    Assumption,
+    CostRange,
+    Driver,
+    DurationRange,
     EstimationOutput,
-    FeatureCost,
-    Milestone,
-    RoleCount,
-    TeamComposition,
-    TimelineEstimate,
-    TimelineTask,
+    MilestoneDetail,
+    TeamRoleCount,
 )
 
 Number = Union[int, float]
@@ -302,30 +301,32 @@ def _normalize_features(features: Optional[Iterable[FeatureInput]], count: int =
     return normalized
 
 
-def _build_team_composition(staff_count: int) -> TeamComposition:
+def _build_team_roles(staff_count: int, hourly_rate: float) -> List[TeamRoleCount]:
+    if staff_count <= 0:
+        return []
+
     if staff_count <= 2:
-        distribution = {"senior": staff_count}
-    else:
-        distribution = {
-            "senior": max(1, math.floor(staff_count * 0.3)),
-            "mid": max(1, math.floor(staff_count * 0.45)),
-            "junior": max(0, staff_count - math.floor(staff_count * 0.3) - math.floor(staff_count * 0.45)),
-        }
+        return [
+            TeamRoleCount(role="senior engineer", count=staff_count, hourly_rate=round(hourly_rate * 1.25, 2))
+        ]
 
-    roles = [
-        RoleCount(level=level, count=count)
-        for level, count in distribution.items()
-        if count > 0
-    ]
+    senior = max(1, math.floor(staff_count * 0.3))
+    mid = max(1, math.floor(staff_count * 0.45))
+    junior = max(0, staff_count - senior - mid)
 
-    return TeamComposition(
-        developers=roles,
-        designers=[],
-    )
+    roles: List[TeamRoleCount] = []
+    if senior > 0:
+        roles.append(TeamRoleCount(role="senior engineer", count=senior, hourly_rate=round(hourly_rate * 1.25, 2)))
+    if mid > 0:
+        roles.append(TeamRoleCount(role="mid engineer", count=mid, hourly_rate=round(hourly_rate, 2)))
+    if junior > 0:
+        roles.append(TeamRoleCount(role="junior engineer", count=junior, hourly_rate=round(hourly_rate * 0.75, 2)))
+
+    return roles
 
 
-def _build_timeline(schedule_months: float, start: date) -> List[TimelineTask]:
-    tasks: List[TimelineTask] = []
+def _build_timeline(schedule_months: float, start: date) -> List[Dict[str, str]]:
+    tasks: List[Dict[str, str]] = []
     phase_ratios = [0.25, 0.5, 0.25]
     phase_names = ["Inception & Requirements", "Construction & Iteration", "Stabilization & Deployment"]
 
@@ -334,22 +335,22 @@ def _build_timeline(schedule_months: float, start: date) -> List[TimelineTask]:
         duration_days = max(1, round(schedule_months * ratio * 30))
         end_date = current_date + timedelta(days=duration_days)
         tasks.append(
-            TimelineTask(
-                task=name,
-                start_date=current_date.isoformat(),
-                end_date=end_date.isoformat(),
-            )
+            {
+                "task": name,
+                "start_date": current_date.isoformat(),
+                "end_date": end_date.isoformat(),
+            }
         )
         current_date = end_date
 
     return tasks
 
 
-def _build_milestones(schedule_months: float) -> List[Milestone]:
+def _build_milestones(schedule_months: float) -> List[MilestoneDetail]:
     return [
-        Milestone(name="Inception & Requirements", duration=f"{schedule_months * 0.25:.1f} months"),
-        Milestone(name="Construction & Iteration", duration=f"{schedule_months * 0.5:.1f} months"),
-        Milestone(name="Stabilization & Deployment", duration=f"{schedule_months * 0.25:.1f} months"),
+        MilestoneDetail(name="Inception & Requirements", duration_days=max(15, int(schedule_months * 0.25 * 30))),
+        MilestoneDetail(name="Construction & Iteration", duration_days=max(30, int(schedule_months * 0.5 * 30))),
+        MilestoneDetail(name="Stabilization & Deployment", duration_days=max(15, int(schedule_months * 0.25 * 30))),
     ]
 
 
@@ -422,19 +423,18 @@ def generate_fpa_estimation(
     start_date = start or date.today()
     timeline_tasks = _build_timeline(schedule_months, start_date)
     milestones = _build_milestones(schedule_months)
-    team_composition = _build_team_composition(staff)
 
     feature_inputs = _normalize_features(features)
-    feature_costs: List[FeatureCost] = []
+    feature_costs: List[Dict[str, float]] = []
     for feature in feature_inputs:
         hours = total_hours * (feature.effort_percent / 100.0)
         cost = hours * hourly_rate
         feature_costs.append(
-            FeatureCost(
-                name=feature.name,
-                hours=round(hours, 2),
-                cost=round(cost, 2),
-            )
+            {
+                "name": feature.name,
+                "hours": round(hours, 2),
+                "cost": round(cost, 2),
+            }
         )
 
     executive_summary = (
@@ -487,25 +487,100 @@ def generate_fpa_estimation(
         "Risk mitigation plan for high-impact General System Characteristics.",
     ]
 
+    inputs_snapshot = {
+        "project_name": project_name,
+        "function_counts": function_counts,
+        "gsc_ratings": gsc_ratings,
+        "hours_per_fp": hours_per_fp,
+        "hourly_rate": hourly_rate,
+        "infrastructure_pct": infrastructure_pct,
+        "other_expenses_pct": other_expenses_pct,
+        "conversion_factor_slc": conversion_factor_slc,
+    }
+
+    cost_range = CostRange(
+        min=round(total_cost * 0.9, 2),
+        likely=round(total_cost, 2),
+        max=round(total_cost * 1.1, 2),
+    )
+
+    duration_range = DurationRange(
+        min=round(schedule_months * 0.9, 2),
+        likely=round(schedule_months, 2),
+        max=round(schedule_months * 1.1, 2),
+    )
+
+    results_block = {
+        "effort_pm": round(effort_pm, 2),
+        "duration_months": round(schedule_months, 2),
+        "cost_breakdown": [
+            {"category": "Labor", "cost": round(labor_cost, 2)},
+            {"category": "Infrastructure", "cost": round(infrastructure_cost, 2)},
+            {"category": "Other Expenses", "cost": round(other_expenses, 2)},
+        ],
+        "feature_breakdown": feature_costs,
+        "timeline": timeline_tasks,
+        "resource_allocation": resource_allocation,
+        "ufp_breakdown": {
+            component: {
+                "counts": details["counts"],
+                "weights": details["weight"],
+                "subtotal": details["subtotal"],
+            }
+            for component, details in ufp_breakdown.items()
+            if component != "total_ufp"
+        },
+        "deliverables": deliverables,
+        "executive_summary": executive_summary,
+        "explanation": explanation,
+    }
+
+    component_impacts = sorted(
+        (
+            (component, details["subtotal"])
+            for component, details in ufp_breakdown.items()
+            if component != "total_ufp"
+        ),
+        key=lambda item: item[1],
+        reverse=True,
+    )[:3]
+    drivers: List[Driver] = [
+        Driver(
+            factor=f"component:{component}",
+            contribution_pct=round((subtotal / total_ufp) * 100, 2) if total_ufp else 0.0,
+            note="Function point contribution",
+        )
+        for component, subtotal in component_impacts
+    ]
+
+    drivers.append(
+        Driver(
+            factor="CAF",
+            contribution_pct=round((caf - 1.0) * 100, 2),
+            note="Complexity Adjustment Factor influence",
+        )
+    )
+
+    assumptions_objects = [
+        Assumption(text="Function point weights follow standard IFPUG definitions."),
+        Assumption(text="CAF derives from provided GSC ratings with defaults applied where missing."),
+        Assumption(text="Conversion to KSLOC (if provided) assumes linear backfiring."),
+    ]
+
+    team_roles = _build_team_roles(staff, hourly_rate)
+
     return EstimationOutput(
-        executive_summary=executive_summary,
-        team_composition=team_composition,
-        cost_estimate=CostEstimate(
-            total_cost=round(total_cost, 2),
-            labor_cost=round(labor_cost, 2),
-            infrastructure_cost=round(infrastructure_cost, 2),
-            other_expenses=round(other_expenses, 2),
-        ),
-        timeline_estimate=TimelineEstimate(
-            total_duration=f"{schedule_months:.1f} months",
-            milestones=milestones,
-        ),
-        resource_allocation=resource_allocation,
-        explanation=explanation,
-        success_criteria=success_criteria,
-        deliverables=deliverables,
-        features=feature_costs,
-        timeline=timeline_tasks,
+        method="fpa",
+        inputs_snapshot=inputs_snapshot,
+        results=results_block,
+        drivers=drivers,
+        confidence=0.6,
+        assumptions=assumptions_objects,
+        cost_range=cost_range,
+        duration_range=duration_range,
+        team=team_roles,
+        milestones=milestones,
+        recommendations=success_criteria,
     )
 
 

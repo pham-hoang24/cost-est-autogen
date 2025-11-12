@@ -1,47 +1,65 @@
 # tools/schema.py
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Literal
+
 from pydantic import BaseModel, Field
-from typing import List, Optional, Literal
 
-class RoleCount(BaseModel):
-    level: Literal["junior","mid","senior"]
+
+class CostRange(BaseModel):
+    min: float
+    likely: float
+    max: float
+    currency: str = "USD"
+
+
+class DurationRange(BaseModel):
+    min: float
+    likely: float
+    max: float
+    unit: Literal["days", "weeks", "months"] = "months"
+
+
+class TeamRoleCount(BaseModel):
+    role: str
     count: int
+    hourly_rate: Optional[float] = None
 
-class TeamComposition(BaseModel):
-    developers: List[RoleCount]
-    designers: Optional[List[RoleCount]] = []
 
-class Milestone(BaseModel):
+class MilestoneDetail(BaseModel):
     name: str
-    duration: str  # e.g. "1 month"
+    duration_days: int
+    dependencies: List[str] = Field(default_factory=list)
 
-class CostEstimate(BaseModel):
-    total_cost: float
-    labor_cost: float
-    infrastructure_cost: float
-    other_expenses: float
 
-class TimelineEstimate(BaseModel):
-    total_duration: str
-    milestones: List[Milestone]
+class Assumption(BaseModel):
+    text: str
+    type: Literal["critical", "default"] = "default"
+    impact: Literal["high", "medium", "low"] = "medium"
 
-class FeatureCost(BaseModel):
-    name: str
-    hours: float
-    cost: float
 
-class TimelineTask(BaseModel):
-    task: str
-    start_date: str
-    end_date: str
+class Driver(BaseModel):
+    factor: str
+    contribution_pct: float
+    note: Optional[str] = None
+
+
+class BlendComponent(BaseModel):
+    method: str
+    weight: float
+    notes: Optional[str] = None
+
 
 class EstimationOutput(BaseModel):
-    executive_summary: str
-    team_composition: TeamComposition
-    cost_estimate: CostEstimate
-    timeline_estimate: TimelineEstimate
-    resource_allocation: dict
-    explanation: str
-    success_criteria: List[str]
-    deliverables: List[str]
-    features: List[FeatureCost]
-    timeline: List[TimelineTask]
+    method: str
+    inputs_snapshot: Dict[str, Any] = Field(default_factory=dict)
+    results: Dict[str, Any] = Field(default_factory=dict)
+    drivers: List[Driver] = Field(default_factory=list)
+    confidence: float = 0.0
+    assumptions: List[Assumption] = Field(default_factory=list)
+    cost_range: CostRange
+    duration_range: DurationRange
+    team: List[TeamRoleCount] = Field(default_factory=list)
+    milestones: List[MilestoneDetail] = Field(default_factory=list)
+    recommendations: List[str] = Field(default_factory=list)
+    blend_components: Optional[List[BlendComponent]] = None

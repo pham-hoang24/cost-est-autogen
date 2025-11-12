@@ -12,8 +12,13 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List, Optional
 
-_SESSION_STORE: Dict[str, Dict[str, Any]] = {}
-_COMPLETED_PAYLOADS: Dict[str, Dict[str, Any]] = {}
+from workflow.repository import ProjectContextRepository
+from workflow.channels import IntakeChannel
+
+# Instantiate the repository. Using a file-based DB is simple and effective
+# for session management in many environments.
+_repo = ProjectContextRepository(db_path="autogen_sessions.db")
+
 
 _FLOAT_RE = re.compile(r"(-?\d+(?:\.\d+)?)")
 
@@ -149,20 +154,22 @@ _FIELD_LABELS: Dict[str, Dict[str, List[str]]] = {
 
 def reset_session(session_id: str) -> Dict[str, str]:
     """Clear any stored context for a conversational session."""
-    _SESSION_STORE.pop(session_id, None)
+    _repo.delete_context(session_id)
     return {"status": "reset", "session_id": session_id}
 
 
+def _default_session_factory():
+    return {
+        "method": None,
+        "fields": {},
+        "baseline": {},
+        "pending_field": None,
+        "pending_baseline": None,
+    }
+
+
 def _ensure_session(session_id: str) -> Dict[str, Any]:
-    if session_id not in _SESSION_STORE:
-        _SESSION_STORE[session_id] = {
-            "method": None,
-            "fields": {},
-            "baseline": {},
-            "pending_field": None,
-            "pending_baseline": None,
-        }
-    return _SESSION_STORE[session_id]
+    return _repo.get_or_create_context(session_id, default_factory=_default_session_factory)
 
 
 def _infer_method(text: str) -> Optional[str]:
@@ -231,6 +238,7 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
                     "next_question": _BASELINE_FIELDS[baseline_field]["question"],
                 }
             )
+            _repo.save_context(session_id, session)
             return response
         finally:
             session["pending_baseline"] = None
@@ -262,6 +270,7 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
                 "next_question": question,
             }
         )
+        _repo.save_context(session_id, session)
         return response
 
     if session["method"] is None:
@@ -292,6 +301,7 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
                 "next_question": next_question,
             }
         )
+        _repo.save_context(session_id, session)
         return response
 
     spec = _METHOD_SPEC[method]
@@ -322,6 +332,7 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
             "next_question": next_question,
         }
     )
+    _repo.save_context(session_id, session)
     return response
 
 
@@ -416,7 +427,7 @@ def _default_payload(method: str, fields: Dict[str, Any]) -> Dict[str, Any]:
 
 def intake_snapshot(session_id: str) -> Dict[str, Any]:
     """Return a payload preview without clearing stored state."""
-    session = _SESSION_STORE.get(session_id)
+    session = _repo.get_context(session_id)
     if not session:
         raise ValueError("Intake session not found.")
     baseline = session.get("baseline", {})
@@ -431,7 +442,7 @@ def intake_snapshot(session_id: str) -> Dict[str, Any]:
 
 def intake_finalize(session_id: str) -> Dict[str, Any]:
     """Return structured payload and clear session."""
-    session = _SESSION_STORE.get(session_id)
+    session = _repo.get_context(session_id)
     if not session:
         raise ValueError("Intake session not found.")
     method = session.get("method")
@@ -440,19 +451,20 @@ def intake_finalize(session_id: str) -> Dict[str, Any]:
         raise ValueError("Method was never determined.")
     payload = _default_payload(method, fields)
     payload["baseline"] = session.get("baseline", {})
-    _COMPLETED_PAYLOADS[session_id] = payload
-    reset_session(session_id)
+    _repo.save_completed_payload(session_id, payload)
+    _repo.delete_context(session_id)
     return payload
 
 
 def consume_final_payload(session_id: str) -> Dict[str, Any]:
     """Retrieve the payload produced by intake_finalize."""
-    if session_id not in _COMPLETED_PAYLOADS:
+    payload = _repo.consume_completed_payload(session_id)
+    if payload is None:
         raise ValueError("No completed payload available for this session.")
-    return _COMPLETED_PAYLOADS.pop(session_id)
+    return payload
 
 
-def offline_intake_flow(initial_text: str) -> Dict[str, Any]:
+def offline_intake_flow(channel: IntakeChannel, initial_text: str) -> Dict[str, Any]:
     """Deterministic question tree for environments without LLM access."""
     session_id = "offline"
     reset_session(session_id)
@@ -461,10 +473,9 @@ def offline_intake_flow(initial_text: str) -> Dict[str, Any]:
         if result["ready"]:
             break
         question = result.get("next_question") or "Please provide additional detail:"
-        answer = input(f"{question} ").strip()
+        answer = channel.ask(question)
         if not answer:
             continue
         result = intake_step(session_id, answer)
     intake_finalize(session_id)
     return consume_final_payload(session_id)
-
