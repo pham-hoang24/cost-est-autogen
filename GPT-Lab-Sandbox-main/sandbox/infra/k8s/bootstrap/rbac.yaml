@@ -1,0 +1,210 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: project-admin
+  namespace: teaching
+rules:
+  - apiGroups: ["", "apps", "batch", "extensions", "networking.k8s.io"]
+    resources: ["pods", "deployments", "services", "secrets", "configmaps", "jobs", "cronjobs", "ingresses", "networkpolicies", "persistentvolumeclaims"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: project-admin-binding
+  namespace: teaching
+subjects:
+  - kind: Group
+    name: keycloak:project-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: project-admin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: contributor
+  namespace: teaching
+rules:
+  - apiGroups: ["", "apps", "batch", "extensions"]
+    resources: ["pods", "deployments", "services", "configmaps", "jobs", "cronjobs", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: contributor-binding
+  namespace: teaching
+subjects:
+  - kind: Group
+    name: keycloak:contributor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: contributor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: viewer
+  namespace: teaching
+rules:
+  - apiGroups: ["*" ]
+    resources: ["*" ]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: viewer-binding
+  namespace: teaching
+subjects:
+  - kind: Group
+    name: keycloak:viewer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: viewer
+---
+# Repeat for research and industry-pilot namespaces (can be templated in real setups)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: project-admin
+  namespace: research
+rules:
+  - apiGroups: ["", "apps", "batch", "extensions", "networking.k8s.io"]
+    resources: ["pods", "deployments", "services", "secrets", "configmaps", "jobs", "cronjobs", "ingresses", "networkpolicies", "persistentvolumeclaims"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: project-admin-binding
+  namespace: research
+subjects:
+  - kind: Group
+    name: keycloak:project-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: project-admin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: contributor
+  namespace: research
+rules:
+  - apiGroups: ["", "apps", "batch", "extensions"]
+    resources: ["pods", "deployments", "services", "configmaps", "jobs", "cronjobs", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: contributor-binding
+  namespace: research
+subjects:
+  - kind: Group
+    name: keycloak:contributor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: contributor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: viewer
+  namespace: research
+rules:
+  - apiGroups: ["*" ]
+    resources: ["*" ]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: viewer-binding
+  namespace: research
+subjects:
+  - kind: Group
+    name: keycloak:viewer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: viewer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: project-admin
+  namespace: industry-pilot
+rules:
+  - apiGroups: ["", "apps", "batch", "extensions", "networking.k8s.io"]
+    resources: ["pods", "deployments", "services", "secrets", "configmaps", "jobs", "cronjobs", "ingresses", "networkpolicies", "persistentvolumeclaims"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: project-admin-binding
+  namespace: industry-pilot
+subjects:
+  - kind: Group
+    name: keycloak:project-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: project-admin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: contributor
+  namespace: industry-pilot
+rules:
+  - apiGroups: ["", "apps", "batch", "extensions"]
+    resources: ["pods", "deployments", "services", "configmaps", "jobs", "cronjobs", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: contributor-binding
+  namespace: industry-pilot
+subjects:
+  - kind: Group
+    name: keycloak:contributor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: contributor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: viewer
+  namespace: industry-pilot
+rules:
+  - apiGroups: ["*" ]
+    resources: ["*" ]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: viewer-binding
+  namespace: industry-pilot
+subjects:
+  - kind: Group
+    name: keycloak:viewer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: viewer
+
+
+

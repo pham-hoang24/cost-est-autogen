@@ -1,0 +1,17 @@
+node_modules/
+.env
+.env.local
+.next/
+dist/
+build/
+*.log
+.DS_Store
+.vscode/
+.idea/
+coverage/
+*.tgz
+*.tar.gz
+.env.*
+sandbox/ui/.next/
+csc-deployment/ui/.next/
+*.pptx

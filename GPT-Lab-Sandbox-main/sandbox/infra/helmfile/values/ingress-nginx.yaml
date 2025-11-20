@@ -1,0 +1,10 @@
+controller:
+  service:
+    annotations: {}
+  config:
+    enable-modsecurity: "true"
+    use-proxy-protocol: "false"
+  metrics:
+    enabled: true
+
+

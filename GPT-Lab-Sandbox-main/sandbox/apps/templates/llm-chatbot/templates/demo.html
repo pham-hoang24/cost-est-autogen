@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Chatbot Demo - Project Team Presentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .demo-section {
+            scroll-margin-top: 100px;
+        }
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .demo-chat {
+            height: 400px;
+        }
+        .typing-demo {
+            display: none;
+        }
+        .typing-demo.show {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-robot text-2xl text-blue-600"></i>
+                    <h1 class="text-xl font-bold text-gray-800">LLM Chatbot Demo</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-600 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Chat
+                    </a>
+                    <a href="#demo" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-play mr-2"></i>Live Demo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-5xl font-bold mb-6">Lightweight LLM Chatbot</h1>
+            <p class="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+                A practical demonstration of open-source AI models integrated into the SW4E Sandbox. 
+                Showcasing real deployment capabilities with lightweight, efficient models.
+            </p>
+            <div class="flex justify-center space-x-4">
+                <a href="#features" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-star mr-2"></i>Features
+                </a>
+                <a href="#demo" class="bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-400 transition-colors">
+                    <i class="fas fa-play mr-2"></i>Live Demo
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features -->
+    <section id="features" class="py-20 demo-section">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center text-gray-800 mb-16">Key Features & Capabilities</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1: Lightweight Models -->
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg">
+                    <div class="text-center mb-6">
+                        <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-feather text-2xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800">Lightweight Models</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            TinyLlama 1B (~1.1GB)
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Microsoft Phi-2 (~2.7GB)
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Llama 2 7B (~13.5GB)
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            CPU & GPU optimized
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Feature 2: Multi-Task Support -->
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg">
+                    <div class="text-center mb-6">
+                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-tasks text-2xl text-green-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800">Multi-Task Support</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Code Generation & Debugging
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Text Analysis & Summarization
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Creative Writing & Storytelling
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Q&A & Knowledge Sharing
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Feature 3: Real Deployment -->
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg">
+                    <div class="text-center mb-6">
+                        <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-rocket text-2xl text-purple-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800">Real Deployment</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Kubernetes Integration
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            GPU Resource Management
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Auto-scaling & Monitoring
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Health Checks & Logging
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Feature 4: Open Source -->
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg">
+                    <div class="text-center mb-6">
+                        <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-code-branch text-2xl text-orange-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800">Open Source</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Hugging Face Models
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Ollama Integration
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Custom Model Support
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Extensible Architecture
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Feature 5: Performance -->
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg">
+                    <div class="text-center mb-6">
+                        <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-tachometer-alt text-2xl text-red-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800">Performance</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Fast Response Times
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Memory Efficient
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Quantization Support
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Batch Processing
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Feature 6: Compliance -->
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg">
+                    <div class="text-center mb-6">
+                        <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-shield-alt text-2xl text-indigo-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800">Compliance</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            EU AI Act Ready
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            GDPR Compliant
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Audit Trail
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            Data Governance
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Demo Section -->
+    <section id="demo" class="py-20 bg-white demo-section">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center text-gray-800 mb-16">Live Demo</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Demo Chat Interface -->
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-6 text-center">
+                        <i class="fas fa-comments mr-3 text-blue-600"></i>Interactive Chat
+                    </h3>
+                    
+                    <div class="demo-chat bg-white rounded-lg border border-gray-200 overflow-y-auto p-4 mb-4">
+                        <div id="demo-messages">
+                            <!-- Demo messages will be added here -->
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex space-x-2">
+                            <button onclick="runDemo('chat')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-comment mr-2"></i>Chat Demo
+                            </button>
+                            <button onclick="runDemo('code')" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-code mr-2"></i>Code Demo
+                            </button>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="runDemo('analysis')" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-chart-bar mr-2"></i>Analysis Demo
+                            </button>
+                            <button onclick="runDemo('creative')" class="flex-1 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-pen-fancy mr-2"></i>Creative Demo
+                            </button>
+                        </div>
+                        <button onclick="runDemo('qa')" class="w-full bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-question-circle mr-2"></i>Q&A Demo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Demo Information -->
+                <div class="space-y-8">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-blue-800 mb-3">
+                            <i class="fas fa-info-circle mr-2"></i>Demo Instructions
+                        </h4>
+                        <ol class="list-decimal list-inside space-y-2 text-blue-700">
+                            <li>Click any demo button to see the AI in action</li>
+                            <li>Watch how different task types optimize responses</li>
+                            <li>See real-time processing and model information</li>
+                            <li>Experience the lightweight model performance</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-green-800 mb-3">
+                            <i class="fas fa-lightbulb mr-2"></i>Key Benefits
+                        </h4>
+                        <ul class="space-y-2 text-green-700">
+                            <li class="flex items-center">
+                                <i class="fas fa-check mr-2"></i>
+                                <strong>Cost Effective:</strong> Small models, lower compute costs
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check mr-2"></i>
+                                <strong>Fast Response:</strong> Lightweight models, quick inference
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check mr-2"></i>
+                                <strong>Privacy Focused:</strong> Local deployment, data stays private
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check mr-2"></i>
+                                <strong>Customizable:</strong> Easy to fine-tune and adapt
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-purple-800 mb-3">
+                            <i class="fas fa-cogs mr-2"></i>Technical Details
+                        </h4>
+                        <div class="space-y-2 text-purple-700">
+                            <div class="flex justify-between">
+                                <span>Framework:</span>
+                                <span class="font-semibold">FastAPI + Python</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Models:</span>
+                                <span class="font-semibold">Transformers + PyTorch</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Deployment:</span>
+                                <span class="font-semibold">Docker + Kubernetes</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>UI:</span>
+                                <span class="font-semibold">HTML + Tailwind CSS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center text-gray-800 mb-16">Practical Use Cases</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Use Case 1: Research & Development -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-flask text-4xl text-blue-600 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Research & Development</h3>
+                    </div>
+                    <p class="text-gray-600 text-center">
+                        Prototype AI applications quickly with lightweight models. 
+                        Perfect for research teams and startups.
+                    </p>
+                </div>
+
+                <!-- Use Case 2: Educational Platform -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-graduation-cap text-4xl text-green-600 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Educational Platform</h3>
+                    </div>
+                    <p class="text-gray-600 text-center">
+                        Teach AI concepts with real, working models. 
+                        Students can interact and learn hands-on.
+                    </p>
+                </div>
+
+                <!-- Use Case 3: Internal Tools -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-tools text-4xl text-purple-600 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Internal Tools</h3>
+                    </div>
+                    <p class="text-gray-600 text-center">
+                        Build AI-powered tools for your team. 
+                        Code generation, documentation, and analysis.
+                    </p>
+                </div>
+
+                <!-- Use Case 4: Content Creation -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-pen-nib text-4xl text-pink-600 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Content Creation</h3>
+                    </div>
+                    <p class="text-gray-600 text-center">
+                        Generate creative content, marketing copy, 
+                        and storytelling with AI assistance.
+                    </p>
+                </div>
+
+                <!-- Use Case 5: Data Analysis -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-chart-line text-4xl text-orange-600 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Data Analysis</h3>
+                    </div>
+                    <p class="text-gray-600 text-center">
+                        Analyze text data, extract insights, 
+                        and generate reports automatically.
+                    </p>
+                </div>
+
+                <!-- Use Case 6: Customer Support -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-headset text-4xl text-indigo-600 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Customer Support</h3>
+                    </div>
+                    <p class="text-gray-600 text-center">
+                        Provide instant AI-powered support. 
+                        Answer questions and solve problems 24/7.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold mb-6">Ready to Get Started?</h2>
+            <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+                Experience the power of lightweight AI models in your own environment. 
+                Deploy, customize, and scale with ease.
+            </p>
+            <div class="flex justify-center space-x-4">
+                <a href="/" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-rocket mr-2"></i>Try the Chatbot
+                </a>
+                <a href="#features" class="bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-400 transition-colors">
+                    <i class="fas fa-info-circle mr-2"></i>Learn More
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex items-center justify-center space-x-3 mb-4">
+                <i class="fas fa-robot text-2xl text-blue-400"></i>
+                <h3 class="text-xl font-semibold">SW4E Sandbox</h3>
+            </div>
+            <p class="text-gray-400 mb-4">
+                Lightweight LLM Chatbot Template - Demonstrating Practical AI Integration
+            </p>
+            <div class="flex justify-center space-x-6 text-gray-400">
+                <span>Open Source</span>
+                <span>•</span>
+                <span>Lightweight</span>
+                <span>•</span>
+                <span>Production Ready</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Demo functionality
+        const demoMessages = document.getElementById('demo-messages');
+        
+        // Demo examples for different task types
+        const demoExamples = {
+            chat: {
+                user: "Hello! How are you today?",
+                ai: "Hello! 👋 I'm doing great, thank you for asking! I'm excited to help you with various tasks like coding, analysis, creative writing, and much more. What can I help you with today?"
+            },
+            code: {
+                user: "Write a Python function to calculate fibonacci numbers",
+                ai: `Here's a Python function for you:
+
+\`\`\`python
+def fibonacci(n: int) -> int:
+    """
+    Calculate the nth Fibonacci number.
+    
+    Args:
+        n (int): The position in the Fibonacci sequence (0-indexed)
+    
+    Returns:
+        int: The nth Fibonacci number
+    
+    Raises:
+        ValueError: If n is negative
+    """
+    if n < 0:
+        raise ValueError("Input must be non-negative")
+    if n <= 1:
+        return n
+    
+    a, b = 0, 1
+    for _ in range(2, n + 1):
+        a, b = b, a + b
+    return b
+
+# Example usage
+print(fibonacci(10))  # Output: 55
+print(fibonacci(20))  # Output: 6765
+\`\`\`
+
+This function uses an iterative approach for efficiency. Would you like me to explain any part of it or help with a different coding task?`
+            },
+            analysis: {
+                user: "Summarize the benefits of renewable energy",
+                ai: `I can help you summarize text! 📊 Here's what I'll provide:
+
+**Summary Structure:**
+• **Key Points**: Main ideas and concepts
+• **Main Themes**: Recurring topics and patterns
+• **Important Details**: Critical information and data
+• **Overall Conclusion**: Bottom-line insights
+
+**Analysis Approach:**
+• Identify the main purpose and scope
+• Extract key facts and figures
+• Highlight important relationships
+• Provide actionable insights
+
+Just share the text you'd like me to analyze, and I'll give you a comprehensive summary! 📝`
+            },
+            creative: {
+                user: "Write a short story about a robot learning to paint",
+                ai: `I'd love to write a story for you! ✍️ Here's what I can create:
+
+**Story Elements:**
+• **Engaging Opening**: Hook that draws readers in
+• **Clear Plot Structure**: Beginning, middle, and end
+• **Vivid Descriptions**: Sensory details and imagery
+• **Character Development**: Relatable and interesting characters
+• **Satisfying Conclusion**: Resolution that feels complete
+
+**Genres I Can Write:**
+• Science fiction and fantasy
+• Mystery and adventure
+• Heartwarming tales
+• Educational stories
+• Humorous narratives
+
+What kind of story would you like? Tell me about the characters, setting, or theme you have in mind! 📚✨`
+            },
+            qa: {
+                user: "What is machine learning?",
+                ai: `Great question! 🤖 **Machine Learning** is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed.
+
+**Key Concepts:**
+• **Supervised Learning**: Learning from labeled examples (like teaching with answers)
+• **Unsupervised Learning**: Finding patterns in unlabeled data
+• **Reinforcement Learning**: Learning through trial and error with rewards
+
+**Common Applications:**
+• Image and speech recognition
+• Recommendation systems
+• Fraud detection
+• Medical diagnosis
+• Autonomous vehicles
+
+**How It Works:**
+1. **Data Collection**: Gather relevant training data
+2. **Feature Engineering**: Extract meaningful patterns
+3. **Model Training**: Teach the algorithm to recognize patterns
+4. **Evaluation**: Test performance on new data
+5. **Deployment**: Use the trained model for predictions
+
+Would you like me to explain any specific aspect of machine learning in more detail? 📚`
+            }
+        };
+
+        function runDemo(taskType) {
+            // Clear previous messages
+            demoMessages.innerHTML = '';
+            
+            const example = demoExamples[taskType];
+            if (!example) return;
+            
+            // Add user message
+            addDemoMessage('user', example.user);
+            
+            // Show typing indicator
+            setTimeout(() => {
+                addDemoMessage('ai', example.ai);
+            }, 1500);
+        }
+
+        function addDemoMessage(sender, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = `max-w-xs px-4 py-3 rounded-lg ${
+                sender === 'user' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-800'
+            }`;
+            
+            bubble.textContent = content;
+            messageDiv.appendChild(bubble);
+            demoMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            demoMessages.scrollTop = demoMessages.scrollHeight;
+        }
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Initialize with a welcome message
+        document.addEventListener('DOMContentLoaded', function() {
+            addDemoMessage('ai', 'Welcome to the LLM Chatbot Demo! 👋 Click any demo button to see me in action with different task types.');
+        });
+    </script>
+</body>
+</html>

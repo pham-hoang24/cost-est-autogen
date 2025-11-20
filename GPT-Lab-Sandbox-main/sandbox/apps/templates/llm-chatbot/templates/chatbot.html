@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightweight LLM Chatbot</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            height: calc(100vh - 200px);
+        }
+        .message-bubble {
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .typing-indicator {
+            display: none;
+        }
+        .typing-indicator.show {
+            display: block;
+        }
+        .task-selector {
+            transition: all 0.3s ease;
+        }
+        .task-selector:hover {
+            transform: translateY(-2px);
+        }
+        .model-card {
+            transition: all 0.3s ease;
+        }
+        .model-card:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-robot text-3xl"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">Lightweight LLM Chatbot</h1>
+                        <p class="text-blue-100">Powered by Open Source AI Models</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/demo" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
+                        <i class="fas fa-play mr-2"></i>Demo Mode
+                    </a>
+                    <div class="text-right">
+                        <div class="text-sm text-blue-100">Current Model</div>
+                        <div class="font-semibold" id="current-model">Fallback Model</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Left Sidebar - Models -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                        <i class="fas fa-brain mr-2 text-blue-600"></i>Available Models
+                    </h2>
+                    <div class="space-y-3" id="models-list">
+                        <!-- Models will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md">
+                    <!-- Task Type Selector -->
+                    <div class="p-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold mb-3 text-gray-800">Select Task Type</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3" id="task-selectors">
+                            <!-- Task types will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="chat-container overflow-y-auto p-4" id="chat-messages">
+                        <!-- Welcome message -->
+                        <div class="flex justify-center mb-6">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md text-center">
+                                <i class="fas fa-robot text-3xl text-blue-600 mb-3"></i>
+                                <h3 class="text-lg font-semibold text-blue-800 mb-2">Welcome to Your AI Assistant!</h3>
+                                <p class="text-blue-700 text-sm">
+                                    I can help you with coding, analysis, creative writing, and more. 
+                                    Select a task type above and start chatting!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Typing Indicator -->
+                    <div class="typing-indicator p-4 border-t border-gray-200" id="typing-indicator">
+                        <div class="flex items-center space-x-2 text-gray-500">
+                            <div class="flex space-x-1">
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            </div>
+                            <span class="text-sm">AI is thinking...</span>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="p-4 border-t border-gray-200">
+                        <div class="flex space-x-3">
+                            <div class="flex-1">
+                                <textarea 
+                                    id="message-input" 
+                                    placeholder="Type your message here..." 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                    rows="3"
+                                ></textarea>
+                            </div>
+                            <div class="flex flex-col space-y-2">
+                                <button 
+                                    id="send-button" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center"
+                                >
+                                    <i class="fas fa-paper-plane mr-2"></i>Send
+                                </button>
+                                <button 
+                                    id="clear-button" 
+                                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center"
+                                >
+                                    <i class="fas fa-trash mr-2"></i>Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar - Task Info -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                        <i class="fas fa-info-circle mr-2 text-green-600"></i>Task Information
+                    </h2>
+                    <div id="task-info">
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-comments text-4xl mb-3"></i>
+                            <p>Select a task type to see information and examples</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Loading Modal -->
+    <div id="model-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-lg p-8 max-w-md mx-4">
+                <div class="text-center">
+                    <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <h3 class="text-lg font-semibold mb-2">Loading Model</h3>
+                    <p class="text-gray-600 mb-4" id="model-loading-text">Please wait while the model loads...</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full animate-pulse" style="width: 60%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTaskType = 'chat';
+        let currentModel = null;
+        let chatHistory = [];
+
+        // DOM elements
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const clearButton = document.getElementById('clear-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const currentModelDisplay = document.getElementById('current-model');
+        const modelsList = document.getElementById('models-list');
+        const taskSelectors = document.getElementById('task-selectors');
+        const taskInfo = document.getElementById('task-info');
+        const modelModal = document.getElementById('model-modal');
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadModels();
+            loadTaskTypes();
+            setupEventListeners();
+            loadTaskInfo('chat');
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            sendButton.addEventListener('click', sendMessage);
+            clearButton.addEventListener('click', clearChat);
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        // Load available models
+        async function loadModels() {
+            try {
+                const response = await fetch('/api/models');
+                const data = await response.json();
+                
+                modelsList.innerHTML = '';
+                data.available.forEach(model => {
+                    const modelCard = createModelCard(model);
+                    modelsList.appendChild(modelCard);
+                });
+                
+                // Update current model display
+                if (data.loaded.length > 0) {
+                    currentModel = data.loaded[0];
+                    currentModelDisplay.textContent = model.name;
+                }
+            } catch (error) {
+                console.error('Failed to load models:', error);
+            }
+        }
+
+        // Create model card
+        function createModelCard(model) {
+            const card = document.createElement('div');
+            card.className = 'model-card bg-gray-50 border border-gray-200 rounded-lg p-4 cursor-pointer hover:shadow-md';
+            card.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-semibold text-gray-800">${model.name}</h4>
+                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${model.size}</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-3">${model.description}</p>
+                <div class="flex space-x-2">
+                    <button onclick="loadModel('${model.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                        <i class="fas fa-download mr-1"></i>Load
+                    </button>
+                    <button onclick="unloadModel('${model.id}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                        <i class="fas fa-trash mr-1"></i>Unload
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        // Load a specific model
+        async function loadModel(modelId) {
+            try {
+                showModelModal(`Loading ${modelId}...`);
+                
+                const response = await fetch(`/api/models/${modelId}/load`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentModel = modelId;
+                    currentModelDisplay.textContent = data.model;
+                    hideModelModal();
+                    showNotification('Model loaded successfully!', 'success');
+                    loadModels(); // Refresh model list
+                } else {
+                    throw new Error(data.message || 'Failed to load model');
+                }
+            } catch (error) {
+                hideModelModal();
+                showNotification(`Failed to load model: ${error.message}`, 'error');
+            }
+        }
+
+        // Unload a model
+        async function unloadModel(modelId) {
+            try {
+                const response = await fetch(`/api/models/${modelId}/unload`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (currentModel === modelId) {
+                        currentModel = null;
+                        currentModelDisplay.textContent = 'Fallback Model';
+                    }
+                    showNotification('Model unloaded successfully!', 'success');
+                    loadModels(); // Refresh model list
+                } else {
+                    throw new Error(data.message || 'Failed to unload model');
+                }
+            } catch (error) {
+                showNotification(`Failed to unload model: ${error.message}`, 'error');
+            }
+        }
+
+        // Load task types
+        async function loadTaskTypes() {
+            try {
+                const response = await fetch('/api/tasks');
+                const taskTypes = await response.json();
+                
+                taskSelectors.innerHTML = '';
+                Object.entries(taskTypes).forEach(([key, task]) => {
+                    const selector = createTaskSelector(key, task);
+                    taskSelectors.appendChild(selector);
+                });
+            } catch (error) {
+                console.error('Failed to load task types:', error);
+            }
+        }
+
+        // Create task selector
+        function createTaskSelector(key, task) {
+            const selector = document.createElement('div');
+            selector.className = `task-selector bg-white border-2 border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-blue-300 hover:shadow-md transition-all ${key === currentTaskType ? 'border-blue-500 bg-blue-50' : ''}`;
+            selector.innerHTML = `
+                <div class="text-2xl mb-2">${task.icon}</div>
+                <div class="font-semibold text-sm text-gray-800">${task.name}</div>
+                <div class="text-xs text-gray-600 mt-1">${task.description}</div>
+            `;
+            
+            selector.addEventListener('click', () => {
+                // Remove active class from all selectors
+                document.querySelectorAll('.task-selector').forEach(s => {
+                    s.classList.remove('border-blue-500', 'bg-blue-50');
+                    s.classList.add('border-gray-200');
+                });
+                
+                // Add active class to clicked selector
+                selector.classList.remove('border-gray-200');
+                selector.classList.add('border-blue-500', 'bg-blue-50');
+                
+                currentTaskType = key;
+                loadTaskInfo(key);
+            });
+            
+            return selector;
+        }
+
+        // Load task information
+        async function loadTaskInfo(taskType) {
+            try {
+                const response = await fetch(`/api/tasks/${taskType}`);
+                const taskData = await response.json();
+                
+                taskInfo.innerHTML = `
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="font-semibold text-gray-800 mb-2">${taskData.name}</h3>
+                            <p class="text-sm text-gray-600">${taskData.description}</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-medium text-gray-800 mb-2">Example Prompts</h4>
+                            <div class="space-y-2">
+                                ${getDemoExamples(taskType).map(example => `
+                                    <div class="text-xs bg-gray-100 p-2 rounded cursor-pointer hover:bg-gray-200 transition-colors" onclick="useExample('${example}')">
+                                        ${example}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-medium text-gray-800 mb-2">Parameters</h4>
+                            <div class="text-xs text-gray-600 space-y-1">
+                                <div>Max Length: ${getTaskParams(taskType).max_length}</div>
+                                <div>Temperature: ${getTaskParams(taskType).temperature}</div>
+                                <div>Top P: ${getTaskParams(taskType).top_p}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load task info:', error);
+            }
+        }
+
+        // Get demo examples for a task type
+        function getDemoExamples(taskType) {
+            const examples = {
+                chat: [
+                    "Hello! How are you today?",
+                    "Tell me a joke",
+                    "What's the weather like?"
+                ],
+                code: [
+                    "Write a Python function to calculate fibonacci numbers",
+                    "Explain how to use async/await in JavaScript",
+                    "Help me debug this code"
+                ],
+                analysis: [
+                    "Summarize the benefits of renewable energy",
+                    "Analyze the sentiment of this text",
+                    "Extract key points from a document"
+                ],
+                creative: [
+                    "Write a short story about a robot learning to paint",
+                    "Create a poem about artificial intelligence",
+                    "Generate a creative marketing slogan"
+                ],
+                qa: [
+                    "What is machine learning?",
+                    "How does blockchain technology work?",
+                    "What are the main differences between Python and JavaScript?"
+                ]
+            };
+            return examples[taskType] || examples.chat;
+        }
+
+        // Get task parameters
+        function getTaskParams(taskType) {
+            const params = {
+                chat: { max_length: 150, temperature: 0.8, top_p: 0.9 },
+                code: { max_length: 300, temperature: 0.3, top_p: 0.8 },
+                analysis: { max_length: 200, temperature: 0.5, top_p: 0.9 },
+                creative: { max_length: 250, temperature: 0.9, top_p: 0.95 },
+                qa: { max_length: 200, temperature: 0.4, top_p: 0.8 }
+            };
+            return params[taskType] || params.chat;
+        }
+
+        // Use example prompt
+        function useExample(example) {
+            messageInput.value = example;
+            messageInput.focus();
+        }
+
+        // Send message
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            addMessage('user', message);
+            messageInput.value = '';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        task_type: currentTaskType
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Hide typing indicator
+                hideTypingIndicator();
+                
+                // Add AI response to chat
+                addMessage('ai', data.response, data.model_used, data.processing_time);
+                
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('ai', 'Sorry, I encountered an error. Please try again.', 'Error', 0);
+                console.error('Chat error:', error);
+            }
+        }
+
+        // Add message to chat
+        function addMessage(sender, content, modelName = null, processingTime = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble px-4 py-3 rounded-lg ${
+                sender === 'user' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-800'
+            }`;
+            
+            let messageContent = content;
+            
+            // Add metadata for AI messages
+            if (sender === 'ai' && (modelName || processingTime)) {
+                messageContent += `
+                    <div class="mt-2 text-xs opacity-75">
+                        ${modelName ? `<div>Model: ${modelName}</div>` : ''}
+                        ${processingTime ? `<div>Response time: ${(processingTime * 1000).toFixed(0)}ms</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            bubble.innerHTML = messageContent;
+            messageDiv.appendChild(bubble);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Add to chat history
+            chatHistory.push({
+                sender,
+                content,
+                timestamp: new Date(),
+                taskType: currentTaskType,
+                modelName,
+                processingTime
+            });
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            typingIndicator.classList.add('show');
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            typingIndicator.classList.remove('show');
+        }
+
+        // Clear chat
+        function clearChat() {
+            chatMessages.innerHTML = `
+                <div class="flex justify-center mb-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md text-center">
+                        <i class="fas fa-robot text-3xl text-blue-600 mb-3"></i>
+                        <h3 class="text-lg font-semibold text-blue-800 mb-2">Chat Cleared!</h3>
+                        <p class="text-blue-700 text-sm">
+                            Start a new conversation by selecting a task type and typing your message.
+                        </p>
+                    </div>
+                </div>
+            `;
+            chatHistory = [];
+        }
+
+        // Show model loading modal
+        function showModelModal(text) {
+            document.getElementById('model-loading-text').textContent = text;
+            modelModal.classList.remove('hidden');
+        }
+
+        // Hide model loading modal
+        function hideModelModal() {
+            modelModal.classList.add('hidden');
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all transform translate-x-full ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

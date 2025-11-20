@@ -1,0 +1,5 @@
+jupyterlab==4.2.3
+nbgrader==0.9.1
+mlflow==2.14.1
+
+
