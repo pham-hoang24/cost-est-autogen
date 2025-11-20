@@ -1,0 +1,227 @@
+from __future__ import annotations
+
+from typing import Any, Dict, Optional
+from uuid import uuid4
+
+from .expansion import ExpansionService
+from .parser import ParserService
+from .selection import MethodSelector
+from .explainer import ExplainerService
+from .events import EventLogger
+from .repository import ProjectContextRepository
+from .schemas import (
+    EventEntry,
+    ExpansionV1,
+    ProjectContext,
+    SelectionPayload,
+)
+
+
+class WorkflowOrchestrator:
+    """
+    Central coordinator for the multi-agent workflow. Handles project context
+    lifecycle, state transitions, and service orchestration.
+    """
+
+    def __init__(
+        self,
+        repository: Optional[ProjectContextRepository] = None,
+        expansion_service: Optional[ExpansionService] = None,
+        parser_service: Optional[ParserService] = None,
+        selector: Optional[MethodSelector] = None,
+        explainer: Optional[ExplainerService] = None,
+        event_logger: Optional[EventLogger] = None,
+    ) -> None:
+        self.repository = repository or ProjectContextRepository()
+        self.expansion_service = expansion_service or ExpansionService(use_llm=False)
+        self.parser_service = parser_service or ParserService()
+        self.selector = selector or MethodSelector()
+        self.explainer = explainer or ExplainerService()
+        self.event_logger = event_logger or EventLogger(self.repository)
+
+    # ------------------------------------------------------------------
+    # Context lifecycle helpers
+    # ------------------------------------------------------------------
+    def start_new_project(self, project_id: Optional[str] = None) -> ProjectContext:
+        project_id = project_id or str(uuid4())
+        context = ProjectContext(project_id=project_id, status="NEW")
+        context = self.repository.save(context)
+        context = self.event_logger.log(project_id, "PROJECT_STARTED", {"status": context.status})
+        return context
+
+    def load_context(self, project_id: str, create_if_missing: bool = False) -> ProjectContext:
+        context = self.repository.load(project_id)
+        if context is None:
+            if not create_if_missing:
+                raise ValueError(f"Project context '{project_id}' not found.")
+            context = ProjectContext(project_id=project_id)
+            context = self.repository.save(context)
+        return context
+
+    def record_baseline_field(self, project_id: str, field: str, value: str) -> ProjectContext:
+        context = self.load_context(project_id, create_if_missing=True)
+        if field == "team_pref":
+            try:
+                coerced = int(float(value))
+            except ValueError as exc:
+                raise ValueError("team_pref must be numeric.") from exc
+            setattr(context.baseline, field, coerced)
+        else:
+            setattr(context.baseline, field, value)
+        if not self._missing_baseline(context):
+            context.status = "BASELINE_COLLECTED"
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "BASELINE_UPDATED",
+            {"field": field, "value": value, "status": context.status},
+        )
+        return context
+
+    def submit_description(self, project_id: str, description: str) -> ProjectContext:
+        context = self.load_context(project_id, create_if_missing=True)
+        context.user_description = description.strip()
+        if context.status == "NEW" and not self._missing_baseline(context):
+            context.status = "BASELINE_COLLECTED"
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "DESCRIPTION_CAPTURED",
+            {"status": context.status},
+        )
+        return context
+
+    # ------------------------------------------------------------------
+    # Expansion workflow
+    # ------------------------------------------------------------------
+    def generate_expansion(self, project_id: str) -> ProjectContext:
+        context = self.load_context(project_id)
+        if not context.user_description:
+            raise ValueError("Cannot generate expansion without a user description.")
+        prior = context.baseline.model_dump(exclude_none=True)
+        draft = self.expansion_service.generate_draft(context.user_description, prior)
+        context.expansion_draft = draft
+        context.status = "AWAITING_EXPANSION"
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "EXPANSION_DRAFTED",
+            {"summary": draft.summary, "missing_signals": draft.missing_signals},
+        )
+        return context
+
+    def confirm_expansion(self, project_id: str, approval_text: str = "approve") -> ProjectContext:
+        context = self.load_context(project_id)
+        if context.expansion_draft is None:
+            raise ValueError("No expansion draft available to confirm.")
+        context.expansion_confirmed = self._apply_user_edits(context.expansion_draft, approval_text)
+        context.status = "EXPANSION_CONFIRMED"
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "EXPANSION_CONFIRMED",
+            {"approval_text": approval_text},
+        )
+        return context
+
+    # ------------------------------------------------------------------
+    # Method selection
+    # ------------------------------------------------------------------
+    def evaluate_methods(self, project_id: str) -> ProjectContext:
+        context = self.load_context(project_id)
+        if context.expansion_confirmed is None:
+            raise ValueError("Expansion must be confirmed before method selection.")
+
+        prior = context.baseline.model_dump(exclude_none=True)
+        parsed = self.parser_service.parse(context.user_description, prior, context.expansion_confirmed)
+        selection = self.selector.evaluate(parsed)
+
+        context.parsed_context = parsed
+        context.selection = selection
+
+        if selection.required_inputs:
+            context.status = "INPUTS_REQUESTED"
+        else:
+            context.status = "METHOD_SELECTED"
+
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "METHOD_SELECTED",
+            {
+                "primary": selection.primary,
+                "confidence": selection.confidence_level,
+                "required_inputs": selection.required_inputs,
+            },
+        )
+        return context
+
+    def attach_estimate(
+        self,
+        project_id: str,
+        estimate: Dict[str, Any],
+        *,
+        mark_complete: bool = True,
+    ) -> ProjectContext:
+        context = self.load_context(project_id)
+        context.estimates.append(estimate)
+        if mark_complete:
+            context.status = "ESTIMATION_COMPLETE"
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "ESTIMATE_ATTACHED",
+            {"count": len(context.estimates)},
+        )
+        return context
+
+    # ------------------------------------------------------------------
+    # Explanation
+    # ------------------------------------------------------------------
+    def generate_explanation(self, project_id: str) -> ProjectContext:
+        context = self.load_context(project_id)
+        if context.selection is None or context.parsed_context is None:
+            raise ValueError("Method selection must be completed before generating explanation.")
+        improvement_prompts = context.parsed_context.missing_signals
+        summary = self.explainer.build_summary(
+            project_id,
+            context.parsed_context,
+            context.selection,
+            improvement_prompts,
+            context.estimates,
+        )
+        context.explanation = summary
+        context.status = "EXPLANATION_READY"
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "EXPLANATION_READY",
+            {"improvement_prompts": improvement_prompts},
+        )
+        return context
+
+    # ------------------------------------------------------------------
+    # Utilities
+    # ------------------------------------------------------------------
+    def log_event(self, project_id: str, event_type: str, data: Optional[Dict] = None) -> ProjectContext:
+        return self.event_logger.log(project_id, event_type, data)
+
+    def _missing_baseline(self, context: ProjectContext) -> Dict[str, str]:
+        required = ["project_type", "complexity", "tech_stack", "team_pref", "region"]
+        missing = {}
+        baseline = context.baseline.model_dump()
+        for field in required:
+            value = baseline.get(field)
+            if value in (None, "", 0):
+                missing[field] = field
+        return missing
+
+    def _apply_user_edits(self, draft: ExpansionV1, approval_text: str) -> ExpansionV1:
+        if approval_text.strip().lower() in {"approve", "approved"}:
+            return draft
+        updated = draft.model_copy(deep=True)
+        assumptions = list(updated.assumptions)
+        assumptions.append(f"User clarification: {approval_text.strip()}")
+        updated.assumptions = assumptions
+        return updated
+

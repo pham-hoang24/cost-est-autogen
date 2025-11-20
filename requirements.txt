@@ -1,0 +1,9 @@
+autogen
+openai
+pydantic
+numpy
+scikit-learn
+pyyaml
+sqlmodel
+pytest
+

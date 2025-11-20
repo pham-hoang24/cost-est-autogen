@@ -1,0 +1,37 @@
+{
+  "project_name": "Treasury Portal",
+  "target_attributes": {
+    "complexity": 0.7,
+    "domain_finance": 1.0,
+    "integrations": 0.6
+  },
+  "historical_projects": [
+    {
+      "name": "FinOps Suite",
+      "attributes": {
+        "complexity": 0.65,
+        "domain_finance": 1.0,
+        "integrations": 0.55
+      },
+      "effort_pm": 38.0,
+      "duration_months": 6.0,
+      "cost": 420000.0,
+      "feature_breakdown": {
+        "Core Platform": 60.0,
+        "Compliance": 40.0
+      }
+    },
+    {
+      "name": "Risk Analytics Portal",
+      "attributes": {
+        "complexity": 0.75,
+        "domain_finance": 0.8,
+        "integrations": 0.7
+      },
+      "effort_pm": 45.0,
+      "duration_months": 7.5,
+      "cost": 480000.0
+    }
+  ]
+}
+

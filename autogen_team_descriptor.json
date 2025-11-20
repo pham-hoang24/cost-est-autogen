@@ -1,0 +1,252 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 3,
+  "description": "Multi-agent workflow team coordinating baseline intake, semantic expansion, method selection, and explanation.",
+  "label": "Workflow Estimation Team",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "ConversationalAgent",
+        "description": "Collects baseline inputs, manages confirmation loops, and relays orchestrator updates.",
+        "config": {
+          "name": "ConversationalAgent",
+          "description": "User-facing orchestrator liaison.",
+          "system_message": "You are the Conversational agent. On your VERY FIRST reply in each session, you MUST call `start_new_project_tool` (with no arguments) before saying anything else. Use the returned `missing_baseline` map to ask the user for baseline fields in this exact order: project_type, complexity, tech_stack, team_pref, region. For each user response, call `record_baseline_field_tool`. Once all baseline information is complete, ask for a concise project description and submit it via `submit_user_description_tool`. Afterward coordinate the remaining workflow by presenting expansion drafts, notifying the user about method recommendations, and sharing explanations. Keep responses concise and clearly separate captured data from outstanding questions.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenAIChatClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "ConversationalTools",
+              "description": "Wrappers exposing orchestrator functions for the conversational agent.",
+              "config": {
+                "name": "conversational_orchestrator_tools",
+                "description": "Expose workflow control helpers.",
+                "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict, Optional\nimport sys\nimport os\n\n# Import shared orchestrator tools that use persistent database storage\n# This ensures all agents share the same project context via WorkflowOrchestrator\n# Try multiple import strategies to work in different environments\ntry:\n    from tools.orchestrator_tools import (\n        start_new_project_tool,\n        record_baseline_field_tool,\n        submit_user_description_tool,\n        draft_expansion_tool,\n        confirm_expansion_tool,\n        evaluate_methods_tool,\n        register_estimate_tool,\n        generate_explanation_tool,\n        get_project_context_tool,\n    )\nexcept ImportError:\n    # Try adding common project root paths\n    _possible_roots = [\n        os.getcwd(),\n        os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else None,\n        os.environ.get('PROJECT_ROOT'),\n    ]\n    for root in _possible_roots:\n        if root and os.path.exists(root) and root not in sys.path:\n            sys.path.insert(0, root)\n            try:\n                from tools.orchestrator_tools import (\n                    start_new_project_tool,\n                    record_baseline_field_tool,\n                    submit_user_description_tool,\n                    draft_expansion_tool,\n                    confirm_expansion_tool,\n                    evaluate_methods_tool,\n                    register_estimate_tool,\n                    generate_explanation_tool,\n                    get_project_context_tool,\n                )\n                break\n            except ImportError:\n                continue\n    else:\n        # Final fallback: raise error with helpful message\n        raise ImportError(\n            'Could not import tools.orchestrator_tools. '\n            'Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.'\n        )",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "InterpreterAgent",
+        "description": "Produces semantic expansions and highlights missing signals.",
+        "config": {
+          "name": "InterpreterAgent",
+          "description": "Semantic expansion specialist.",
+          "system_message": "You are the Interpreter agent. When invoked, call `draft_expansion_tool` with the project identifier to generate an ExpansionV1 draft. Summarize the findings and surface up to three clarifying questions if important gaps remain. Do not ask users for baseline fields; coordinate with the Conversational agent instead.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenAIChatClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "InterpreterTools",
+              "description": "Expansion + context helpers.",
+              "config": {
+                "name": "interpreter_orchestrator_tools",
+                "description": "Expose interpreter workflow helpers.",
+                "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict, Optional\nimport sys\nimport os\n\n# Import shared orchestrator tools that use persistent database storage\n# This ensures all agents share the same project context via WorkflowOrchestrator\n# Try multiple import strategies to work in different environments\ntry:\n    from tools.orchestrator_tools import (\n        start_new_project_tool,\n        record_baseline_field_tool,\n        submit_user_description_tool,\n        draft_expansion_tool,\n        confirm_expansion_tool,\n        evaluate_methods_tool,\n        register_estimate_tool,\n        generate_explanation_tool,\n        get_project_context_tool,\n    )\nexcept ImportError:\n    # Try adding common project root paths\n    _possible_roots = [\n        os.getcwd(),\n        os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else None,\n        os.environ.get('PROJECT_ROOT'),\n    ]\n    for root in _possible_roots:\n        if root and os.path.exists(root) and root not in sys.path:\n            sys.path.insert(0, root)\n            try:\n                from tools.orchestrator_tools import (\n                    start_new_project_tool,\n                    record_baseline_field_tool,\n                    submit_user_description_tool,\n                    draft_expansion_tool,\n                    confirm_expansion_tool,\n                    evaluate_methods_tool,\n                    register_estimate_tool,\n                    generate_explanation_tool,\n                    get_project_context_tool,\n                )\n                break\n            except ImportError:\n                continue\n    else:\n        # Final fallback: raise error with helpful message\n        raise ImportError(\n            'Could not import tools.orchestrator_tools. '\n            'Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.'\n        )",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "MethodSelectorAgent",
+        "description": "Evaluates estimation techniques and reports completeness gaps.",
+        "config": {
+          "name": "MethodSelectorAgent",
+          "description": "Method selection engine.",
+          "system_message": "You are the Method Selector agent. When prompted, call `evaluate_methods_tool` to retrieve the SelectionPayload. Outline the recommended primary method, backup options, confidence, and any missing inputs. Do not execute estimations yourself.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenAIChatClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "MethodSelectorTools",
+              "description": "Selection + context helpers.",
+              "config": {
+                "name": "selector_orchestrator_tools",
+                "description": "Expose method-selection helpers.",
+                "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict, Optional\nimport sys\nimport os\n\n# Import shared orchestrator tools that use persistent database storage\n# This ensures all agents share the same project context via WorkflowOrchestrator\n# Try multiple import strategies to work in different environments\ntry:\n    from tools.orchestrator_tools import (\n        start_new_project_tool,\n        record_baseline_field_tool,\n        submit_user_description_tool,\n        draft_expansion_tool,\n        confirm_expansion_tool,\n        evaluate_methods_tool,\n        register_estimate_tool,\n        generate_explanation_tool,\n        get_project_context_tool,\n    )\nexcept ImportError:\n    # Try adding common project root paths\n    _possible_roots = [\n        os.getcwd(),\n        os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else None,\n        os.environ.get('PROJECT_ROOT'),\n    ]\n    for root in _possible_roots:\n        if root and os.path.exists(root) and root not in sys.path:\n            sys.path.insert(0, root)\n            try:\n                from tools.orchestrator_tools import (\n                    start_new_project_tool,\n                    record_baseline_field_tool,\n                    submit_user_description_tool,\n                    draft_expansion_tool,\n                    confirm_expansion_tool,\n                    evaluate_methods_tool,\n                    register_estimate_tool,\n                    generate_explanation_tool,\n                    get_project_context_tool,\n                )\n                break\n            except ImportError:\n                continue\n    else:\n        # Final fallback: raise error with helpful message\n        raise ImportError(\n            'Could not import tools.orchestrator_tools. '\n            'Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.'\n        )",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "ExplainerAgent",
+        "description": "Translates estimator outputs into user-facing summaries.",
+        "config": {
+          "name": "ExplainerAgent",
+          "description": "Narrative explainer.",
+          "system_message": "You are the Explainer agent. After estimates are attached, call `generate_explanation_tool` to retrieve the latest summary and improvement prompts. Present the results in clear sections and highlight the next best inputs the user should provide.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenAIChatClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "ExplainerTools",
+              "description": "Explanation + context helpers.",
+              "config": {
+                "name": "explainer_orchestrator_tools",
+                "description": "Expose explanation helpers.",
+                "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict, Optional\nimport sys\nimport os\n\n# Import shared orchestrator tools that use persistent database storage\n# This ensures all agents share the same project context via WorkflowOrchestrator\n# Try multiple import strategies to work in different environments\ntry:\n    from tools.orchestrator_tools import (\n        start_new_project_tool,\n        record_baseline_field_tool,\n        submit_user_description_tool,\n        draft_expansion_tool,\n        confirm_expansion_tool,\n        evaluate_methods_tool,\n        register_estimate_tool,\n        generate_explanation_tool,\n        get_project_context_tool,\n    )\nexcept ImportError:\n    # Try adding common project root paths\n    _possible_roots = [\n        os.getcwd(),\n        os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else None,\n        os.environ.get('PROJECT_ROOT'),\n    ]\n    for root in _possible_roots:\n        if root and os.path.exists(root) and root not in sys.path:\n            sys.path.insert(0, root)\n            try:\n                from tools.orchestrator_tools import (\n                    start_new_project_tool,\n                    record_baseline_field_tool,\n                    submit_user_description_tool,\n                    draft_expansion_tool,\n                    confirm_expansion_tool,\n                    evaluate_methods_tool,\n                    register_estimate_tool,\n                    generate_explanation_tool,\n                    get_project_context_tool,\n                )\n                break\n            except ImportError:\n                continue\n    else:\n        # Final fallback: raise error with helpful message\n        raise ImportError(\n            'Could not import tools.orchestrator_tools. '\n            'Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.'\n        )",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 2,
+      "label": "DefaultTermination",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 2,
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 2,
+            "config": {
+              "max_messages": 30,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "speaker_selection_method": "round_robin",
+    "emit_team_events": false
+  }
+}

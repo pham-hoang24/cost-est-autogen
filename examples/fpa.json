@@ -1,0 +1,39 @@
+{
+  "project_name": "Checkout Revamp",
+  "function_counts": {
+    "EI": {
+      "average": 18
+    },
+    "EO": {
+      "average": 10
+    },
+    "EQ": {
+      "low": 6
+    },
+    "ILF": {
+      "high": 4
+    },
+    "EIF": {
+      "average": 3
+    }
+  },
+  "gsc_ratings": {
+    "data_communications": 4,
+    "distributed_processing": 3,
+    "performance": 4,
+    "heavily_used_configuration": 2,
+    "transaction_rate": 4,
+    "online_data_entry": 4,
+    "end_user_efficiency": 4,
+    "online_update": 3,
+    "complex_processing": 4,
+    "reusability": 3,
+    "installation_ease": 3,
+    "operational_ease": 3,
+    "multiple_sites": 3,
+    "facilitate_change": 4
+  },
+  "hours_per_fp": 9.5,
+  "hourly_rate": 115.0
+}
+
