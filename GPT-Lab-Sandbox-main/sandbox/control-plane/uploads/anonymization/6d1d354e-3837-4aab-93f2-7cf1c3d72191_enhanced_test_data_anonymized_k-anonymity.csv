@@ -1,6 +1,0 @@
-name,email,phone,ssn,address,age,salary,credit_card,passport,ip_address,website,date_of_birth
-[NAME_REDACTED],[USER]@email.com,[PHONE_MASKED],[SSN_REDACTED],"[STREET_REDACTED], New York",31.4-33.1,75000,[CARD_REDACTED],AB******,192.168.XXX.XXX,https://[REDACTED].example.com,[DOB_REDACTED]
-[NAME_REDACTED],[USER]@company.com,[PHONE_MASKED],[SSN_REDACTED],"[STREET_REDACTED], Boston",28-29.7,68000,[CARD_REDACTED],CD******,10.0.XXX.XXX,https://[REDACTED].linkedin.com,[DOB_REDACTED]
-[NAME_REDACTED],[USER]@service.net,555-XXX-XXXX,[SSN_REDACTED],"[STREET_REDACTED], Chicago",39.9-41.6,92000,[CARD_REDACTED],EF******,203.0.XXX.XXX,,[DOB_REDACTED]
-[NAME_REDACTED],[USER]@work.org,[PHONE_MASKED],[SSN_REDACTED],"[STREET_REDACTED], Seattle",34.8-36.5,84000,[CARD_REDACTED],GH******,172.16.XXX.XXX,https://[REDACTED].emily-portfolio.com,[DOB_REDACTED]
-[NAME_REDACTED],[USER]@mail.com,555-XXX-XXXX,[SSN_REDACTED],"[STREET_REDACTED], Portland",45-46.7,71000,[CARD_REDACTED],IJ******,10.1.XXX.XXX,https://[REDACTED].davidwilson.net,[DOB_REDACTED]

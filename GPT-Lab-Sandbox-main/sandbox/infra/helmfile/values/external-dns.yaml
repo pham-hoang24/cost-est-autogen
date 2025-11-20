@@ -1,7 +1,0 @@
-provider: google
-domainFilters: []
-policy: sync
-google:
-  project: "${PROJECT_ID}"
-
-
