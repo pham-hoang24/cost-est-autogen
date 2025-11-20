@@ -1,0 +1,25 @@
+replicas: 1
+ingress:
+  enabled: true
+  hostname: keycloak.local
+  tls: true
+  annotations: {}
+extraEnv: |
+  - name: KC_PROXY
+    value: edge
+  - name: KC_HEALTH_ENABLED
+    value: 'true'
+  - name: KEYCLOAK_ADMIN
+    valueFrom:
+      secretKeyRef:
+        name: keycloak-admin
+        key: username
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: keycloak-admin
+        key: password
+postgresql:
+  enabled: true
+
+

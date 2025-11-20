@@ -1,0 +1,12 @@
+installCRDs: true
+
+extraArgs:
+  - --enable-certificate-owner-ref=true
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+
+

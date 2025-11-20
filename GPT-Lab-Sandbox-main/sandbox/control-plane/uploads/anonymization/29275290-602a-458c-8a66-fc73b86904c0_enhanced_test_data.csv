@@ -1,0 +1,6 @@
+name,email,phone,ssn,address,age,salary,credit_card,passport,ip_address,website,date_of_birth
+John Smith,john.smith@email.com,555-0123,123-45-6789,"123 Main St, New York",32,75000,4532-1234-5678-9012,AB123456,192.168.1.100,https://johnsmith.example.com,01/15/1992
+Sarah Johnson,sarah.j@company.com,555-0456,987-65-4321,"456 Oak Ave, Boston",28,68000,5555-4444-3333-2222,CD789012,10.0.0.50,https://linkedin.com/sarah,03/22/1996
+Michael Brown,m.brown@service.net,(555) 789-0123,456-78-9123,"789 Pine Rd, Chicago",41,92000,4111-1111-1111-1111,EF345678,203.0.113.25,,05/08/1983
+Emily Davis,emily.davis@work.org,5550234,321-65-9876,"234 Elm St, Seattle",35,84000,3782-8224-6310-005,GH901234,172.16.0.1,https://emily-portfolio.com,12/03/1989
+David Wilson,d.wilson@mail.com,555.567.8901,654-32-1987,"567 Maple Dr, Portland",45,71000,6011-1111-1111-1117,IJ567890,10.1.1.1,https://davidwilson.net,07/19/1979

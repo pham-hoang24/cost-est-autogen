@@ -1,0 +1,804 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Card } from '@/components/Card';
+import { Button } from '@/components/Button';
+import { Input } from '@/components/Input';
+import { Textarea } from '@/components/Textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/Select';
+import { 
+  FlaskConical, 
+  Play, 
+  Cpu, 
+  CheckCircle, 
+  BarChart3, 
+  Download, 
+  Settings,
+  Upload,
+  ArrowRight,
+  ArrowLeft,
+  Pause,
+  Square,
+  Activity,
+  Clock,
+  Zap,
+  Target,
+  AlertTriangle,
+  TrendingUp
+} from 'lucide-react';
+import { Badge } from '@/components/Badge';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+
+interface ControlledExperimentServiceProps {
+  service: any;
+}
+
+export default function ControlledExperimentService({ service }: ControlledExperimentServiceProps) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [experiment, setExperiment] = useState({
+    name: '',
+    description: '',
+    model: '',
+    dataset: '',
+    gpuType: '',
+    hyperparameters: {},
+    reproducibility: true
+  });
+  const [isRunning, setIsRunning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [results, setResults] = useState<any>(null);
+  const [liveMetrics, setLiveMetrics] = useState<any>(null);
+
+  const models = [
+    { 
+      id: 'bert-base', 
+      name: 'BERT-base-uncased', 
+      type: 'NLP', 
+      parameters: '110M',
+      gpuMemory: '4GB',
+      trainingTime: '2-4 hours',
+      description: 'Bidirectional transformer for language understanding'
+    },
+    { 
+      id: 'resnet50', 
+      name: 'ResNet-50', 
+      type: 'Computer Vision', 
+      parameters: '25M',
+      gpuMemory: '2GB',
+      trainingTime: '3-6 hours',
+      description: 'Deep residual network for image classification'
+    },
+    { 
+      id: 'gpt-3.5', 
+      name: 'GPT-3.5-turbo', 
+      type: 'Language Model', 
+      parameters: '175B',
+      gpuMemory: '16GB',
+      trainingTime: '6-12 hours',
+      description: 'Large language model for text generation'
+    },
+    { 
+      id: 'yolo-v8', 
+      name: 'YOLO-v8', 
+      type: 'Object Detection', 
+      parameters: '11M',
+      gpuMemory: '3GB',
+      trainingTime: '2-5 hours',
+      description: 'Real-time object detection model'
+    }
+  ];
+
+  const datasets = [
+    { 
+      id: 'imdb-sentiment', 
+      name: 'IMDB Movie Reviews', 
+      type: 'Text Classification',
+      size: '84MB',
+      samples: '50,000',
+      description: 'Sentiment analysis dataset'
+    },
+    { 
+      id: 'cifar-10', 
+      name: 'CIFAR-10', 
+      type: 'Image Classification',
+      size: '170MB',
+      samples: '60,000',
+      description: '10-class image classification'
+    },
+    { 
+      id: 'coco-2017', 
+      name: 'COCO 2017', 
+      type: 'Object Detection',
+      size: '25GB',
+      samples: '330,000',
+      description: 'Object detection and segmentation'
+    },
+    { 
+      id: 'squad-v2', 
+      name: 'SQuAD 2.0', 
+      type: 'Question Answering',
+      size: '46MB',
+      samples: '150,000',
+      description: 'Reading comprehension dataset'
+    }
+  ];
+
+  const gpuTypes = [
+    { 
+      id: 'tesla-v100', 
+      name: 'Tesla V100', 
+      memory: '32GB HBM2',
+      compute: '7.8 TFLOPS',
+      cost: '€2.50/hour',
+      recommended: ['BERT', 'ResNet', 'Medium models']
+    },
+    { 
+      id: 'a100-80gb', 
+      name: 'A100 80GB', 
+      memory: '80GB HBM2e',
+      compute: '19.5 TFLOPS',
+      cost: '€4.20/hour',
+      recommended: ['GPT models', 'Large transformers', 'Multi-GPU training']
+    },
+    { 
+      id: 'rtx-4090', 
+      name: 'RTX 4090', 
+      memory: '24GB GDDR6X',
+      compute: '12.8 TFLOPS',
+      cost: '€1.80/hour',
+      recommended: ['Computer Vision', 'Medium NLP', 'Research']
+    },
+    { 
+      id: 'tesla-t4', 
+      name: 'Tesla T4', 
+      memory: '16GB GDDR6',
+      compute: '8.1 TFLOPS',
+      cost: '€1.20/hour',
+      recommended: ['Small models', 'Inference', 'Budget training']
+    }
+  ];
+
+  const hyperparameterTemplates = {
+    'bert-base': {
+      learning_rate: 2e-5,
+      batch_size: 16,
+      epochs: 3,
+      warmup_steps: 500,
+      weight_decay: 0.01,
+      max_seq_length: 512
+    },
+    'resnet50': {
+      learning_rate: 0.001,
+      batch_size: 32,
+      epochs: 100,
+      momentum: 0.9,
+      weight_decay: 1e-4,
+      scheduler: 'cosine'
+    },
+    'gpt-3.5': {
+      learning_rate: 1e-4,
+      batch_size: 4,
+      epochs: 1,
+      gradient_accumulation: 8,
+      warmup_ratio: 0.1,
+      max_length: 2048
+    },
+    'yolo-v8': {
+      learning_rate: 0.01,
+      batch_size: 16,
+      epochs: 300,
+      momentum: 0.937,
+      weight_decay: 0.0005,
+      iou_threshold: 0.5
+    }
+  };
+
+  const startExperiment = () => {
+    setIsRunning(true);
+    setCurrentStep(3);
+    
+    // Simulate real-time training metrics
+    const metricsInterval = setInterval(() => {
+      setLiveMetrics({
+        epoch: Math.floor(Math.random() * 50) + 1,
+        loss: (Math.random() * 0.5 + 0.1).toFixed(4),
+        accuracy: (Math.random() * 0.3 + 0.7).toFixed(3),
+        learning_rate: (Math.random() * 1e-4 + 1e-5).toExponential(2),
+        gpu_utilization: Math.floor(Math.random() * 20) + 80,
+        memory_usage: Math.floor(Math.random() * 10) + 85,
+        temperature: Math.floor(Math.random() * 15) + 70,
+        throughput: Math.floor(Math.random() * 100) + 200
+      });
+    }, 1000);
+    
+    setTimeout(() => {
+      clearInterval(metricsInterval);
+      setResults(generateExperimentResults());
+      setIsRunning(false);
+      setCurrentStep(4);
+    }, 8000);
+  };
+
+  const generateExperimentResults = () => {
+    const selectedModel = models.find(m => m.id === experiment.model);
+    const selectedDataset = datasets.find(d => d.id === experiment.dataset);
+    const selectedGPU = gpuTypes.find(g => g.id === experiment.gpuType);
+    
+    const trainingHistory = [];
+    let currentLoss = 2.5;
+    let currentAcc = 0.1;
+    
+    for (let epoch = 1; epoch <= 50; epoch++) {
+      currentLoss = Math.max(0.01, currentLoss * (0.95 + Math.random() * 0.03));
+      currentAcc = Math.min(0.98, currentAcc + Math.random() * 0.02);
+      
+      if (epoch % 5 === 0) {
+        trainingHistory.push({
+          epoch,
+          train_loss: currentLoss,
+          val_loss: currentLoss * (1.1 + Math.random() * 0.2),
+          train_accuracy: currentAcc,
+          val_accuracy: currentAcc * (0.95 + Math.random() * 0.05),
+          learning_rate: 2e-5 * Math.pow(0.9, epoch / 10),
+          gpu_utilization: Math.floor(Math.random() * 20) + 80
+        });
+      }
+    }
+
+    return {
+      experimentId: 'exp-' + Date.now(),
+      status: 'completed',
+      model: selectedModel?.name,
+      dataset: selectedDataset?.name,
+      gpu: selectedGPU?.name,
+      duration: '2h 34m 18s',
+      finalMetrics: {
+        train_accuracy: 0.924,
+        val_accuracy: 0.889,
+        train_loss: 0.076,
+        val_loss: 0.112,
+        f1_score: 0.891,
+        precision: 0.904,
+        recall: 0.878
+      },
+      resourceUsage: {
+        total_gpu_hours: 2.57,
+        peak_memory: '28.4 GB',
+        avg_gpu_utilization: 87,
+        peak_temperature: 78,
+        power_consumption: '245W avg',
+        cost_breakdown: {
+          gpu_compute: 10.79,
+          storage: 0.45,
+          network: 0.12,
+          total: 11.36
+        }
+      },
+      trainingHistory,
+      modelArtifacts: {
+        model_file: 'best_model.pth',
+        model_size: '438 MB',
+        checkpoints: 10,
+        logs: 'training.log',
+        config: 'experiment_config.json',
+        metrics: 'metrics.csv'
+      },
+      reproducibility: {
+        random_seed: 42,
+        environment: 'pytorch:1.13.1-cuda11.6-cudnn8-devel',
+        git_commit: 'a7b3c9d',
+        dependencies: 'requirements.txt',
+        hardware_fingerprint: 'Tesla-V100-32GB-001'
+      },
+      nextSteps: [
+        'Deploy model to production inference endpoint',
+        'Run model validation on held-out test set',
+        'Compare with baseline models and previous experiments',
+        'Set up monitoring for model drift detection',
+        'Create model documentation and deployment guide'
+      ]
+    };
+  };
+
+  const pauseExperiment = () => {
+    setIsPaused(true);
+    alert('Experiment paused. You can resume or stop the training.');
+  };
+
+  const stopExperiment = () => {
+    setIsRunning(false);
+    setIsPaused(false);
+    alert('Experiment stopped. Partial results will be saved.');
+  };
+
+  const resetExperiment = () => {
+    setCurrentStep(1);
+    setExperiment({
+      name: '',
+      description: '',
+      model: '',
+      dataset: '',
+      gpuType: '',
+      hyperparameters: {},
+      reproducibility: true
+    });
+    setResults(null);
+    setLiveMetrics(null);
+    setIsRunning(false);
+    setIsPaused(false);
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <Card className="p-6">
+            <h3 className="text-2xl font-semibold text-white mb-4">Step 1: Experiment Configuration</h3>
+            
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-white font-medium mb-2">Experiment Name</label>
+                  <Input
+                    placeholder="e.g., BERT Fine-tuning for Sentiment Analysis"
+                    value={experiment.name}
+                    onChange={(e) => setExperiment({...experiment, name: e.target.value})}
+                  />
+                </div>
+                <div className="flex items-center gap-2 pt-8">
+                  <input
+                    type="checkbox"
+                    id="reproducibility"
+                    checked={experiment.reproducibility}
+                    onChange={(e) => setExperiment({...experiment, reproducibility: e.target.checked})}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <label htmlFor="reproducibility" className="text-white text-sm">
+                    Enable reproducibility (fixed seeds, version tracking)
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-white font-medium mb-2">Experiment Description</label>
+                <Textarea
+                  placeholder="Describe the goals and methodology of your experiment..."
+                  value={experiment.description}
+                  onChange={(e) => setExperiment({...experiment, description: e.target.value})}
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <Button 
+                onClick={() => setCurrentStep(2)}
+                disabled={!experiment.name}
+                className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+              >
+                Next: Select Resources <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </Card>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            {/* Model Selection */}
+            <Card className="p-6">
+              <h3 className="text-2xl font-semibold text-white mb-4">Step 2: Resource Selection</h3>
+              
+              <div className="mb-6">
+                <h4 className="text-lg font-medium text-white mb-3">Select Base Model</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {models.map((model) => (
+                    <Card
+                      key={model.id}
+                      className={`p-4 cursor-pointer transition-all ${
+                        experiment.model === model.id
+                          ? 'border-2 border-blue-500 bg-blue-500/10'
+                          : 'border-2 border-slate-600 hover:border-slate-500'
+                      }`}
+                      onClick={() => setExperiment({...experiment, model: model.id})}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                          <FlaskConical className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h5 className="text-white font-medium">{model.name}</h5>
+                          <Badge variant="secondary" className="text-xs">{model.type}</Badge>
+                        </div>
+                      </div>
+                      <p className="text-slate-400 text-sm mb-3">{model.description}</p>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-slate-500">Parameters:</span>
+                          <span className="text-white ml-1">{model.parameters}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">GPU Memory:</span>
+                          <span className="text-white ml-1">{model.gpuMemory}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Training Time:</span>
+                          <span className="text-white ml-1">{model.trainingTime}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dataset Selection */}
+              <div className="mb-6">
+                <h4 className="text-lg font-medium text-white mb-3">Select Training Dataset</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {datasets.map((dataset) => (
+                    <Card
+                      key={dataset.id}
+                      className={`p-4 cursor-pointer transition-all ${
+                        experiment.dataset === dataset.id
+                          ? 'border-2 border-green-500 bg-green-500/10'
+                          : 'border-2 border-slate-600 hover:border-slate-500'
+                      }`}
+                      onClick={() => setExperiment({...experiment, dataset: dataset.id})}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                          <BarChart3 className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h5 className="text-white font-medium">{dataset.name}</h5>
+                          <Badge variant="secondary" className="text-xs">{dataset.type}</Badge>
+                        </div>
+                      </div>
+                      <p className="text-slate-400 text-sm mb-3">{dataset.description}</p>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-slate-500">Size:</span>
+                          <span className="text-white ml-1">{dataset.size}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Samples:</span>
+                          <span className="text-white ml-1">{dataset.samples}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {/* GPU Configuration */}
+              <div>
+                <h4 className="text-lg font-medium text-white mb-3">GPU Configuration</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {gpuTypes.map((gpu) => (
+                    <Card
+                      key={gpu.id}
+                      className={`p-4 cursor-pointer transition-all ${
+                        experiment.gpuType === gpu.id
+                          ? 'border-2 border-purple-500 bg-purple-500/10'
+                          : 'border-2 border-slate-600 hover:border-slate-500'
+                      }`}
+                      onClick={() => setExperiment({...experiment, gpuType: gpu.id})}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <Cpu className="w-8 h-8 text-purple-400" />
+                        <div>
+                          <h5 className="text-white font-medium">{gpu.name}</h5>
+                          <div className="text-purple-400 font-medium">{gpu.cost}</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2 text-xs mb-3">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Memory:</span>
+                          <span className="text-white">{gpu.memory}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Compute:</span>
+                          <span className="text-white">{gpu.compute}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-slate-500 text-xs mb-1">Recommended for:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {gpu.recommended.map((rec, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">{rec}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between">
+              <Button onClick={() => setCurrentStep(1)} variant="outline" className="flex items-center gap-2">
+                <ArrowLeft className="w-4 h-4" /> Back
+              </Button>
+              <Button 
+                onClick={startExperiment}
+                disabled={!experiment.model || !experiment.dataset || !experiment.gpuType}
+                className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+              >
+                <Play className="w-4 h-4" />
+                Start Experiment
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-2xl font-semibold text-white">Experiment Running...</h3>
+                  <p className="text-blue-200">Training {experiment.model} on {experiment.dataset}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button onClick={pauseExperiment} variant="outline" size="sm" disabled={isPaused}>
+                    <Pause className="w-4 h-4" />
+                  </Button>
+                  <Button onClick={stopExperiment} variant="outline" size="sm">
+                    <Square className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Live Metrics */}
+              {liveMetrics && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <Card className="p-4 bg-slate-700 text-center">
+                    <div className="text-lg font-bold text-blue-400">Epoch {liveMetrics.epoch}</div>
+                    <div className="text-sm text-slate-400">Current Epoch</div>
+                  </div>
+                  <Card className="p-4 bg-slate-700 text-center">
+                    <div className="text-lg font-bold text-green-400">{liveMetrics.accuracy}</div>
+                    <div className="text-sm text-slate-400">Validation Accuracy</div>
+                  </Card>
+                  <Card className="p-4 bg-slate-700 text-center">
+                    <div className="text-lg font-bold text-red-400">{liveMetrics.loss}</div>
+                    <div className="text-sm text-slate-400">Training Loss</div>
+                  </Card>
+                  <Card className="p-4 bg-slate-700 text-center">
+                    <div className="text-lg font-bold text-purple-400">{liveMetrics.gpu_utilization}%</div>
+                    <div className="text-sm text-slate-400">GPU Utilization</div>
+                  </Card>
+                </div>
+              )}
+
+              {/* Real-time Resource Monitoring */}
+              <Card className="p-4 bg-slate-700">
+                <h4 className="text-lg font-semibold text-white mb-3">Real-time Resource Monitoring</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="text-white font-medium">Memory Usage</div>
+                    <div className="text-blue-400">{liveMetrics?.memory_usage || 85}%</div>
+                    <div className="w-full bg-slate-600 rounded-full h-2 mt-1">
+                      <div 
+                        className="bg-blue-400 h-2 rounded-full transition-all"
+                        style={{ width: `${liveMetrics?.memory_usage || 85}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-medium">GPU Temperature</div>
+                    <div className="text-orange-400">{liveMetrics?.temperature || 72}°C</div>
+                    <div className="w-full bg-slate-600 rounded-full h-2 mt-1">
+                      <div 
+                        className="bg-orange-400 h-2 rounded-full transition-all"
+                        style={{ width: `${((liveMetrics?.temperature || 72) / 90) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-medium">Throughput</div>
+                    <div className="text-green-400">{liveMetrics?.throughput || 250} samples/s</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white font-medium">Learning Rate</div>
+                    <div className="text-yellow-400">{liveMetrics?.learning_rate || '2.00e-05'}</div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Live Training Log */}
+              <Card className="p-4 bg-slate-700">
+                <h4 className="text-lg font-semibold text-white mb-3">Live Training Log</h4>
+                <div className="bg-slate-800 rounded p-3 font-mono text-xs text-green-400 h-32 overflow-y-auto">
+                  <div>[{new Date().toLocaleTimeString()}] Starting epoch {liveMetrics?.epoch || 1}...</div>
+                  <div>[{new Date().toLocaleTimeString()}] Batch 1/100 - Loss: {liveMetrics?.loss || '0.1234'}</div>
+                  <div>[{new Date().toLocaleTimeString()}] GPU utilization: {liveMetrics?.gpu_utilization || 87}%</div>
+                  <div>[{new Date().toLocaleTimeString()}] Memory usage: {liveMetrics?.memory_usage || 85}%</div>
+                  <div>[{new Date().toLocaleTimeString()}] Current accuracy: {liveMetrics?.accuracy || '0.856'}</div>
+                  <div>[{new Date().toLocaleTimeString()}] Learning rate: {liveMetrics?.learning_rate || '2.00e-05'}</div>
+                  <div className="text-yellow-400">[{new Date().toLocaleTimeString()}] Checkpoint saved at epoch {liveMetrics?.epoch || 1}</div>
+                </div>
+              </Card>
+            </div>
+          </Card>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            {/* Experiment Summary */}
+            <Card className="p-6 bg-gradient-to-r from-green-500/10 to-blue-500/10 border-green-500/20">
+              <div className="flex items-center gap-4 mb-6">
+                <CheckCircle className="w-12 h-12 text-green-400" />
+                <div>
+                  <h3 className="text-2xl font-semibold text-white">Experiment Complete!</h3>
+                  <p className="text-green-200">ID: {results?.experimentId} | Duration: {results?.duration}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="p-4 bg-slate-700/50 text-center">
+                  <BarChart3 className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                  <div className="text-xl font-bold text-white">{(results?.finalMetrics.val_accuracy * 100).toFixed(1)}%</div>
+                  <div className="text-sm text-slate-400">Validation Accuracy</div>
+                </Card>
+                <Card className="p-4 bg-slate-700/50 text-center">
+                  <TrendingUp className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                  <div className="text-xl font-bold text-white">{results?.finalMetrics.f1_score.toFixed(3)}</div>
+                  <div className="text-sm text-slate-400">F1 Score</div>
+                </Card>
+                <Card className="p-4 bg-slate-700/50 text-center">
+                  <Cpu className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                  <div className="text-xl font-bold text-white">{results?.resourceUsage.avg_gpu_utilization}%</div>
+                  <div className="text-sm text-slate-400">Avg GPU Usage</div>
+                </Card>
+                <Card className="p-4 bg-slate-700/50 text-center">
+                  <span className="text-xl">💰</span>
+                  <div className="text-xl font-bold text-white">€{results?.resourceUsage.cost_breakdown.total}</div>
+                  <div className="text-sm text-slate-400">Total Cost</div>
+                </Card>
+              </div>
+            </Card>
+
+            {/* Training History Chart */}
+            <Card className="p-6">
+              <h3 className="text-xl font-semibold text-white mb-4">Training History</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={results?.trainingHistory}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                  <XAxis dataKey="epoch" stroke="#94a3b8" />
+                  <YAxis yAxisId="accuracy" orientation="left" stroke="#10B981" domain={[0, 1]} />
+                  <YAxis yAxisId="loss" orientation="right" stroke="#EF4444" domain={[0, 'dataMax']} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
+                    itemStyle={{ color: '#fff' }}
+                    labelStyle={{ color: '#94a3b8' }}
+                  />
+                  <Line yAxisId="accuracy" type="monotone" dataKey="val_accuracy" stroke="#10B981" strokeWidth={2} name="Validation Accuracy" />
+                  <Line yAxisId="accuracy" type="monotone" dataKey="train_accuracy" stroke="#3B82F6" strokeWidth={2} name="Training Accuracy" />
+                  <Line yAxisId="loss" type="monotone" dataKey="val_loss" stroke="#EF4444" strokeWidth={2} name="Validation Loss" />
+                  <Line yAxisId="loss" type="monotone" dataKey="train_loss" stroke="#F97316" strokeWidth={2} name="Training Loss" />
+                </LineChart>
+              </ResponsiveContainer>
+            </Card>
+
+            {/* Model Artifacts & Reproducibility */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="p-6">
+                <h3 className="text-xl font-semibold text-white mb-4">Model Artifacts</h3>
+                <div className="space-y-3">
+                  {Object.entries(results?.modelArtifacts || {}).map(([key, value]) => (
+                    <div key={key} className="flex justify-between items-center p-2 bg-slate-700 rounded">
+                      <span className="text-slate-300 capitalize">{key.replace('_', ' ')}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-white text-sm">{value as string}</span>
+                        <Button size="sm" variant="outline">
+                          <Download className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="text-xl font-semibold text-white mb-4">Reproducibility Info</h3>
+                <div className="space-y-3">
+                  {Object.entries(results?.reproducibility || {}).map(([key, value]) => (
+                    <div key={key} className="flex justify-between items-center p-2 bg-slate-700 rounded">
+                      <span className="text-slate-300 capitalize">{key.replace('_', ' ')}</span>
+                      <span className="text-white text-sm font-mono">{value as string}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+
+            {/* Next Steps */}
+            <Card className="p-6">
+              <h3 className="text-xl font-semibold text-white mb-4">🎯 Recommended Next Steps</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {results?.nextSteps?.map((step: string, index: number) => (
+                  <div key={index} className="flex items-start gap-3 p-3 bg-slate-700 rounded-lg">
+                    <ArrowRight className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-slate-300 text-sm">{step}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex justify-center gap-4">
+              <Button onClick={resetExperiment} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2">
+                <FlaskConical className="w-4 h-4" />
+                New Experiment
+              </Button>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Export Results
+              </Button>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Deploy Model
+              </Button>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Service Header */}
+      <Card className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/20">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+            <FlaskConical className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-white">{service.name}</h2>
+            <p className="text-blue-200 text-lg">{service.description}</p>
+          </div>
+        </div>
+        <p className="text-slate-300">
+          Run reproducible AI experiments with professional GPU allocation, real-time monitoring, 
+          and comprehensive results tracking. Perfect for research and production model development.
+        </p>
+      </Card>
+
+      {/* Progress Steps */}
+      <Card className="p-4 bg-slate-800 border-slate-700">
+        <div className="flex items-center justify-between">
+          {[1, 2, 3, 4].map((step) => (
+            <div key={step} className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                currentStep >= step ? 'bg-blue-500 text-white' : 'bg-slate-600 text-slate-400'
+              }`}>
+                {currentStep > step ? <CheckCircle className="w-4 h-4" /> : step}
+              </div>
+              {step < 4 && (
+                <div className={`w-16 h-0.5 mx-2 ${
+                  currentStep > step ? 'bg-blue-500' : 'bg-slate-600'
+                }`} />
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-between mt-2 text-xs text-slate-400">
+          <span>Configure</span>
+          <span>Resources</span>
+          <span>Training</span>
+          <span>Results</span>
+        </div>
+      </Card>
+
+      {/* Main Content */}
+      {renderStep()}
+    </div>
+  );
+}

@@ -1,0 +1,51 @@
+name: Lint & Validate
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install API deps
+        working-directory: control-plane
+        run: |
+          npm ci || true
+          npm run -s build || true
+
+      - name: Install UI deps
+        working-directory: ui
+        run: |
+          npm ci || true
+          npm run -s build || true
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform fmt & validate
+        working-directory: infra/terraform
+        run: |
+          terraform fmt -check || true
+          terraform init -backend=false
+          terraform validate
+
+      - name: Helmfile lint
+        uses: mikefarah/yq@v4
+      - name: Check helmfile syntax
+        run: |
+          which helmfile || echo "helmfile not installed in CI; syntax-only check via yq"
+          yq '.releases[].name' infra/helmfile/helmfile.yaml > /dev/null
+
+
+

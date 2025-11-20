@@ -1,0 +1,21 @@
+loki:
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: filesystem
+  rulerConfig:
+    storage:
+      type: local
+singleBinary:
+  persistence:
+    enabled: false
+read:
+  persistence:
+    enabled: false
+write:
+  persistence:
+    enabled: false
+gateway:
+  enabled: true
+
+

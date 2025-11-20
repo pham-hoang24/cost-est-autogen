@@ -1,0 +1,21 @@
+backendStore:
+  postgres:
+    enabled: true
+    host: "ai-sandbox-sql"
+    port: 5432
+    database: "mlflow"
+    user: "mlflow"
+    password: "changeme" # Replace with Vault-managed secret
+artifactRoot:
+  s3:
+    enabled: true
+    bucket: "artifacts"
+    endpoint: "http://minio.minio.svc.cluster.local:9000"
+    awsAccessKeyId: "admin" # Use Vault in production
+    awsSecretAccessKey: "changeme"
+ingress:
+  enabled: true
+  hostname: mlflow.local
+  tls: true
+
+

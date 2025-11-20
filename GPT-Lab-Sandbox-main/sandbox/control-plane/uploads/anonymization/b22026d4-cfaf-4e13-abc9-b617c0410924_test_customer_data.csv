@@ -1,0 +1,7 @@
+name,email,phone,ssn,address,age,salary
+John Smith,john.smith@email.com,555-0123,123-45-6789,"123 Main St, New York",32,75000
+Sarah Johnson,sarah.j@company.com,555-0456,987-65-4321,"456 Oak Ave, Boston",28,68000
+Michael Brown,m.brown@service.net,555-0789,456-78-9123,"789 Pine Rd, Chicago",45,92000
+Emily Davis,emily.davis@work.org,555-0234,321-65-9876,"234 Elm St, Seattle",35,84000
+David Wilson,d.wilson@mail.com,555-0567,654-32-1987,"567 Maple Dr, Portland",41,71000
+
