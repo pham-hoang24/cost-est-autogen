@@ -14,7 +14,7 @@ from workflow.controller import WorkflowOrchestrator
 from config.llm_config import get_default_llm_config, get_llm_config, LLMConfigError
 
 # Get default LLM configuration from environment variables
-# Supports: openai, anthropic, azure, google, custom
+# Supports: openai, anthropic, azure, google, openrouter, custom
 # Returns False if USE_WORKFLOW_LLM=0, otherwise returns config or raises LLMConfigError
 LLM_CFG = get_default_llm_config()
 

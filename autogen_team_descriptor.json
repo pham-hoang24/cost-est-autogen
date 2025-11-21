@@ -17,15 +17,26 @@
         "config": {
           "name": "ConversationalAgent",
           "description": "User-facing orchestrator liaison.",
-          "system_message": "You are the Conversational agent. On your VERY FIRST reply in each session, you MUST call `start_new_project_tool` (with no arguments) before saying anything else. Use the returned `missing_baseline` map to ask the user for baseline fields in this exact order: project_type, complexity, tech_stack, team_pref, region. For each user response, call `record_baseline_field_tool`. Once all baseline information is complete, ask for a concise project description and submit it via `submit_user_description_tool`. Afterward coordinate the remaining workflow by presenting expansion drafts, notifying the user about method recommendations, and sharing explanations. Keep responses concise and clearly separate captured data from outstanding questions.",
+          "system_message": "You are the Conversational agent responsible for collecting baseline information from the user.\n\nCRITICAL RULES:\n\n1) On your VERY FIRST reply, call `start_new_project_tool()` with NO arguments to initialize the project.\n\n2) After calling start_new_project_tool, ask the user for all of the baseline fields at the same time in this order:\n   - project_type\n   - complexity\n   - tech_stack\n   - team_pref\n   - region\n\n3) After asking this question, you MUST end your message with \"[WAITING FOR USER INPUT]\" and then STOP - do not continue, do not call any tools, do not generate responses. Wait for the user's actual response.\n\n4) When the user responds, extract their answer and call `record_baseline_field_tool` with THREE separate string parameters:\n   - project_id (from the context)\n   - field (the field name like \"project_type\")\n   - value (the user's exact answer)\n   \n   Example: record_baseline_field_tool(project_id=\"fitness_app\", field=\"project_type\", value=\"mobile application\")\n\n5) Once all 5 baseline fields are collected, ask for a project description, end with \"[WAITING FOR USER INPUT]\", wait for response, then call `submit_user_description_tool(project_id=\"<id>\", description=\"<user_text>\")`.\n\n6) Then coordinate the workflow by presenting expansion drafts and method recommendations.",
+          "max_consecutive_auto_reply": 0,
+          "human_input_mode": "ALWAYS",
           "model_client": {
             "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
             "component_type": "model",
             "version": 1,
             "component_version": 2,
-            "label": "GoogleChatClient",
+            "label": "OpenRouterClient",
             "config": {
-              "model": "gemini-pro"
+              "model": "openai/gpt-4o-mini",
+              "base_url": "https://openrouter.ai/api/v1",
+              "model_info": {
+                "vision": false,
+                "function_calling": true,
+                "json_output": true,
+                "family": "gpt-4o",
+                "structured_output": true,
+                "multiple_system_messages": false
+              }
             }
           },
           "model_context": {
@@ -47,7 +58,7 @@
               "description": "Wrappers exposing orchestrator functions for the conversational agent.",
               "config": {
                 "name": "conversational_orchestrator_tools",
-                "description": "Expose workflow control helpers.",
+                "description": "Expose workflow control helpers. record_baseline_field_tool requires three separate parameters: project_id (string), field (string), and value (string). Example: record_baseline_field_tool(project_id=\"fitness_app\", field=\"project_type\", value=\"mobile application\").",
                 "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict, Optional\nimport sys\nimport os\n\n# Add project root to path if needed\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from workflow import ProjectContext, WorkflowOrchestrator\n    _ORCHESTRATOR = WorkflowOrchestrator()\n    _BASELINE_FIELDS = [\"project_type\", \"complexity\", \"tech_stack\", \"team_pref\", \"region\"]\n    \n    def _serialize_context(context: ProjectContext) -> Dict[str, object]:\n        prompts = {\n            \"project_type\": \"Select project type (software development, ai/ml project, system integration, cloud migration, mobile application, web application).\",\n            \"complexity\": \"Specify complexity (low, medium, high, very high).\",\n            \"tech_stack\": \"Describe the technology focus (web technologies, mobile development, ai/ml technologies, cloud technology, enterprise systems).\",\n            \"team_pref\": \"Provide desired team size (numeric).\",\n            \"region\": \"Provide the primary delivery region (e.g., North America, EMEA).\",\n        }\n        missing: Dict[str, str] = {}\n        baseline = context.baseline.model_dump()\n        for field in _BASELINE_FIELDS:\n            value = baseline.get(field)\n            if value in (None, \"\", 0):\n                missing[field] = prompts[field]\n        \n        payload: Dict[str, object] = {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"version\": context.version,\n            \"baseline\": context.baseline.model_dump(exclude_none=True),\n            \"user_description\": context.user_description,\n            \"missing_baseline\": missing,\n            \"events\": [event.model_dump() for event in context.events],\n        }\n        if context.expansion_draft:\n            payload[\"expansion_draft\"] = context.expansion_draft.model_dump()\n        if context.expansion_confirmed:\n            payload[\"expansion_confirmed\"] = context.expansion_confirmed.model_dump()\n        if context.parsed_context:\n            payload[\"parsed_context\"] = context.parsed_context.model_dump()\n        if context.selection:\n            payload[\"selection\"] = context.selection.model_dump()\n        if context.estimates:\n            payload[\"estimates\"] = context.estimates\n        if context.explanation:\n            payload[\"explanation\"] = context.explanation\n        return payload\n    \n    def start_new_project_tool(project_id: Optional[str] = None) -> Dict[str, object]:\n        context = _ORCHESTRATOR.start_new_project(project_id=project_id)\n        return _serialize_context(context)\n    \n    def record_baseline_field_tool(project_id: str, field: str, value: str) -> Dict[str, object]:\n        if field not in _BASELINE_FIELDS:\n            raise ValueError(f\"Unsupported baseline field '{field}'. Expected one of {_BASELINE_FIELDS}.\")\n        context = _ORCHESTRATOR.record_baseline_field(project_id, field, value)\n        return _serialize_context(context)\n    \n    def submit_user_description_tool(project_id: str, description: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.submit_description(project_id, description)\n        return _serialize_context(context)\n    \n    def draft_expansion_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.generate_expansion(project_id)\n        return _serialize_context(context)\n    \n    def confirm_expansion_tool(project_id: str, approval_text: str = \"approve\") -> Dict[str, object]:\n        context = _ORCHESTRATOR.confirm_expansion(project_id, approval_text)\n        return _serialize_context(context)\n    \n    def evaluate_methods_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.evaluate_methods(project_id)\n        return _serialize_context(context)\n    \n    def register_estimate_tool(project_id: str, estimate: Dict[str, Any], mark_complete: bool = True) -> Dict[str, object]:\n        context = _ORCHESTRATOR.attach_estimate(project_id, estimate, mark_complete=mark_complete)\n        return _serialize_context(context)\n    \n    def generate_explanation_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.generate_explanation(project_id)\n        return _serialize_context(context)\n    \n    def get_project_context_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.load_context(project_id, create_if_missing=True)\n        return _serialize_context(context)\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import workflow modules: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
                 "global_imports": [],
                 "has_cancellation_support": false
@@ -69,15 +80,24 @@
         "config": {
           "name": "InterpreterAgent",
           "description": "Semantic expansion specialist.",
-          "system_message": "You are the Interpreter agent. When invoked, call `draft_expansion_tool` with the project identifier to generate an ExpansionV1 draft. Summarize the findings and surface up to three clarifying questions if important gaps remain. Do not ask users for baseline fields; coordinate with the Conversational agent instead.",
+          "system_message": "You are the Interpreter agent.\n\nCRITICAL: During baseline collection (when project status is NEW or when missing_baseline fields exist), you must remain SILENT and not respond.\n\nOnly respond when:\n- The ConversationalAgent explicitly requests your help, OR\n- The project status is AWAITING_EXPANSION\n\nWhen invoked, call `draft_expansion_tool` with the project identifier to generate an ExpansionV1 draft. Summarize the findings and surface up to three clarifying questions if important gaps remain.\n\nDo not ask users for baseline fields; coordinate with the Conversational agent instead.",
           "model_client": {
             "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
             "component_type": "model",
             "version": 1,
             "component_version": 2,
-            "label": "GoogleChatClient",
+            "label": "OpenRouterClient",
             "config": {
-              "model": "gemini-pro"
+              "model": "openai/gpt-4o-mini",
+              "base_url": "https://openrouter.ai/api/v1",
+              "model_info": {
+                "vision": false,
+                "function_calling": true,
+                "json_output": true,
+                "family": "gpt-4o",
+                "structured_output": true,
+                "multiple_system_messages": false
+              }
             }
           },
           "model_context": {
@@ -121,15 +141,24 @@
         "config": {
           "name": "MethodSelectorAgent",
           "description": "Method selection engine.",
-          "system_message": "You are the Method Selector agent. When prompted, call `evaluate_methods_tool` to retrieve the SelectionPayload. Outline the recommended primary method, backup options, confidence, and any missing inputs. Do not execute estimations yourself.",
+          "system_message": "You are the Method Selector agent. CRITICAL: During baseline collection (when project status is NEW or when missing_baseline fields exist), you must remain SILENT and not respond. Only respond when explicitly requested by the ConversationalAgent or when the project is ready for method evaluation (status is AWAITING_METHOD_SELECTION or later). When prompted, call `evaluate_methods_tool` to retrieve the SelectionPayload. Outline the recommended primary method, backup options, confidence, and any missing inputs. Do not execute estimations yourself.",
           "model_client": {
             "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
             "component_type": "model",
             "version": 1,
             "component_version": 2,
-            "label": "GoogleChatClient",
+            "label": "OpenRouterClient",
             "config": {
-              "model": "gemini-pro"
+              "model": "openai/gpt-4o-mini",
+              "base_url": "https://openrouter.ai/api/v1",
+              "model_info": {
+                "vision": false,
+                "function_calling": true,
+                "json_output": true,
+                "family": "gpt-4o",
+                "structured_output": true,
+                "multiple_system_messages": false
+              }
             }
           },
           "model_context": {
@@ -173,15 +202,24 @@
         "config": {
           "name": "ExplainerAgent",
           "description": "Narrative explainer.",
-          "system_message": "You are the Explainer agent. After estimates are attached, call `generate_explanation_tool` to retrieve the latest summary and improvement prompts. Present the results in clear sections and highlight the next best inputs the user should provide.",
+          "system_message": "You are the Explainer agent. CRITICAL: During baseline collection (when project status is NEW or when missing_baseline fields exist), you must remain SILENT and not respond. Only respond when explicitly requested by the ConversationalAgent or when estimates have been attached and explanation is needed. After estimates are attached, call `generate_explanation_tool` to retrieve the latest summary and improvement prompts. Present the results in clear sections and highlight the next best inputs the user should provide.",
           "model_client": {
             "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
             "component_type": "model",
             "version": 1,
             "component_version": 2,
-            "label": "GoogleChatClient",
+            "label": "OpenRouterClient",
             "config": {
-              "model": "gemini-pro"
+              "model": "openai/gpt-4o-mini",
+              "base_url": "https://openrouter.ai/api/v1",
+              "model_info": {
+                "vision": false,
+                "function_calling": true,
+                "json_output": true,
+                "family": "gpt-4o",
+                "structured_output": true,
+                "multiple_system_messages": false
+              }
             }
           },
           "model_context": {
@@ -231,6 +269,15 @@
             "component_version": 2,
             "config": {
               "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 2,
+            "config": {
+              "text": "[WAITING FOR USER INPUT]"
             }
           },
           {

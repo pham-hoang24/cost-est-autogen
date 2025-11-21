@@ -7,6 +7,7 @@ Provides flexible LLM provider configuration supporting multiple providers:
 - Anthropic (Claude)
 - Azure OpenAI
 - Google (Gemini)
+- OpenRouter
 - Custom providers via AutoGen
 
 Configuration is done via environment variables.
@@ -36,7 +37,7 @@ def get_llm_config(
     Parameters
     ----------
     provider : str, optional
-        LLM provider name: 'openai', 'anthropic', 'azure', 'google', or 'custom'.
+        LLM provider name: 'openai', 'anthropic', 'azure', 'google', 'openrouter', or 'custom'.
         If None, reads from LLM_PROVIDER env var (defaults to 'openai').
     model : str, optional
         Model name. If None, uses provider-specific defaults or env vars.
@@ -85,12 +86,14 @@ def get_llm_config(
         return _get_azure_config(model, temp, api_key)
     elif provider == "google":
         return _get_google_config(model, temp, api_key)
+    elif provider == "openrouter":
+        return _get_openrouter_config(model, temp, api_key)
     elif provider == "custom":
         return _get_custom_config(model, temp, api_key)
     else:
         raise LLMConfigError(
             f"Unknown provider: {provider}. "
-            f"Supported providers: openai, anthropic, azure, google, custom"
+            f"Supported providers: openai, anthropic, azure, google, openrouter, custom"
         )
 
 
@@ -180,6 +183,26 @@ def _get_google_config(
         "temperature": temperature,
         "api_key": api_key,
         "api_type": "google",
+    }
+
+
+def _get_openrouter_config(
+    model: Optional[str], temperature: float, api_key: Optional[str]
+) -> Dict[str, Any]:
+    """Build OpenRouter configuration."""
+    api_key = api_key or os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        raise LLMConfigError(
+            "OpenRouter API key not found. Set OPENROUTER_API_KEY environment variable."
+        )
+
+    model = model or os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+
+    return {
+        "model": model,
+        "temperature": temperature,
+        "api_key": api_key,
+        "base_url": "https://openrouter.ai/api/v1",
     }
 
 
