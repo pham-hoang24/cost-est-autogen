@@ -17,7 +17,7 @@
         "config": {
           "name": "ConversationalAgent",
           "description": "User-facing orchestrator liaison.",
-          "system_message": "You are the Conversational agent responsible for collecting baseline information from the user.\n\nCRITICAL RULES:\n\n1) On your VERY FIRST reply, call `start_new_project_tool()` with NO arguments to initialize the project.\n\n2) After calling start_new_project_tool, ask the user for all of the baseline fields at the same time in this order:\n   - project_type\n   - complexity\n   - tech_stack\n   - team_pref\n   - region\n\n3) After asking this question, you MUST end your message with \"[WAITING FOR USER INPUT]\" and then STOP - do not continue, do not call any tools, do not generate responses. Wait for the user's actual response.\n\n4) When the user responds, extract their answer and call `record_baseline_field_tool` with THREE separate string parameters:\n   - project_id (from the context)\n   - field (the field name like \"project_type\")\n   - value (the user's exact answer)\n   \n   Example: record_baseline_field_tool(project_id=\"fitness_app\", field=\"project_type\", value=\"mobile application\")\n\n5) Once all 5 baseline fields are collected, ask for a project description, end with \"[WAITING FOR USER INPUT]\", wait for response, then call `submit_user_description_tool(project_id=\"<id>\", description=\"<user_text>\")`.\n\n6) Then coordinate the workflow by presenting expansion drafts and method recommendations.",
+          "system_message": "You are the Conversational agent responsible for collecting baseline information and project description from the user.\n\nCRITICAL RULES:\n\n0) ALWAYS check context first: Before asking for ANY information or responding to user input, ALWAYS call `get_project_context_tool(project_id)` first to see what's already stored. Use the project_id from your previous `start_new_project_tool` call (stored in the \"project_id\" field of the returned context), or use \"new_project\" as default. Check the \"baseline\" field and \"user_description\" field to see what's already collected.\n\n1) On your VERY FIRST reply, call `start_new_project_tool()` with NO arguments to initialize the project. Save the project_id from the returned context.\n\n2) After calling start_new_project_tool, call `get_project_context_tool(project_id)` to check current state. Based on what's missing:\n   a) If BOTH baseline fields AND description are missing: Ask the user to provide BOTH together:\n      - All baseline fields in this order: project_type, complexity, tech_stack, team_pref, region\n      - A project description explaining what the project will do, its main features, and key requirements\n      Example prompt: \"Please provide the baseline information and project description together. Include: project type, complexity, tech stack, team preference, region, and a description of your project.\"\n   b) If only baseline fields are missing: Ask ONLY for the specific missing baseline fields (list them explicitly).\n   c) If only description is missing: Ask ONLY for the project description.\n\n3) After asking any question, you MUST end your message with \"[WAITING FOR USER INPUT]\" and then STOP - do not continue, do not call any tools, do not generate responses. Wait for the user's actual response.\n\n4) When the user responds, FIRST call `get_project_context_tool(project_id)` to check current state, THEN analyze their input:\n   a) If the user provides structured baseline fields (e.g., \"Project type: X complexity: Y tech stack: Z team preference: N region: R\") with or without description, you MUST request the InterpreterAgent to parse and store the data. Say: \"I'll have the InterpreterAgent parse and store your baseline information [and project description if included].\" Then wait for InterpreterAgent to process.\n   b) If the user provides ONLY description without baseline fields (e.g., a long text describing the project but no structured baseline fields), you MUST request the InterpreterAgent to parse and store the description. Say: \"I'll have the InterpreterAgent parse and store your project description.\" Then wait for InterpreterAgent to process.\n   c) If the user provides only ONE baseline field in a simple format, call `record_baseline_field_tool` directly with THREE separate string parameters:\n      - project_id (from the context you just retrieved)\n      - field (the field name like \"project_type\")\n      - value (the user's exact answer)\n      Example: record_baseline_field_tool(project_id=\"fitness_app\", field=\"project_type\", value=\"mobile application\")\n\n5) After InterpreterAgent processes structured input OR after recording a single field, call `get_project_context_tool(project_id)` again to verify which fields are still missing. Check the \"missing_baseline\" field and \"user_description\" field in the returned context.\n\n6) Based on what's missing (from step 5), ask ONLY for the missing information:\n   a) If baseline fields are missing BUT description exists: Ask ONLY for the specific missing baseline fields (list them explicitly).\n   b) If description is missing BUT all baseline fields exist: Ask ONLY for the project description (e.g., \"I have all the baseline information. Please provide a description of your project explaining what it will do, its main features, and key requirements.\").\n   c) If BOTH baseline fields AND description are missing: Ask for both together (as in step 2a).\n   d) After asking, end with \"[WAITING FOR USER INPUT]\" and wait for response, then repeat step 4.\n\n7) Once all 5 baseline fields are collected (missing_baseline is empty) AND description is stored (user_description is not empty), coordinate the workflow:\n   - Request InterpreterAgent to generate expansion via `draft_expansion_tool(project_id)`\n   - Confirm the expansion via `confirm_expansion_tool(project_id, approval_text=\"approve\")`\n   - Request MethodSelectorAgent to evaluate methods by saying: \"I'll have the MethodSelectorAgent evaluate which estimation methods are suitable for this project.\"\n   - Wait for MethodSelectorAgent to call `evaluate_methods_tool` and provide recommendations\n   - Present the method recommendations to the user",
           "max_consecutive_auto_reply": 0,
           "human_input_mode": "ALWAYS",
           "model_client": {
@@ -80,7 +80,7 @@
         "config": {
           "name": "InterpreterAgent",
           "description": "Semantic expansion specialist.",
-          "system_message": "You are the Interpreter agent.\n\nCRITICAL: During baseline collection (when project status is NEW or when missing_baseline fields exist), you must remain SILENT and not respond.\n\nOnly respond when:\n- The ConversationalAgent explicitly requests your help, OR\n- The project status is AWAITING_EXPANSION\n\nWhen invoked, call `draft_expansion_tool` with the project identifier to generate an ExpansionV1 draft. Summarize the findings and surface up to three clarifying questions if important gaps remain.\n\nDo not ask users for baseline fields; coordinate with the Conversational agent instead.",
+          "system_message": "You are the Interpreter agent specialized in semantic parsing and expansion.\n\nYou have TWO main responsibilities:\n\n1) PARSING STRUCTURED BASELINE INPUT AND PROJECT DESCRIPTION (when requested by ConversationalAgent):\n   - When ConversationalAgent requests your help parsing structured user input containing baseline fields and/or project description, you MUST:\n     a) First, call `get_project_context_tool(project_id)` to get the current project_id and see which fields are missing\n     b) Parse the user's structured input to extract:\n        * Baseline field-value pairs (recognize patterns like \"Project type: X complexity: Y tech stack: Z team preference: N region: R\")\n        * Project description (the remaining text that describes what the project will do, its features, and requirements)\n     c) Map field name variations to standard names:\n        * \"project type\" / \"project_type\" / \"type\" → \"project_type\"\n        * \"team preference\" / \"team_pref\" / \"team size\" / \"team_size\" → \"team_pref\"\n        * \"complexity\" → \"complexity\"\n        * \"tech stack\" / \"tech_stack\" → \"tech_stack\"\n        * \"region\" → \"region\"\n     d) For EACH extracted baseline field-value pair (if any), call `record_baseline_field_tool(project_id=\"<id>\", field=\"<standardized_field_name>\", value=\"<extracted_value>\")`\n        Note: If no baseline fields are found in the input, skip this step and proceed to extract the description.\n     e) Extract the project description from the user input. If baseline fields were found, extract the text that is NOT part of baseline fields. If no baseline fields were found, treat the entire input as the description. Identify feature keywords from the description such as:\n        * Technical features: \"authentication\", \"API\", \"database\", \"cloud\", \"mobile\", \"web\", \"backend\", \"frontend\", \"microservices\"\n        * Functional features: \"payment\", \"reporting\", \"dashboard\", \"analytics\", \"notifications\", \"search\", \"filtering\", \"user management\", \"workout tracking\", \"social features\"\n        * Integration features: \"third-party\", \"SSO\", \"CRM integration\", \"payment gateway\", \"email service\", \"SMS\", \"social media\", \"API integration\"\n     f) If a description was extracted (even if empty), store it via `submit_user_description_tool(project_id=\"<id>\", description=\"<extracted_description_text>\")`\n        Note: Always store the description if it exists, even if no baseline fields were found.\n     g) After storing baseline fields (if any) and description (if any), call `get_project_context_tool(project_id)` again to verify which fields are still missing\n     h) Report back to ConversationalAgent with what was stored:\n        * If baseline fields were stored: \"I've parsed and stored [list of baseline fields stored]\"\n        * If description was stored: \"I've stored the project description\"\n        * If feature keywords were identified: \"Identified feature keywords: [list of extracted keywords]\"\n        * Report remaining fields: \"Remaining fields: [list if any]\"\n\n2) GENERATING EXPANSION DRAFTS (when project status is AWAITING_EXPANSION):\n   - When the project status is AWAITING_EXPANSION, call `draft_expansion_tool` with the project identifier to generate an ExpansionV1 draft\n   - The expansion will use the stored description and baseline data, and the feature keywords you identified will help inform the feature list\n   - Summarize the findings and surface up to three clarifying questions if important gaps remain\n\nDo not ask users for baseline fields directly; coordinate with the Conversational agent instead.",
           "model_client": {
             "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
             "component_type": "model",
@@ -116,7 +116,7 @@
               "version": 1,
               "component_version": 2,
               "label": "InterpreterTools",
-              "description": "Expansion + context helpers.",
+              "description": "Expansion + context helpers. Includes record_baseline_field_tool and submit_user_description_tool for parsing and storing structured baseline input and project description when requested by ConversationalAgent. The InterpreterAgent can parse user input containing multiple baseline fields (e.g., 'Project type: X complexity: Y tech stack: Z team preference: N region: R') and project description together. It extracts baseline fields using record_baseline_field_tool(project_id, field, value), extracts feature keywords from the description, and stores the description using submit_user_description_tool(project_id, description).",
               "config": {
                 "name": "interpreter_orchestrator_tools",
                 "description": "Expose interpreter workflow helpers.",
@@ -141,7 +141,7 @@
         "config": {
           "name": "MethodSelectorAgent",
           "description": "Method selection engine.",
-          "system_message": "You are the Method Selector agent. CRITICAL: During baseline collection (when project status is NEW or when missing_baseline fields exist), you must remain SILENT and not respond. Only respond when explicitly requested by the ConversationalAgent or when the project is ready for method evaluation (status is AWAITING_METHOD_SELECTION or later). When prompted, call `evaluate_methods_tool` to retrieve the SelectionPayload. Outline the recommended primary method, backup options, confidence, and any missing inputs. Do not execute estimations yourself.",
+          "system_message": "You are the Method Selector agent. CRITICAL: During baseline collection (when project status is NEW or when missing_baseline fields exist), you must remain SILENT and not respond. Only respond when explicitly requested by the ConversationalAgent or when the project is ready for method evaluation (status is AWAITING_METHOD_SELECTION or later). When prompted, follow these steps:\n1. Call `evaluate_methods_tool(project_id)` to retrieve the SelectionPayload.\n2. Review the SelectionPayload to identify the `primary` method and `backups`.\n3. Map the primary method to the corresponding calculation agent:\n   - \"cocomo2\" → COCOMOAgent\n   - \"fpa\" → FPAAgent\n   - \"agile_sp\" → StoryPointsAgent\n   - \"analogous\" → AnalogousAgent\n   - \"parametric\" → ParametricAgent\n   - \"bottomup\" → BottomUpAgent\n4. Explicitly request the corresponding calculation agent to run by saying: \"I recommend [method name]. I'll have the [AgentName] perform the estimation.\" Then wait for the calculation agent to execute.\n5. If there are backup methods with high scores, you may also request those agents to run for comparison.\n6. Present the method recommendations, confidence level, and any missing inputs to the ConversationalAgent.",
           "model_client": {
             "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
             "component_type": "model",
@@ -202,7 +202,7 @@
         "config": {
           "name": "ExplainerAgent",
           "description": "Narrative explainer.",
-          "system_message": "You are the Explainer agent. CRITICAL: During baseline collection (when project status is NEW or when missing_baseline fields exist), you must remain SILENT and not respond. Only respond when explicitly requested by the ConversationalAgent or when estimates have been attached and explanation is needed. After estimates are attached, call `generate_explanation_tool` to retrieve the latest summary and improvement prompts. Present the results in clear sections and highlight the next best inputs the user should provide.",
+          "system_message": "You are the Explainer agent. CRITICAL: During baseline collection (when project status is NEW or when missing_baseline fields exist), you must remain SILENT and not respond. Only respond when explicitly requested by the ConversationalAgent or when estimates have been attached and explanation is needed. When calculators finish producing EstimationOutput data, you create a concise, user-facing summary. Follow these steps:\n1. Call `generate_explanation_tool` with the `project_id` to obtain the latest explanation draft, confidence notes, and improvement prompts.\n2. Present the summary in sections: Estimation Summary, Cost Breakdown, Key Assumptions, Confidence Level, and Improve This Estimate. Make the language accessible to non-technical stakeholders.\n3. Highlight the top recommendations for improving accuracy.\n4. Do not invent metrics; rely solely on the provided estimation data and parsed context.",
           "model_client": {
             "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
             "component_type": "model",
@@ -243,6 +243,462 @@
                 "name": "explainer_orchestrator_tools",
                 "description": "Expose explanation helpers.",
                 "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict, Optional\nimport sys\nimport os\n\n# Add project root to path if needed\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from workflow import ProjectContext, WorkflowOrchestrator\n    _ORCHESTRATOR = WorkflowOrchestrator()\n    _BASELINE_FIELDS = [\"project_type\", \"complexity\", \"tech_stack\", \"team_pref\", \"region\"]\n    \n    def _serialize_context(context: ProjectContext) -> Dict[str, object]:\n        prompts = {\n            \"project_type\": \"Select project type (software development, ai/ml project, system integration, cloud migration, mobile application, web application).\",\n            \"complexity\": \"Specify complexity (low, medium, high, very high).\",\n            \"tech_stack\": \"Describe the technology focus (web technologies, mobile development, ai/ml technologies, cloud technology, enterprise systems).\",\n            \"team_pref\": \"Provide desired team size (numeric).\",\n            \"region\": \"Provide the primary delivery region (e.g., North America, EMEA).\",\n        }\n        missing: Dict[str, str] = {}\n        baseline = context.baseline.model_dump()\n        for field in _BASELINE_FIELDS:\n            value = baseline.get(field)\n            if value in (None, \"\", 0):\n                missing[field] = prompts[field]\n        \n        payload: Dict[str, object] = {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"version\": context.version,\n            \"baseline\": context.baseline.model_dump(exclude_none=True),\n            \"user_description\": context.user_description,\n            \"missing_baseline\": missing,\n            \"events\": [event.model_dump() for event in context.events],\n        }\n        if context.expansion_draft:\n            payload[\"expansion_draft\"] = context.expansion_draft.model_dump()\n        if context.expansion_confirmed:\n            payload[\"expansion_confirmed\"] = context.expansion_confirmed.model_dump()\n        if context.parsed_context:\n            payload[\"parsed_context\"] = context.parsed_context.model_dump()\n        if context.selection:\n            payload[\"selection\"] = context.selection.model_dump()\n        if context.estimates:\n            payload[\"estimates\"] = context.estimates\n        if context.explanation:\n            payload[\"explanation\"] = context.explanation\n        return payload\n    \n    def start_new_project_tool(project_id: Optional[str] = None) -> Dict[str, object]:\n        context = _ORCHESTRATOR.start_new_project(project_id=project_id)\n        return _serialize_context(context)\n    \n    def record_baseline_field_tool(project_id: str, field: str, value: str) -> Dict[str, object]:\n        if field not in _BASELINE_FIELDS:\n            raise ValueError(f\"Unsupported baseline field '{field}'. Expected one of {_BASELINE_FIELDS}.\")\n        context = _ORCHESTRATOR.record_baseline_field(project_id, field, value)\n        return _serialize_context(context)\n    \n    def submit_user_description_tool(project_id: str, description: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.submit_description(project_id, description)\n        return _serialize_context(context)\n    \n    def draft_expansion_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.generate_expansion(project_id)\n        return _serialize_context(context)\n    \n    def confirm_expansion_tool(project_id: str, approval_text: str = \"approve\") -> Dict[str, object]:\n        context = _ORCHESTRATOR.confirm_expansion(project_id, approval_text)\n        return _serialize_context(context)\n    \n    def evaluate_methods_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.evaluate_methods(project_id)\n        return _serialize_context(context)\n    \n    def register_estimate_tool(project_id: str, estimate: Dict[str, Any], mark_complete: bool = True) -> Dict[str, object]:\n        context = _ORCHESTRATOR.attach_estimate(project_id, estimate, mark_complete=mark_complete)\n        return _serialize_context(context)\n    \n    def generate_explanation_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.generate_explanation(project_id)\n        return _serialize_context(context)\n    \n    def get_project_context_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.load_context(project_id, create_if_missing=True)\n        return _serialize_context(context)\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import workflow modules: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "COCOMOAgent",
+        "description": "COCOMO II estimation calculator.",
+        "config": {
+          "name": "COCOMOAgent",
+          "description": "COCOMO II estimator.",
+          "system_message": "You are a COCOMO II estimator. CRITICAL: You must remain SILENT and not respond until the MethodSelectorAgent explicitly requests you by name (COCOMOAgent) or mentions your method type (cocomo2), or when explicitly requested by the ConversationalAgent. When activated, collect KSLOC, scale factors, and cost drivers. Use the `generate_cocomo_ii_estimation` tool to produce a structured estimate. After generating the estimate, call `register_estimate_tool(project_id, estimate)` to register it with the workflow orchestrator. If inputs are missing, ask for them explicitly.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenRouterClient",
+            "config": {
+              "model": "openai/gpt-4o-mini",
+              "base_url": "https://openrouter.ai/api/v1",
+              "model_info": {
+                "vision": false,
+                "function_calling": true,
+                "json_output": true,
+                "family": "gpt-4o",
+                "structured_output": true,
+                "multiple_system_messages": false
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "COCOMOTool",
+              "description": "COCOMO II estimation calculator.",
+              "config": {
+                "name": "generate_cocomo_ii_estimation",
+                "description": "Generate COCOMO II estimation using project parameters.",
+                "source_code": "from __future__ import annotations\nfrom typing import Any\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from tools.cocomo_tools import generate_cocomo_ii_estimation as _generate_cocomo_ii_estimation\n    \n    def generate_cocomo_ii_estimation(project_name: str, ksloc: float, scale_factor_ratings: Any, cost_driver_ratings: Any = None, hourly_rate: float = 120.0, infrastructure_pct: float = 0.12, other_expenses_pct: float = 0.06, features: Any = None, start: Any = None, cocomo_constants: Any = None):\n        return _generate_cocomo_ii_estimation(project_name, ksloc, scale_factor_ratings, cost_driver_ratings, hourly_rate=hourly_rate, infrastructure_pct=infrastructure_pct, other_expenses_pct=other_expenses_pct, features=features, start=start, cocomo_constants=cocomo_constants)\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import COCOMO tool: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            },
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "COCOMOOrchestratorTools",
+              "description": "Orchestrator tools for registering estimates.",
+              "config": {
+                "name": "cocomo_orchestrator_tools",
+                "description": "Expose orchestrator functions for estimate registration.",
+                "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from workflow import WorkflowOrchestrator\n    _ORCHESTRATOR = WorkflowOrchestrator()\n    \n    def register_estimate_tool(project_id: str, estimate: Dict[str, Any], mark_complete: bool = True) -> Dict[str, object]:\n        context = _ORCHESTRATOR.attach_estimate(project_id, estimate, mark_complete=mark_complete)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"estimates_count\": len(context.estimates)\n        }\n    \n    def get_project_context_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.load_context(project_id, create_if_missing=True)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"selection\": context.selection.model_dump() if context.selection else None\n        }\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import workflow modules: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "FPAAgent",
+        "description": "Function Point Analysis estimation calculator.",
+        "config": {
+          "name": "FPAAgent",
+          "description": "Function Point Analysis estimator.",
+          "system_message": "You are a Function Point Analysis estimator. CRITICAL: You must remain SILENT and not respond until the MethodSelectorAgent explicitly requests you by name (FPAAgent) or mentions your method type (fpa), or when explicitly requested by the ConversationalAgent. When activated, collect or receive function counts by component/complexity, GSC ratings, and productivity/cost assumptions. Use the `generate_fpa_estimation` tool to produce a structured estimate conforming to the EstimationOutput schema. After generating the estimate, call `register_estimate_tool(project_id, estimate)` to register it with the workflow orchestrator. If inputs are missing, ask for them explicitly.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenRouterClient",
+            "config": {
+              "model": "openai/gpt-4o-mini",
+              "base_url": "https://openrouter.ai/api/v1",
+              "model_info": {
+                "vision": false,
+                "function_calling": true,
+                "json_output": true,
+                "family": "gpt-4o",
+                "structured_output": true,
+                "multiple_system_messages": false
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "FPATool",
+              "description": "Function Point Analysis estimation calculator.",
+              "config": {
+                "name": "generate_fpa_estimation",
+                "description": "Generate Function Point Analysis estimation using project parameters.",
+                "source_code": "from __future__ import annotations\nfrom typing import Any\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from tools.fpa_tools import generate_fpa_estimation as _generate_fpa_estimation\n    \n    def generate_fpa_estimation(project_name: str, function_counts: Any = None, gsc_ratings: Any = None, features: Any = None, hours_per_fp: float = 12.0, hourly_rate: float = 120.0, infrastructure_pct: float = 0.12, other_expenses_pct: float = 0.06, start: Any = None):\n        if function_counts is None:\n            raise ValueError(\"function_counts is required\")\n        return _generate_fpa_estimation(project_name, function_counts=function_counts, gsc_ratings=gsc_ratings, features=features, hours_per_fp=hours_per_fp, hourly_rate=hourly_rate, infrastructure_pct=infrastructure_pct, other_expenses_pct=other_expenses_pct, start=start)\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import FPA tool: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            },
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "FPAOrchestratorTools",
+              "description": "Orchestrator tools for registering estimates.",
+              "config": {
+                "name": "fpa_orchestrator_tools",
+                "description": "Expose orchestrator functions for estimate registration.",
+                "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from workflow import WorkflowOrchestrator\n    _ORCHESTRATOR = WorkflowOrchestrator()\n    \n    def register_estimate_tool(project_id: str, estimate: Dict[str, Any], mark_complete: bool = True) -> Dict[str, object]:\n        context = _ORCHESTRATOR.attach_estimate(project_id, estimate, mark_complete=mark_complete)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"estimates_count\": len(context.estimates)\n        }\n    \n    def get_project_context_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.load_context(project_id, create_if_missing=True)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"selection\": context.selection.model_dump() if context.selection else None\n        }\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import workflow modules: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "ParametricAgent",
+        "description": "Parametric estimation calculator.",
+        "config": {
+          "name": "ParametricAgent",
+          "description": "Parametric estimator.",
+          "system_message": "You are a parametric estimator. CRITICAL: You must remain SILENT and not respond until the MethodSelectorAgent explicitly requests you by name (ParametricAgent) or mentions your method type (parametric), or when explicitly requested by the ConversationalAgent. When activated, gather cost-per-unit, hours-per-unit, and total units information. Optionally capture unit breakdowns and productivity assumptions. Use `generate_parametric_estimation` to produce the structured result. After generating the estimate, call `register_estimate_tool(project_id, estimate)` to register it with the workflow orchestrator. If inputs are missing, ask for them explicitly.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenRouterClient",
+            "config": {
+              "model": "openai/gpt-4o-mini",
+              "base_url": "https://openrouter.ai/api/v1",
+              "model_info": {
+                "vision": false,
+                "function_calling": true,
+                "json_output": true,
+                "family": "gpt-4o",
+                "structured_output": true,
+                "multiple_system_messages": false
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "ParametricTool",
+              "description": "Parametric estimation calculator.",
+              "config": {
+                "name": "generate_parametric_estimation",
+                "description": "Generate parametric estimation using project parameters.",
+                "source_code": "from __future__ import annotations\nfrom typing import Any\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from tools.parametric_tools import generate_parametric_estimation as _generate_parametric_estimation\n    \n    def generate_parametric_estimation(project_name: str, total_units: float = None, cost_per_unit: float = None, hours_per_unit: float = None, team_productivity_units_per_week: Any = None, unit_breakdown: Any = None, infrastructure_pct: float = 0.1, other_expenses_pct: float = 0.05, start: Any = None):\n        if total_units is None or cost_per_unit is None or hours_per_unit is None:\n            raise ValueError(\"total_units, cost_per_unit, and hours_per_unit are required\")\n        return _generate_parametric_estimation(project_name, total_units=total_units, cost_per_unit=cost_per_unit, hours_per_unit=hours_per_unit, team_productivity_units_per_week=team_productivity_units_per_week, unit_breakdown=unit_breakdown, infrastructure_pct=infrastructure_pct, other_expenses_pct=other_expenses_pct, start=start)\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import Parametric tool: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            },
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "ParametricOrchestratorTools",
+              "description": "Orchestrator tools for registering estimates.",
+              "config": {
+                "name": "parametric_orchestrator_tools",
+                "description": "Expose orchestrator functions for estimate registration.",
+                "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from workflow import WorkflowOrchestrator\n    _ORCHESTRATOR = WorkflowOrchestrator()\n    \n    def register_estimate_tool(project_id: str, estimate: Dict[str, Any], mark_complete: bool = True) -> Dict[str, object]:\n        context = _ORCHESTRATOR.attach_estimate(project_id, estimate, mark_complete=mark_complete)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"estimates_count\": len(context.estimates)\n        }\n    \n    def get_project_context_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.load_context(project_id, create_if_missing=True)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"selection\": context.selection.model_dump() if context.selection else None\n        }\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import workflow modules: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "StoryPointsAgent",
+        "description": "Story Point-based estimation calculator.",
+        "config": {
+          "name": "StoryPointsAgent",
+          "description": "Story Point estimator.",
+          "system_message": "You are a Story Point estimator. CRITICAL: You must remain SILENT and not respond until the MethodSelectorAgent explicitly requests you by name (StoryPointsAgent) or mentions your method type (agile_sp), or when explicitly requested by the ConversationalAgent. When activated, collect total story points, team velocity, sprint cadence, and productivity assumptions. Call `generate_storypoints_estimation` to produce the structured estimate. After generating the estimate, call `register_estimate_tool(project_id, estimate)` to register it with the workflow orchestrator. Clarify missing agile inputs when necessary.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenRouterClient",
+            "config": {
+              "model": "openai/gpt-4o-mini",
+              "base_url": "https://openrouter.ai/api/v1",
+              "model_info": {
+                "vision": false,
+                "function_calling": true,
+                "json_output": true,
+                "family": "gpt-4o",
+                "structured_output": true,
+                "multiple_system_messages": false
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "StoryPointsTool",
+              "description": "Story Point-based estimation calculator.",
+              "config": {
+                "name": "generate_storypoints_estimation",
+                "description": "Generate Story Point estimation using project parameters.",
+                "source_code": "from __future__ import annotations\nfrom typing import Any\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from tools.storypoints_tools import generate_storypoints_estimation as _generate_storypoints_estimation\n    \n    def generate_storypoints_estimation(project_name: str, total_story_points: float = None, team_velocity: float = None, sprint_length_weeks: int = 2, hours_per_point: float = 6.0, hourly_rate: float = 120.0, infrastructure_pct: float = 0.1, other_expenses_pct: float = 0.05, features: Any = None, start: Any = None):\n        if total_story_points is None or team_velocity is None:\n            raise ValueError(\"total_story_points and team_velocity are required\")\n        return _generate_storypoints_estimation(project_name, total_story_points=total_story_points, team_velocity=team_velocity, sprint_length_weeks=sprint_length_weeks, hours_per_point=hours_per_point, hourly_rate=hourly_rate, infrastructure_pct=infrastructure_pct, other_expenses_pct=other_expenses_pct, features=features, start=start)\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import StoryPoints tool: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            },
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "StoryPointsOrchestratorTools",
+              "description": "Orchestrator tools for registering estimates.",
+              "config": {
+                "name": "storypoints_orchestrator_tools",
+                "description": "Expose orchestrator functions for estimate registration.",
+                "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from workflow import WorkflowOrchestrator\n    _ORCHESTRATOR = WorkflowOrchestrator()\n    \n    def register_estimate_tool(project_id: str, estimate: Dict[str, Any], mark_complete: bool = True) -> Dict[str, object]:\n        context = _ORCHESTRATOR.attach_estimate(project_id, estimate, mark_complete=mark_complete)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"estimates_count\": len(context.estimates)\n        }\n    \n    def get_project_context_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.load_context(project_id, create_if_missing=True)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"selection\": context.selection.model_dump() if context.selection else None\n        }\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import workflow modules: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "AnalogousAgent",
+        "description": "Analogous estimation calculator using historical data.",
+        "config": {
+          "name": "AnalogousAgent",
+          "description": "Analogous estimator.",
+          "system_message": "You are an analogous estimator. CRITICAL: You must remain SILENT and not respond until the MethodSelectorAgent explicitly requests you by name (AnalogousAgent) or mentions your method type (analogous), or when explicitly requested by the ConversationalAgent. When activated, request similarity attributes and historical project references. Invoke `generate_analogous_estimation` to produce results. After generating the estimate, call `register_estimate_tool(project_id, estimate)` to register it with the workflow orchestrator. If historical data is missing, explain what is required.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenRouterClient",
+            "config": {
+              "model": "openai/gpt-4o-mini",
+              "base_url": "https://openrouter.ai/api/v1",
+              "model_info": {
+                "vision": false,
+                "function_calling": true,
+                "json_output": true,
+                "family": "gpt-4o",
+                "structured_output": true,
+                "multiple_system_messages": false
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "AnalogousTool",
+              "description": "Analogous estimation calculator.",
+              "config": {
+                "name": "generate_analogous_estimation",
+                "description": "Generate analogous estimation using historical project data.",
+                "source_code": "from __future__ import annotations\nfrom typing import Any\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from tools.analogous_tools import generate_analogous_estimation as _generate_analogous_estimation\n    \n    def generate_analogous_estimation(project_name: str, target_attributes: Any = None, historical_projects: Any = None, min_similarity: float = 0.2, start: Any = None):\n        if target_attributes is None or historical_projects is None:\n            raise ValueError(\"target_attributes and historical_projects are required\")\n        return _generate_analogous_estimation(project_name, target_attributes=target_attributes, historical_projects=historical_projects, min_similarity=min_similarity, start=start)\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import Analogous tool: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            },
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "AnalogousOrchestratorTools",
+              "description": "Orchestrator tools for registering estimates.",
+              "config": {
+                "name": "analogous_orchestrator_tools",
+                "description": "Expose orchestrator functions for estimate registration.",
+                "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from workflow import WorkflowOrchestrator\n    _ORCHESTRATOR = WorkflowOrchestrator()\n    \n    def register_estimate_tool(project_id: str, estimate: Dict[str, Any], mark_complete: bool = True) -> Dict[str, object]:\n        context = _ORCHESTRATOR.attach_estimate(project_id, estimate, mark_complete=mark_complete)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"estimates_count\": len(context.estimates)\n        }\n    \n    def get_project_context_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.load_context(project_id, create_if_missing=True)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"selection\": context.selection.model_dump() if context.selection else None\n        }\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import workflow modules: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "metadata": {},
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 2,
+        "label": "BottomUpAgent",
+        "description": "Bottom-up estimation calculator.",
+        "config": {
+          "name": "BottomUpAgent",
+          "description": "Bottom-up estimator.",
+          "system_message": "You are a bottom-up estimator. CRITICAL: You must remain SILENT and not respond until the MethodSelectorAgent explicitly requests you by name (BottomUpAgent) or mentions your method type (bottomup), or when explicitly requested by the ConversationalAgent. When activated, collect detailed work packages with hour estimates and roles. Use `generate_bottom_up_estimation` to aggregate into a structured output. After generating the estimate, call `register_estimate_tool(project_id, estimate)` to register it with the workflow orchestrator. If work packages are incomplete, request clarifications.",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 2,
+            "label": "OpenRouterClient",
+            "config": {
+              "model": "openai/gpt-4o-mini",
+              "base_url": "https://openrouter.ai/api/v1",
+              "model_info": {
+                "vision": false,
+                "function_calling": true,
+                "json_output": true,
+                "family": "gpt-4o",
+                "structured_output": true,
+                "multiple_system_messages": false
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 2,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "workbench": [],
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "BottomUpTool",
+              "description": "Bottom-up estimation calculator.",
+              "config": {
+                "name": "generate_bottom_up_estimation",
+                "description": "Generate bottom-up estimation using work packages.",
+                "source_code": "from __future__ import annotations\nfrom typing import Any\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from tools.bottomup_tools import generate_bottom_up_estimation as _generate_bottom_up_estimation\n    \n    def generate_bottom_up_estimation(project_name: str, work_packages: Any = None, hourly_rate: float = 120.0, infrastructure_pct: float = 0.1, other_expenses_pct: float = 0.05, start: Any = None):\n        if work_packages is None:\n            raise ValueError(\"work_packages is required\")\n        return _generate_bottom_up_estimation(project_name, work_packages=work_packages, hourly_rate=hourly_rate, infrastructure_pct=infrastructure_pct, other_expenses_pct=other_expenses_pct, start=start)\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import BottomUp tool: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            },
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 2,
+              "label": "BottomUpOrchestratorTools",
+              "description": "Orchestrator tools for registering estimates.",
+              "config": {
+                "name": "bottomup_orchestrator_tools",
+                "description": "Expose orchestrator functions for estimate registration.",
+                "source_code": "from __future__ import annotations\n\nfrom typing import Any, Dict\nimport sys\nimport os\n\n_project_root = os.environ.get('PROJECT_ROOT') or os.getcwd()\nif _project_root not in sys.path:\n    sys.path.insert(0, _project_root)\n\ntry:\n    from workflow import WorkflowOrchestrator\n    _ORCHESTRATOR = WorkflowOrchestrator()\n    \n    def register_estimate_tool(project_id: str, estimate: Dict[str, Any], mark_complete: bool = True) -> Dict[str, object]:\n        context = _ORCHESTRATOR.attach_estimate(project_id, estimate, mark_complete=mark_complete)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"estimates_count\": len(context.estimates)\n        }\n    \n    def get_project_context_tool(project_id: str) -> Dict[str, object]:\n        context = _ORCHESTRATOR.load_context(project_id, create_if_missing=True)\n        return {\n            \"project_id\": context.project_id,\n            \"status\": context.status,\n            \"selection\": context.selection.model_dump() if context.selection else None\n        }\n\nexcept ImportError as e:\n    raise ImportError(f\"Could not import workflow modules: {e}. Ensure the project root is in PYTHONPATH or set PROJECT_ROOT environment variable.\")",
                 "global_imports": [],
                 "has_cancellation_support": false
               }
