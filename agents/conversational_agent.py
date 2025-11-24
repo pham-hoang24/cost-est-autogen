@@ -60,7 +60,13 @@ def build_conversational_agent(llm_config) -> ConversableAgent:
         "   - Confirm the expansion via `confirm_expansion_tool(project_id, approval_text=\"approve\")`\n"
         "   - Request MethodSelectorAgent to evaluate methods by saying: \"I'll have the MethodSelectorAgent evaluate which estimation methods are suitable for this project.\"\n"
         "   - Wait for MethodSelectorAgent to call `evaluate_methods_tool` and provide recommendations\n"
-        "   - Present the method recommendations to the user"
+        "   - Request the recommended estimation agents (primary and backups) to attempt their calculations\n"
+        "   - After agents have attempted, call `get_project_context_tool(project_id)` to check for missing inputs\n"
+        "   - If `missing_inputs_by_method` exists and is not empty, collect all missing inputs from all methods\n"
+        "   - Present a consolidated request to the user: \"To complete the cost estimation, I need the following information: [list all missing inputs grouped by method]\"\n"
+        "   - End with \"[WAITING FOR USER INPUT]\" and wait for user response\n"
+        "   - After user provides inputs, have InterpreterAgent parse and store them, then re-run the estimation agents\n"
+        "   - Once estimates are registered, present the results to the user"
     )
 
     return ConversableAgent(

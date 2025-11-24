@@ -195,4 +195,5 @@ class ProjectContext(BaseModel):
     estimates: List[Dict[str, Any]] = Field(default_factory=list)
     explanation: Optional[str] = None
     events: List[EventEntry] = Field(default_factory=list)
+    missing_inputs_by_method: Dict[str, List[Dict[str, str]]] = Field(default_factory=dict)
 

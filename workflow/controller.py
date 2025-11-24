@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from .expansion import ExpansionService
@@ -172,6 +172,26 @@ class WorkflowOrchestrator:
             project_id,
             "ESTIMATE_ATTACHED",
             {"count": len(context.estimates)},
+        )
+        return context
+
+    def report_missing_inputs(
+        self,
+        project_id: str,
+        method: str,
+        missing_inputs: List[Dict[str, str]],
+    ) -> ProjectContext:
+        context = self.load_context(project_id)
+        if context.missing_inputs_by_method is None:
+            context.missing_inputs_by_method = {}
+        context.missing_inputs_by_method[method] = missing_inputs
+        if missing_inputs:
+            context.status = "INPUTS_REQUESTED"
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "MISSING_INPUTS_REPORTED",
+            {"method": method, "missing_inputs_count": len(missing_inputs)},
         )
         return context
 

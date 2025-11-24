@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from workflow import ProjectContext, WorkflowOrchestrator
 
@@ -55,6 +55,11 @@ def register_estimate_tool(project_id: str, estimate: Dict[str, Any], mark_compl
     return _serialize_context(context)
 
 
+def report_missing_inputs_tool(project_id: str, method: str, missing_inputs: List[Dict[str, str]]) -> Dict[str, object]:
+    context = _ORCHESTRATOR.report_missing_inputs(project_id, method, missing_inputs)
+    return _serialize_context(context)
+
+
 def _serialize_context(context: ProjectContext) -> Dict[str, object]:
     payload: Dict[str, object] = {
         "project_id": context.project_id,
@@ -77,6 +82,8 @@ def _serialize_context(context: ProjectContext) -> Dict[str, object]:
         payload["estimates"] = context.estimates
     if context.explanation:
         payload["explanation"] = context.explanation
+    if context.missing_inputs_by_method:
+        payload["missing_inputs_by_method"] = context.missing_inputs_by_method
     return payload
 
 

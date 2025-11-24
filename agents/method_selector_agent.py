@@ -35,9 +35,10 @@ def build_method_selector_agent(llm_config) -> ConversableAgent:
         "   - \"analogous\" → AnalogousAgent\n"
         "   - \"parametric\" → ParametricAgent\n"
         "   - \"bottomup\" → BottomUpAgent\n"
-        "4. Explicitly request the corresponding calculation agent to run by saying: \"I recommend [method name]. I'll have the [AgentName] perform the estimation.\" Then wait for the calculation agent to execute.\n"
-        "5. If there are backup methods with high scores, you may also request those agents to run for comparison.\n"
-        "6. Present the method recommendations, confidence level, and any missing inputs to the ConversationalAgent."
+        "4. Explicitly request the corresponding calculation agent(s) to run by saying: \"I recommend [method name]. I'll have the [AgentName] perform the estimation.\" Request both primary and backup agents if backups have high completeness scores (>0.6).\n"
+        "5. Wait for the estimation agents to attempt their calculations.\n"
+        "6. After agents have responded, check if any reported missing inputs by calling `get_project_context_tool(project_id)` and checking the `missing_inputs_by_method` field.\n"
+        "7. Present the method recommendations, confidence level, and any missing inputs reported by the agents to the ConversationalAgent."
     )
 
     return ConversableAgent(
