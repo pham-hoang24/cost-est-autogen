@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
-import CostEstimationChatbot from './CostEstimationChatbot';
 import { 
   Calculator, 
   Play, 
@@ -236,9 +235,53 @@ export default function ProfessionalCostEstimationService({ service }: Professio
     }
   ];
 
-  const handleBasicChange = (field: string, value: any) => {
-    setProjectDetails(prev => ({ ...prev, [field]: value }));
-  };
+  // Cost Estimation Templates
+  const costTemplates = [
+    {
+      id: 'software-development',
+      name: 'Software Development Project',
+      description: 'Comprehensive cost estimation for software development projects',
+      methodology: 'COCOMO II + Function Points',
+      components: ['Development Effort', 'Testing & QA', 'Project Management', 'Infrastructure'],
+      duration: '3-12 months',
+      teamSize: '5-50 people',
+      costRange: '€50K - €2M',
+      accuracy: '85-95%'
+    },
+    {
+      id: 'ai-ml-project',
+      name: 'AI/ML Project',
+      description: 'Cost estimation for artificial intelligence and machine learning projects',
+      methodology: 'Parametric + Bottom-Up',
+      components: ['Data Preparation', 'Model Development', 'Training & Validation', 'Deployment'],
+      duration: '6-18 months',
+      teamSize: '3-20 people',
+      costRange: '€100K - €5M',
+      accuracy: '80-90%'
+    },
+    {
+      id: 'system-integration',
+      name: 'System Integration',
+      description: 'Cost estimation for system integration and migration projects',
+      methodology: 'Bottom-Up + Analogous',
+      components: ['Integration Planning', 'Data Migration', 'Testing', 'Go-Live Support'],
+      duration: '6-24 months',
+      teamSize: '10-100 people',
+      costRange: '€200K - €10M',
+      accuracy: '90-95%'
+    },
+    {
+      id: 'cloud-migration',
+      name: 'Cloud Migration',
+      description: 'Cost estimation for cloud migration and modernization projects',
+      methodology: 'Parametric + Function Points',
+      components: ['Assessment', 'Migration Planning', 'Data Migration', 'Optimization'],
+      duration: '3-18 months',
+      teamSize: '5-30 people',
+      costRange: '€50K - €3M',
+      accuracy: '85-90%'
+    }
+  ];
 
   const startEstimation = () => {
     if (selectedMethodology.length === 0) {
@@ -247,7 +290,6 @@ export default function ProfessionalCostEstimationService({ service }: Professio
     }
 
     setIsCalculating(true);
-    // Transition to results step (Step 3 in our new flow)
     setCurrentStep(3);
     setCalculationProgress(0);
     setCurrentCalculation('Initializing cost estimation...');
@@ -289,26 +331,11 @@ export default function ProfessionalCostEstimationService({ service }: Professio
       projectDetails,
       config: estimationConfig,
       estimates: selectedMethodology.map(methodologyId => {
-        let methodology;
-        
-        // Handle hybrid method specially
-        if (methodologyId === 'hybrid') {
-          methodology = {
-            id: 'hybrid',
-            name: 'Hybrid Method',
-            category: 'Quick Estimate',
-            accuracy: '60-75%',
-            complexity: 'Low',
-            description: 'Blended approach for quick estimates'
-          };
-        } else {
-          methodology = costEstimationMethodologies.find(m => m.id === methodologyId);
-        }
-        
+        const methodology = costEstimationMethodologies.find(m => m.id === methodologyId);
         return {
-          methodology: methodology?.name || 'Unknown Method',
-          category: methodology?.category || 'General',
-          accuracy: methodology?.accuracy || 'N/A',
+          methodology: methodology?.name,
+          category: methodology?.category,
+          accuracy: methodology?.accuracy,
           totalCost: Math.random() * 500000 + 100000,
           breakdown: {
             development: Math.random() * 200000 + 50000,
@@ -370,7 +397,7 @@ export default function ProfessionalCostEstimationService({ service }: Professio
 
     setEstimationResults(results);
     setIsCalculating(false);
-    // Stay on Step 3 (Results)
+    setCurrentStep(4);
   };
 
   const toggleMethodology = (methodologyId: string) => {
@@ -383,18 +410,20 @@ export default function ProfessionalCostEstimationService({ service }: Professio
 
   const getStepTitle = (step: number) => {
     switch (step) {
-      case 1: return 'Project Configuration';
-      case 2: return 'Methodology Selection';
-      case 3: return 'Results & Analysis';
+      case 1: return 'Methodology Selection';
+      case 2: return 'Project Configuration';
+      case 3: return 'Cost Calculation';
+      case 4: return 'Results & Analysis';
       default: return 'Cost Estimation';
     }
   };
 
   const getStepDescription = (step: number) => {
     switch (step) {
-      case 1: return 'Configure project details and estimation parameters';
-      case 2: return 'Choose from industry-standard cost estimation methodologies';
-      case 3: return 'Comprehensive cost analysis and recommendations';
+      case 1: return 'Choose from industry-standard cost estimation methodologies';
+      case 2: return 'Configure project details and estimation parameters';
+      case 3: return 'AI-powered cost calculation in progress';
+      case 4: return 'Comprehensive cost analysis and recommendations';
       default: return 'Professional cost estimation system';
     }
   };
@@ -412,7 +441,7 @@ export default function ProfessionalCostEstimationService({ service }: Professio
 
       {/* Progress Indicator */}
       <div className="flex justify-center space-x-4">
-        {[1, 2, 3].map((step) => (
+        {[1, 2, 3, 4].map((step) => (
           <div key={step} className="flex items-center">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
               currentStep >= step 
@@ -421,7 +450,7 @@ export default function ProfessionalCostEstimationService({ service }: Professio
             }`}>
               {step}
             </div>
-            {step < 3 && (
+            {step < 4 && (
               <div className={`w-8 h-0.5 mx-2 ${
                 currentStep > step ? 'bg-blue-600' : 'bg-gray-700'
               }`} />
@@ -430,8 +459,86 @@ export default function ProfessionalCostEstimationService({ service }: Professio
         ))}
       </div>
 
-      {/* Step 1: Project Configuration (Was Step 2 in Reference) */}
+      {/* Step 1: Methodology Selection */}
       {currentStep === 1 && (
+        <Card className="p-6">
+          <h3 className="text-xl font-semibold text-white mb-4">Industry-Standard Cost Estimation Methodologies</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {costEstimationMethodologies.map((methodology) => (
+              <div
+                key={methodology.id}
+                onClick={() => toggleMethodology(methodology.id)}
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  selectedMethodology.includes(methodology.id)
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-gray-600 hover:border-gray-500'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    {methodology.icon}
+                    <h4 className="font-semibold text-white">{methodology.name}</h4>
+                  </div>
+                  <Badge variant="accent">{methodology.category}</Badge>
+                </div>
+                
+                <p className="text-sm text-gray-400 mb-3">{methodology.description}</p>
+                
+                <div className="space-y-2 mb-3">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Accuracy:</span>
+                    <span className="text-green-400 font-medium">{methodology.accuracy}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Complexity:</span>
+                    <span className="text-white">{methodology.complexity}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Cost:</span>
+                    <span className="text-white">{methodology.cost}</span>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <div className="text-xs text-gray-400 mb-1">Standards:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {methodology.standards.slice(0, 2).map((standard) => (
+                      <Badge key={standard} variant="gray" className="text-xs">
+                        {standard}
+                      </Badge>
+                    ))}
+                    {methodology.standards.length > 2 && (
+                      <Badge variant="gray" className="text-xs">
+                        +{methodology.standards.length - 2} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-xs text-gray-500">
+                  <div>Formula: {methodology.formula}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-400 mb-4">
+              Selected: {selectedMethodology.length} methodology{selectedMethodology.length !== 1 ? 'ies' : ''}
+            </p>
+            <Button 
+              onClick={() => setCurrentStep(2)}
+              disabled={selectedMethodology.length === 0}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Configure Project
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Step 2: Project Configuration */}
+      {currentStep === 2 && (
         <div className="space-y-6">
           {/* Project Details */}
           <Card className="p-6">
@@ -613,251 +720,220 @@ export default function ProfessionalCostEstimationService({ service }: Professio
             </div>
           </Card>
 
-          <div className="flex justify-end items-center">
-            <Button 
-              onClick={() => setCurrentStep(2)}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Next: Select Methodology
-              <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 2: Methodology Selection (Was Step 1 in Reference) + Chatbot */}
-      {currentStep === 2 && (
-        <div className="space-y-6">
-          {/* Full Width Chatbot with Method Selection */}
-          <CostEstimationChatbot 
-            onUpdateBasics={handleBasicChange} 
-            onMethodSelected={(methodIds) => setSelectedMethodology(methodIds)}
-            className="w-full" 
-          />
-
-          {/* Action Buttons */}
           <div className="flex justify-between items-center">
             <Button 
               onClick={() => setCurrentStep(1)}
               className="bg-gray-600 hover:bg-gray-500 text-white"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Configuration
+              Back to Methodologies
             </Button>
-            
-            <div className="flex items-center gap-4">
-              <p className="text-sm text-gray-400">
-                Selected: {selectedMethodology.length} method{selectedMethodology.length !== 1 ? 's' : ''}
-              </p>
-              <Button 
-                onClick={startEstimation}
-                disabled={selectedMethodology.length === 0}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Calculator className="w-4 h-4 mr-2" />
-                Calculate Cost
-              </Button>
-            </div>
+            <Button 
+              onClick={startEstimation}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Calculator className="w-4 h-4 mr-2" />
+              Calculate Cost
+            </Button>
           </div>
         </div>
       )}
 
-      {/* Step 3: Results & Analysis (Was Step 4 in Reference, plus Step 3 loading state) */}
+      {/* Step 3: Cost Calculation */}
       {currentStep === 3 && (
-        <div className="space-y-6">
-          {isCalculating ? (
-            <Card className="p-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Activity className="w-8 h-8 text-blue-500 animate-spin" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Calculating Cost Estimates</h3>
-                <p className="text-gray-400 mb-6">AI-powered cost analysis in progress</p>
-                
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
-                  <div 
-                    className="bg-blue-600 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${calculationProgress}%` }}
-                  ></div>
-                </div>
-                <p className="text-sm text-gray-400 mb-6">{Math.round(calculationProgress)}% Complete</p>
-                
-                {/* Current Calculation */}
-                {currentCalculation && (
-                  <div className="bg-gray-700 rounded-lg p-4 mb-6">
-                    <p className="text-white">{currentCalculation}</p>
-                  </div>
-                )}
+        <Card className="p-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Activity className="w-8 h-8 text-blue-500 animate-spin" />
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">Calculating Cost Estimates</h3>
+            <p className="text-gray-400 mb-6">AI-powered cost analysis in progress</p>
+            
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
+              <div 
+                className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+                style={{ width: `${calculationProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-400 mb-6">{Math.round(calculationProgress)}% Complete</p>
+            
+            {/* Current Calculation */}
+            {currentCalculation && (
+              <div className="bg-gray-700 rounded-lg p-4 mb-6">
+                <p className="text-white">{currentCalculation}</p>
+              </div>
+            )}
 
-                {/* Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="bg-gray-700 rounded-lg p-3">
-                    <div className="text-gray-400">Methodologies</div>
-                    <div className="text-white font-semibold">{selectedMethodology.length}</div>
-                  </div>
-                  <div className="bg-gray-700 rounded-lg p-3">
-                    <div className="text-gray-400">Project Type</div>
-                    <div className="text-white font-semibold">{projectDetails.projectType || 'Not specified'}</div>
-                  </div>
-                  <div className="bg-gray-700 rounded-lg p-3">
-                    <div className="text-gray-400">Complexity</div>
-                    <div className="text-white font-semibold">{projectDetails.complexity || 'Not specified'}</div>
-                  </div>
+            {/* Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="bg-gray-700 rounded-lg p-3">
+                <div className="text-gray-400">Methodologies</div>
+                <div className="text-white font-semibold">{selectedMethodology.length}</div>
+              </div>
+              <div className="bg-gray-700 rounded-lg p-3">
+                <div className="text-gray-400">Project Type</div>
+                <div className="text-white font-semibold">{projectDetails.projectType || 'Not specified'}</div>
+              </div>
+              <div className="bg-gray-700 rounded-lg p-3">
+                <div className="text-gray-400">Complexity</div>
+                <div className="text-white font-semibold">{projectDetails.complexity || 'Not specified'}</div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Step 4: Results & Analysis */}
+      {currentStep === 4 && estimationResults && (
+        <div className="space-y-6">
+          {/* Results Summary */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-white">Cost Estimation Results</h3>
+              <div className="flex gap-2">
+                <Button variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Report
+                </Button>
+                <Button onClick={() => setCurrentStep(1)} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Calculator className="w-4 h-4 mr-2" />
+                  New Estimation
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-gray-700 rounded-lg p-4">
+                <div className="text-gray-400 text-sm">Average Cost</div>
+                <div className="text-white font-semibold text-xl">
+                  {estimationConfig.currency} {Math.round(estimationResults.summary.averageCost).toLocaleString()}
                 </div>
+              </div>
+              <div className="bg-gray-700 rounded-lg p-4">
+                <div className="text-gray-400 text-sm">Confidence Level</div>
+                <div className="text-green-400 font-semibold text-xl">{estimationResults.summary.confidence.toFixed(1)}%</div>
+              </div>
+              <div className="bg-gray-700 rounded-lg p-4">
+                <div className="text-gray-400 text-sm">Risk Level</div>
+                <div className="text-yellow-400 font-semibold text-xl">{estimationResults.summary.riskLevel}</div>
+              </div>
+              <div className="bg-gray-700 rounded-lg p-4">
+                <div className="text-gray-400 text-sm">Expected ROI</div>
+                <div className="text-blue-400 font-semibold text-xl">{estimationResults.summary.roi.toFixed(0)}%</div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Cost Breakdown Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h4 className="text-lg font-semibold text-white mb-4">Cost Breakdown</h4>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart>
+                    <Pie
+                      data={estimationResults.charts.costBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {estimationResults.charts.costBreakdown.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                    <Legend />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
               </div>
             </Card>
-          ) : estimationResults && (
-            <div className="space-y-6">
-              {/* Results Summary */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-white">Cost Estimation Results</h3>
-                  <div className="flex gap-2">
-                    <Button variant="outline">
-                      <Download className="w-4 h-4 mr-2" />
-                      Export Report
-                    </Button>
-                    <Button onClick={() => setCurrentStep(1)} className="bg-blue-600 hover:bg-blue-700 text-white">
-                      <Calculator className="w-4 h-4 mr-2" />
-                      New Estimation
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-gray-700 rounded-lg p-4">
-                    <div className="text-gray-400 text-sm">Average Cost</div>
-                    <div className="text-white font-semibold text-xl">
-                      {estimationConfig.currency} {Math.round(estimationResults.summary.averageCost).toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="bg-gray-700 rounded-lg p-4">
-                    <div className="text-gray-400 text-sm">Confidence Level</div>
-                    <div className="text-green-400 font-semibold text-xl">{estimationResults.summary.confidence.toFixed(1)}%</div>
-                  </div>
-                  <div className="bg-gray-700 rounded-lg p-4">
-                    <div className="text-gray-400 text-sm">Risk Level</div>
-                    <div className="text-yellow-400 font-semibold text-xl">{estimationResults.summary.riskLevel}</div>
-                  </div>
-                  <div className="bg-gray-700 rounded-lg p-4">
-                    <div className="text-gray-400 text-sm">Expected ROI</div>
-                    <div className="text-blue-400 font-semibold text-xl">{estimationResults.summary.roi.toFixed(0)}%</div>
-                  </div>
-                </div>
-              </Card>
 
-              {/* Cost Breakdown Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="p-6">
-                  <h4 className="text-lg font-semibold text-white mb-4">Cost Breakdown</h4>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPieChart>
-                        <Pie
-                          data={estimationResults.charts.costBreakdown}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {estimationResults.charts.costBreakdown.map((entry: any, index: number) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
-                        <Legend />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </Card>
-
-                <Card className="p-6">
-                  <h4 className="text-lg font-semibold text-white mb-4">Cost Timeline</h4>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsLineChart data={estimationResults.charts.timeline}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                        <XAxis dataKey="month" stroke="#9CA3AF" />
-                        <YAxis stroke="#9CA3AF" />
-                        <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
-                        <Line type="monotone" dataKey="cost" stroke="#3B82F6" strokeWidth={2} />
-                      </RechartsLineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </Card>
+            <Card className="p-6">
+              <h4 className="text-lg font-semibold text-white mb-4">Cost Timeline</h4>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsLineChart data={estimationResults.charts.timeline}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="month" stroke="#9CA3AF" />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                    <Line type="monotone" dataKey="cost" stroke="#3B82F6" strokeWidth={2} />
+                  </RechartsLineChart>
+                </ResponsiveContainer>
               </div>
+            </Card>
+          </div>
 
-              {/* Methodology Results */}
-              <Card className="p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Methodology Comparison</h4>
-                <div className="space-y-4">
-                  {estimationResults.estimates.map((estimate: any, index: number) => (
-                    <div key={index} className="bg-gray-700 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h5 className="text-white font-medium">{estimate.methodology}</h5>
-                          <p className="text-gray-400 text-sm">{estimate.category}</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-white font-semibold text-xl">
-                            {estimationConfig.currency} {Math.round(estimate.totalCost).toLocaleString()}
-                          </div>
-                          <div className="text-green-400 text-sm">Accuracy: {estimate.accuracy}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-                        <div>
-                          <div className="text-gray-400">Development</div>
-                          <div className="text-white">{Math.round(estimate.breakdown.development).toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Testing</div>
-                          <div className="text-white">{Math.round(estimate.breakdown.testing).toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Management</div>
-                          <div className="text-white">{Math.round(estimate.breakdown.management).toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Infrastructure</div>
-                          <div className="text-white">{Math.round(estimate.breakdown.infrastructure).toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400">Contingency</div>
-                          <div className="text-white">{Math.round(estimate.breakdown.contingency).toLocaleString()}</div>
-                        </div>
-                      </div>
+          {/* Methodology Results */}
+          <Card className="p-6">
+            <h4 className="text-lg font-semibold text-white mb-4">Methodology Comparison</h4>
+            <div className="space-y-4">
+              {estimationResults.estimates.map((estimate: any, index: number) => (
+                <div key={index} className="bg-gray-700 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h5 className="text-white font-medium">{estimate.methodology}</h5>
+                      <p className="text-gray-400 text-sm">{estimate.category}</p>
                     </div>
-                  ))}
-                </div>
-              </Card>
-
-              {/* Industry Standards Information */}
-              <Card className="p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Industry Standards & Compliance</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {industryStandards.slice(0, 4).map((standard) => (
-                    <div key={standard.id} className="bg-gray-700 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Shield className="w-5 h-5 text-blue-400" />
-                        <h5 className="text-white font-medium">{standard.name}</h5>
+                    <div className="text-right">
+                      <div className="text-white font-semibold text-xl">
+                        {estimationConfig.currency} {Math.round(estimate.totalCost).toLocaleString()}
                       </div>
-                      <p className="text-gray-400 text-sm mb-2">{standard.title}</p>
-                      <p className="text-gray-300 text-xs">{standard.description}</p>
-                      <div className="mt-2">
-                        <div className="text-xs text-gray-400">Scope: {standard.scope}</div>
-                        <div className="text-xs text-gray-400">Applicability: {standard.applicability}</div>
-                      </div>
+                      <div className="text-green-400 text-sm">Accuracy: {estimate.accuracy}</div>
                     </div>
-                  ))}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                    <div>
+                      <div className="text-gray-400">Development</div>
+                      <div className="text-white">{Math.round(estimate.breakdown.development).toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-400">Testing</div>
+                      <div className="text-white">{Math.round(estimate.breakdown.testing).toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-400">Management</div>
+                      <div className="text-white">{Math.round(estimate.breakdown.management).toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-400">Infrastructure</div>
+                      <div className="text-white">{Math.round(estimate.breakdown.infrastructure).toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-400">Contingency</div>
+                      <div className="text-white">{Math.round(estimate.breakdown.contingency).toLocaleString()}</div>
+                    </div>
+                  </div>
                 </div>
-              </Card>
+              ))}
             </div>
-          )}
+          </Card>
+
+          {/* Industry Standards Information */}
+          <Card className="p-6">
+            <h4 className="text-lg font-semibold text-white mb-4">Industry Standards & Compliance</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {industryStandards.slice(0, 4).map((standard) => (
+                <div key={standard.id} className="bg-gray-700 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-5 h-5 text-blue-400" />
+                    <h5 className="text-white font-medium">{standard.name}</h5>
+                  </div>
+                  <p className="text-gray-400 text-sm mb-2">{standard.title}</p>
+                  <p className="text-gray-300 text-xs">{standard.description}</p>
+                  <div className="mt-2">
+                    <div className="text-xs text-gray-400">Scope: {standard.scope}</div>
+                    <div className="text-xs text-gray-400">Applicability: {standard.applicability}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
       )}
 
