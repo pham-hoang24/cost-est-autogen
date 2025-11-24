@@ -196,4 +196,7 @@ class ProjectContext(BaseModel):
     explanation: Optional[str] = None
     events: List[EventEntry] = Field(default_factory=list)
     missing_inputs_by_method: Dict[str, List[Dict[str, str]]] = Field(default_factory=dict)
+    normalized_inputs: Dict[str, Any] = Field(default_factory=dict)
+    derived_coefficients: Dict[str, Any] = Field(default_factory=dict)
+    inferred_fields: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
 

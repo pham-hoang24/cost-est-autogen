@@ -7,9 +7,10 @@ from uuid import uuid4
 from autogen import GroupChat, GroupChatManager, UserProxyAgent  # type: ignore[import]
 
 from agents.conversational_agent import build_conversational_agent
-from agents.explainer_agent import build_explainer_agent
+from agents.explainer_agent import build_evaluate_agent
 from agents.interpreter_agent import build_interpreter_agent
 from agents.method_selector_agent import build_method_selector_agent
+from agents.hybrid_agent import build_hybrid_agent
 from workflow.controller import WorkflowOrchestrator
 from config.llm_config import get_default_llm_config, get_llm_config, LLMConfigError
 
@@ -47,7 +48,9 @@ def build_workflow_team(
     conversational_agent = build_conversational_agent(llm_config)
     interpreter_agent = build_interpreter_agent(llm_config)
     method_selector_agent = build_method_selector_agent(llm_config)
-    explainer_agent = build_explainer_agent(llm_config)
+    evaluate_agent = build_evaluate_agent(llm_config)
+    hybrid_agent = build_hybrid_agent(llm_config)
+    
     user_agent = UserProxyAgent(
         name="User",
         code_execution_config=False,
@@ -61,7 +64,8 @@ def build_workflow_team(
             conversational_agent,
             interpreter_agent,
             method_selector_agent,
-            explainer_agent,
+            evaluate_agent,
+            hybrid_agent,
         ],
         messages=[],
         max_round=32,

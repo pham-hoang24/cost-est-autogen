@@ -17,26 +17,24 @@ from tools.orchestrator_tools import (
 )
 
 
-def build_explainer_agent(llm_config) -> ConversableAgent:
+def build_evaluate_agent(llm_config) -> ConversableAgent:
     if llm_config in (None, False):
-        raise ValueError("Explainer agent requires an active LLM configuration.")
+        raise ValueError("Evaluate agent requires an active LLM configuration.")
 
     system_message = (
-        "You are the Explainer agent. "
-        "CRITICAL: During baseline collection (when project status is NEW or when missing_baseline fields exist), you must remain SILENT and not respond. "
-        "Only respond when explicitly requested by the ConversationalAgent or when estimates have been attached and explanation is needed. "
-        "When calculators finish producing EstimationOutput data, you create a concise, user-facing summary. "
-        "Follow these steps:\n"
-        "1. Call `generate_explanation_tool` with the `project_id` to obtain the latest explanation draft, "
-        "confidence notes, and improvement prompts.\n"
-        "2. Present the summary in sections: Estimation Summary, Cost Breakdown, Key Assumptions, Confidence Level, "
-        "and Improve This Estimate. Make the language accessible to non-technical stakeholders.\n"
-        "3. Highlight the top recommendations for improving accuracy.\n"
-        "4. Do not invent metrics; rely solely on the provided estimation data and parsed context."
+        "You are the Evaluate agent (formerly Explainer). "
+        "CRITICAL: During baseline collection, remain SILENT. "
+        "Only respond when explicitly requested or when estimates have been attached. "
+        "Your responsibilities:\n"
+        "1. Validate and sanity-check estimates provided by MethodAgents.\n"
+        "2. Merge or compare results across methods if multiple are present (e.g. Hybrid mode).\n"
+        "3. Produce human-readable summaries using `generate_explanation_tool`.\n"
+        "4. Highlight confidence levels, especially if inferred inputs were used.\n"
+        "5. If estimates vary significantly, explain why based on the method differences."
     )
 
     return ConversableAgent(
-        name="ExplainerAgent",
+        name="EvaluateAgent",
         llm_config=llm_config,
         system_message=system_message,
         functions=[generate_explanation_tool, get_project_context_tool],
@@ -45,5 +43,5 @@ def build_explainer_agent(llm_config) -> ConversableAgent:
     )
 
 
-__all__ = ["build_explainer_agent"]
+__all__ = ["build_evaluate_agent"]
 

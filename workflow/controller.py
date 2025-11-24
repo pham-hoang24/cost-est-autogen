@@ -125,6 +125,65 @@ class WorkflowOrchestrator:
         return context
 
     # ------------------------------------------------------------------
+    # Normalization & Inference
+    # ------------------------------------------------------------------
+    def normalize_and_infer(self, project_id: str) -> ProjectContext:
+        context = self.load_context(project_id)
+        
+        # 1. Normalize Baseline
+        baseline = context.baseline.model_dump(exclude_none=True)
+        normalized = {}
+        coefficients = {}
+        
+        # Project Type Mapping
+        pt_map = {
+            "web application": 1.0, "mobile application": 1.1, 
+            "system integration": 1.2, "ai/ml project": 1.3,
+            "cloud migration": 1.1, "software development": 1.0
+        }
+        pt = baseline.get("project_type", "").lower()
+        normalized["project_type_factor"] = pt_map.get(pt, 1.0)
+        
+        # Complexity Mapping
+        comp_map = {"low": 0.8, "medium": 1.0, "high": 1.25, "very high": 1.5}
+        comp = baseline.get("complexity", "").lower()
+        normalized["complexity_factor"] = comp_map.get(comp, 1.0)
+        
+        # Tech Stack (Simple heuristic)
+        stack = baseline.get("tech_stack", "").lower()
+        if "ai" in stack or "ml" in stack:
+            coefficients["tech_complexity"] = 1.2
+        elif "enterprise" in stack:
+            coefficients["tech_complexity"] = 1.1
+        else:
+            coefficients["tech_complexity"] = 1.0
+            
+        context.normalized_inputs = normalized
+        context.derived_coefficients = coefficients
+        
+        # 2. Hybrid Mode Inference (Mock logic for now)
+        # If specific fields are missing, infer them from description
+        inferred = {}
+        if "ksloc" not in context.normalized_inputs:
+             # Simple inference based on complexity
+             base_ksloc = 10.0
+             inferred["ksloc"] = {
+                 "value": base_ksloc * normalized["complexity_factor"],
+                 "confidence": 0.5,
+                 "source": "inferred_from_complexity"
+             }
+        
+        context.inferred_fields = inferred
+        
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "INPUTS_NORMALIZED",
+            {"normalized": normalized, "inferred_count": len(inferred)}
+        )
+        return context
+
+    # ------------------------------------------------------------------
     # Method selection
     # ------------------------------------------------------------------
     def evaluate_methods(self, project_id: str) -> ProjectContext:

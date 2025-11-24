@@ -40,6 +40,11 @@ def evaluate_methods_tool(project_id: str) -> Dict[str, object]:
     return _serialize_context(context)
 
 
+def normalize_and_infer_tool(project_id: str) -> Dict[str, object]:
+    context = _ORCHESTRATOR.normalize_and_infer(project_id)
+    return _serialize_context(context)
+
+
 def generate_explanation_tool(project_id: str) -> Dict[str, object]:
     context = _ORCHESTRATOR.generate_explanation(project_id)
     return _serialize_context(context)

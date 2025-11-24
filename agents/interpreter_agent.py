@@ -16,6 +16,7 @@ from tools.orchestrator_tools import (
     get_project_context_tool,
     record_baseline_field_tool,
     submit_user_description_tool,
+    normalize_and_infer_tool,
 )
 
 
@@ -25,7 +26,7 @@ def build_interpreter_agent(llm_config) -> ConversableAgent:
 
     system_message = (
         "You are the Interpreter agent specialized in semantic parsing and expansion.\n\n"
-        "You have TWO main responsibilities:\n\n"
+        "You have THREE main responsibilities:\n\n"
         "1) PARSING STRUCTURED BASELINE INPUT AND PROJECT DESCRIPTION (when requested by ConversationalAgent):\n"
         "   - When ConversationalAgent requests your help parsing structured user input containing baseline fields and/or project description, you MUST:\n"
         "     a) First, call `get_project_context_tool(project_id)` to get the current project_id and see which fields are missing\n"
@@ -56,6 +57,10 @@ def build_interpreter_agent(llm_config) -> ConversableAgent:
         "   - When the project status is AWAITING_EXPANSION, call `draft_expansion_tool` with the project identifier to generate an ExpansionV1 draft\n"
         "   - The expansion will use the stored description and baseline data, and the feature keywords you identified will help inform the feature list\n"
         "   - Summarize the findings and surface up to three clarifying questions if important gaps remain\n\n"
+        "3) NORMALIZATION AND INFERENCE (when requested or before method selection):\n"
+        "   - Call `normalize_and_infer_tool(project_id)` to generate normalized inputs and coefficients.\n"
+        "   - This is crucial for the Hybrid estimation mode.\n"
+        "   - Report back: \"Inputs normalized and missing fields inferred.\"\n\n"
         "Do not ask users for baseline fields directly; coordinate with the Conversational agent instead."
     )
 
@@ -63,7 +68,7 @@ def build_interpreter_agent(llm_config) -> ConversableAgent:
         name="InterpreterAgent",
         llm_config=llm_config,
         system_message=system_message,
-        functions=[draft_expansion_tool, get_project_context_tool, record_baseline_field_tool, submit_user_description_tool],
+        functions=[draft_expansion_tool, get_project_context_tool, record_baseline_field_tool, submit_user_description_tool, normalize_and_infer_tool],
         human_input_mode="NEVER",
         max_consecutive_auto_reply=3,
     )
