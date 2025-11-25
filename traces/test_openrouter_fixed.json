@@ -1,0 +1,25 @@
+{
+  "session_id": "test_openrouter_fixed",
+  "created_at": "2025-11-25T19:13:21.937425",
+  "updated_at": "2025-11-25T19:13:21.937718",
+  "events": [
+    {
+      "event_id": "7850e09c-bdfd-4a86-91a2-47faff04079c",
+      "session_id": "test_openrouter_fixed",
+      "timestamp": "2025-11-25T19:13:21.937412",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "I need help estimating a web application project",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

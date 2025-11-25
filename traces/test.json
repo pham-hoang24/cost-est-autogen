@@ -1,0 +1,42 @@
+{
+  "session_id": "test",
+  "created_at": "2025-11-25T19:10:05.994853",
+  "updated_at": "2025-11-25T19:10:06.000531",
+  "events": [
+    {
+      "event_id": "9de74e97-4544-40ca-b916-a2e85518a168",
+      "session_id": "test",
+      "timestamp": "2025-11-25T19:10:05.994840",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "Hello",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "3642e0bf-c37a-4a09-aa15-ad2d05cc209b",
+      "session_id": "test",
+      "timestamp": "2025-11-25T19:10:06.000524",
+      "event_type": "agent_response",
+      "agent_name": "ChatBotFallback",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Thank you for sharing! To recommend the best estimation method, could you provide a bit more detail about your project's complexity, technology stack, and any specific requirements?",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

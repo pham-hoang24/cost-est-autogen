@@ -42,13 +42,21 @@ interface ChatMessage {
 }
 
 interface CostEstimationChatbotProps {
+  sessionId: string;  // Session ID for tracing
+  onMethodsSelected?: (methods: string[]) => void;
   onUpdateBasics?: (field: string, value: any) => void;
   onMethodSelected?: (methodIds: string[]) => void;
   onEstimationReady?: (ready: boolean) => void;
   className?: string;
 }
 
-export default function CostEstimationChatbot({ onUpdateBasics, onMethodSelected, onEstimationReady, className = '' }: CostEstimationChatbotProps) {
+export default function CostEstimationChatbot({
+  sessionId,
+  onUpdateBasics,
+  onMethodSelected,
+  onEstimationReady,
+  className = ''
+}: CostEstimationChatbotProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -178,6 +186,7 @@ export default function CostEstimationChatbot({ onUpdateBasics, onMethodSelected
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          session_id: sessionId,  // Add session ID for tracing
           message: userMsg.content,
           history: messages.map(m => ({
             role: m.type === 'user' ? 'user' : 'assistant',

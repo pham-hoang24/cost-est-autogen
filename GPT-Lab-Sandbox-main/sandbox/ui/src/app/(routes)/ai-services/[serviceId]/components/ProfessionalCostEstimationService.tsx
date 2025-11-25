@@ -80,6 +80,14 @@ export default function ProfessionalCostEstimationService({ service }: Professio
   const [currentCalculation, setCurrentCalculation] = useState('');
   const [expandedFeatures, setExpandedFeatures] = useState<Set<number>>(new Set());
   const [estimationReady, setEstimationReady] = useState(false);
+  const [sessionId, setSessionId] = useState<string>('');
+
+  // Generate session ID on component mount
+  useEffect(() => {
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+    console.log('Generated session ID:', newSessionId);
+  }, []);
 
   // Industry-Standard Cost Estimation Methodologies
   const costEstimationMethodologies = [
@@ -277,6 +285,7 @@ export default function ProfessionalCostEstimationService({ service }: Professio
       const teamSizeInt = parseInt(projectDetails.teamSize.split('-')[1] || projectDetails.teamSize.split('+')[0] || '5');
 
       const requestBody = {
+        session_id: sessionId,  // Add session ID for tracing
         method_name: selectedMethodology[0] || "hybrid",
         baseline_inputs: {
           project_type: projectDetails.projectType,
@@ -632,9 +641,11 @@ export default function ProfessionalCostEstimationService({ service }: Professio
         <div className="space-y-6">
           {/* Full Width Chatbot with Method Selection */}
           <CostEstimationChatbot 
-            onUpdateBasics={handleBasicChange} 
-            onMethodSelected={(methodIds) => setSelectedMethodology(methodIds)}
-            onEstimationReady={(ready) => setEstimationReady(ready)}
+            sessionId={sessionId}
+            onMethodsSelected={(methods) => {
+              setSelectedMethodology(methods);
+              setEstimationReady(true);
+            }}
             className="w-full" 
           />
 

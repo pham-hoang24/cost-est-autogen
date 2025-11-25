@@ -5,6 +5,10 @@ from typing import Dict, List, Optional, Any, Union
 import uvicorn
 import os
 import autogen
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI(title="Cost Estimation Microservice")
 
@@ -36,6 +40,7 @@ class MethodSelection(BaseModel):
     description: str
 
 class EstimationRequest(BaseModel):
+    session_id: Optional[str] = None
     method_name: str
     baseline_inputs: BaselineInputs
     additional_inputs: Dict[str, Any] = {}
@@ -63,6 +68,7 @@ class HybridRequest(BaseModel):
     baseline_inputs: BaselineInputs
 
 class ChatRequest(BaseModel):
+    session_id: Optional[str] = None
     message: str
     history: List[Dict[str, str]] = []
 
@@ -144,27 +150,63 @@ async def chat_endpoint(request: ChatRequest):
     """
     Handle chat messages using AutoGen agents or intelligent fallback.
     """
-    # Check if OpenAI API key is available
-    api_key = os.environ.get("OPENAI_API_KEY")
+    from workflow.tracing import get_trace_store, TraceEvent, TraceEventType
+    import time as time_module
+    
+    # Generate or use provided session_id
+    session_id = request.session_id or f"chat_{int(time_module.time())}"
+    store = get_trace_store()
+    
+    # Log user input
+    store.add_event(session_id, TraceEvent(
+        session_id=session_id,
+        event_type=TraceEventType.USER_INPUT,
+        step_name="chat",
+        input_data={"message": request.message, "history_length": len(request.history)}
+    ))
+    
+    # Check for OpenRouter API key only  
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    model = os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o")
     
     if not api_key:
-        print("No OpenAI API key found, using fallback responses")
-        return generate_fallback_response(request.message, request.history)
+        print("No OPENROUTER_API_KEY found, using fallback responses")
+        response = generate_fallback_response(request.message, request.history)
+        
+        # Log fallback response
+        store.add_event(session_id, TraceEvent(
+            session_id=session_id,
+            event_type=TraceEventType.AGENT_RESPONSE,
+            agent_name="ChatBotFallback",
+            output_data={
+                "response": response.response[:200],
+                "is_ready": response.is_ready,
+                "recommended_methods": response.recommended_methods
+            }
+        ))
+        
+        return response
     
     try:
         # Initialize agents (in a real app, these would be persistent or cached)
         # For now, we create them per request for simplicity, but pass history
         
+        # Configure AutoGen for OpenRouter
         config_list = [
             {
-                "model": "gpt-4",
-                "api_key": api_key
+                "model": model,
+                "api_key": api_key,
+                "base_url": "https://openrouter.ai/api/v1",
+                "api_type": "openai",  # OpenRouter is OpenAI-compatible
             }
         ]
+        
+        print(f"Using OpenRouter API with model: {model}")
         
         llm_config = {
             "config_list": config_list,
             "temperature": 0.7,
+            "timeout": 120,  # Increase timeout for OpenRouter
         }
         
         # User Proxy Agent
@@ -227,6 +269,20 @@ async def chat_endpoint(request: ChatRequest):
             
             # Clean up the message for display
             last_message = last_message.split("RECOMMENDATION_READY")[0].strip()
+            
+        # Log AutoGen response
+        store.add_event(session_id, TraceEvent(
+            session_id=session_id,
+            event_type=TraceEventType.AGENT_RESPONSE,
+            agent_name="ChatBotOpenRouter",
+            output_data={
+                "response": last_message[:200],
+                "is_ready": is_ready,
+                "recommended_methods": recommended_methods,
+                "model": model,
+                "api_provider": "openrouter"
+            }
+        ))
             
         return ChatResponse(
             response=last_message,
@@ -304,13 +360,32 @@ async def generate_report(request: EstimationRequest):
     Generate complete cost estimation report matching frontend schema.
     This endpoint triggers the full report generation workflow.
     """
+    from workflow.tracing import get_trace_store, TraceEvent, TraceEventType
+    import time as time_module
+    
+    # Generate or use provided session_id
+    session_id = request.session_id or f"report_{int(time_module.time())}"
+    store = get_trace_store()
+    
+    # Log session start
+    store.add_event(session_id, TraceEvent(
+        session_id=session_id,
+        event_type=TraceEventType.SESSION_START,
+        input_data={
+            "baseline_inputs": request.baseline_inputs.dict(),
+            "method_name": request.method_name,
+            "additional_inputs": request.additional_inputs
+        },
+        metadata={"endpoint": "/generate-report"}
+    ))
+    
     try:
         from workflow.controller import WorkflowOrchestrator
         
         orchestrator = WorkflowOrchestrator()
         
-        # Create a new project
-        project_id = f"proj_{hash(str(request.baseline_inputs.dict()))}"[-8:]
+        # Use session_id as project_id for workflow tracing
+        project_id = session_id
         context = orchestrator.start_new_project(project_id)
         
         # Record baseline inputs
@@ -342,10 +417,174 @@ async def generate_report(request: EstimationRequest):
         # Generate full report
         report = orchestrator.generate_full_report(project_id, estimation_config)
         
+        # Log session completion
+        store.add_event(session_id, TraceEvent(
+            session_id=session_id,
+            event_type=TraceEventType.SESSION_END,
+            output_data={"status": "completed"},
+            metadata={
+                "total_cost": report.estimation_result.cost_estimate.total_cost,
+                "methods_used": report.estimation_result.methods_used,
+                "duration": report.estimation_result.timeline_estimate.total_duration
+            }
+        ))
+        store.update_session_status(session_id, "completed")
+        
         return report.dict()
         
     except Exception as e:
+        # Log error
+        store.add_event(session_id, TraceEvent(
+            session_id=session_id,
+            event_type=TraceEventType.ERROR,
+            output_data={
+                "error": str(e),
+                "error_type": type(e).__name__
+            }
+        ))
+        store.update_session_status(session_id, "error")
         raise HTTPException(status_code=500, detail=f"Report generation failed: {str(e)}")
+
+# ==============================================================================
+# Session Tracing Endpoints
+# ==============================================================================
+
+from workflow.tracing import get_trace_store, SessionTrace, TraceEvent, TraceEventType
+
+@app.get("/traces")
+async def list_traces(
+    limit: int = 50,
+    status: Optional[str] = None
+):
+    """
+    List all session traces with optional filtering.
+    
+    Query params:
+        limit: Maximum number of traces to return (default 50)
+        status: Filter by status (active, completed, error)
+    """
+    store = get_trace_store()
+    traces = store.get_all_sessions(limit=limit, status=status)
+    
+    return [
+        {
+            "session_id": t.session_id,
+            "created_at": t.created_at.isoformat(),
+            "updated_at": t.updated_at.isoformat(),
+            "status": t.status,
+            "event_count": len(t.events),
+            "metadata": t.metadata
+        }
+        for t in traces
+    ]
+
+
+@app.get("/traces/{session_id}")
+async def get_trace(session_id: str):
+    """Get complete trace for a specific session."""
+    store = get_trace_store()
+    trace = store.get_session(session_id)
+    
+    if not trace:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    
+    # Use model_dump for Pydantic v2, dict for v1
+    try:
+        return trace.model_dump(mode='json')
+    except AttributeError:
+        return trace.dict()
+
+
+@app.get("/traces/{session_id}/events")
+async def get_trace_events(
+    session_id: str,
+    event_type: Optional[str] = None,
+    agent_name: Optional[str] = None
+):
+    """
+    Get events for a session with optional filtering.
+    
+    Query params:
+        event_type: Filter by event type (session_start, user_input, agent_call, etc.)
+        agent_name: Filter by agent name
+    """
+    store = get_trace_store()
+    trace = store.get_session(session_id)
+    
+    if not trace:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    
+    events = trace.events
+    
+    # Filter by event_type
+    if event_type:
+        events = [e for e in events if e.event_type == event_type]
+    
+    # Filter by agent_name
+    if agent_name:
+        events = [e for e in events if e.agent_name == agent_name]
+    
+    # Return as dicts
+    try:
+        return [e.model_dump(mode='json') for e in events]
+    except AttributeError:
+        return [e.dict() for e in events]
+
+
+@app.get("/traces/{session_id}/timeline")
+async def get_trace_timeline(session_id: str):
+    """Get a formatted timeline view of the session for easy inspection."""
+    store = get_trace_store()
+    trace = store.get_session(session_id)
+    
+    if not trace:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    
+    timeline = []
+    for event in trace.events:
+        summary = _generate_event_summary(event)
+        timeline.append({
+            "timestamp": event.timestamp.isoformat(),
+            "type": event.event_type,
+            "agent": event.agent_name or "system",
+            "step": event.step_name,
+            "duration_ms": event.duration_ms,
+            "summary": summary
+        })
+    
+    return {
+        "session_id": session_id,
+        "status": trace.status,
+        "created_at": trace.created_at.isoformat(),
+        "total_events": len(timeline),
+        "total_duration_ms": sum(e['duration_ms'] for e in timeline if e['duration_ms']),
+        "timeline": timeline
+    }
+
+
+def _generate_event_summary(event: TraceEvent) -> str:
+    """Generate human-readable summary for an event."""
+    if event.event_type == TraceEventType.USER_INPUT:
+        msg = event.input_data.get('message', '')
+        return f"User: {msg[:100]}..." if len(msg) > 100 else f"User: {msg}"
+    elif event.event_type == TraceEventType.AGENT_CALL:
+        func = event.input_data.get('function', 'unknown')
+        return f"{event.agent_name}.{func}() called"
+    elif event.event_type == TraceEventType.AGENT_RESPONSE:
+        func = event.output_data.get('function', 'unknown')
+        return f"{event.agent_name}.{func}() responded"
+    elif event.event_type == TraceEventType.ERROR:
+        error = event.output_data.get('error', 'Unknown error')
+        return f"Error: {error[:100]}"
+    elif event.event_type == TraceEventType.SESSION_START:
+        return "Session started"
+    elif event.event_type == TraceEventType.SESSION_END:
+        return "Session ended"
+    elif event.event_type == TraceEventType.WORKFLOW_STEP:
+        return f"Workflow step: {event.step_name}"
+    else:
+        return event.event_type
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

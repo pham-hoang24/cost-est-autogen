@@ -1,0 +1,44 @@
+{
+  "session_id": "test_after_reload",
+  "created_at": "2025-11-25T19:15:51.571230",
+  "updated_at": "2025-11-25T19:15:55.252001",
+  "events": [
+    {
+      "event_id": "7fd77778-b487-4d85-be83-8e3c45ac695c",
+      "session_id": "test_after_reload",
+      "timestamp": "2025-11-25T19:15:51.571221",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "Help me estimate a web application",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "357e3353-cd08-4dc0-b1b4-f3a0ea780c88",
+      "session_id": "test_after_reload",
+      "timestamp": "2025-11-25T19:15:55.251972",
+      "event_type": "agent_response",
+      "agent_name": "ChatBotOpenRouter",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "To help you with the best estimation method, I need a bit more information about your project. Could you please provide details on the following:\n\n1. **Complexity**: Would you describe the web applica",
+        "is_ready": false,
+        "recommended_methods": [],
+        "model": "openai/gpt-4o",
+        "api_provider": "openrouter"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

@@ -1,0 +1,114 @@
+{
+  "session_id": "session_1764099377610_evgxvskf3",
+  "created_at": "2025-11-25T19:36:42.579781",
+  "updated_at": "2025-11-25T19:37:49.645786",
+  "events": [
+    {
+      "event_id": "0cd08153-ece1-4e16-8b33-f935b47ced6f",
+      "session_id": "session_1764099377610_evgxvskf3",
+      "timestamp": "2025-11-25T19:36:42.578469",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "Fitness app",
+        "history_length": 1
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "f5b92fa9-9010-4d3c-9ec1-f391a24323ca",
+      "session_id": "session_1764099377610_evgxvskf3",
+      "timestamp": "2025-11-25T19:36:45.412670",
+      "event_type": "agent_response",
+      "agent_name": "ChatBotOpenRouter",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Great! Let's gather some more details about your fitness app project to recommend the best estimation method.\n\n1. **Project Type**: You've mentioned a fitness app, so I assume this is a mobile applica",
+        "is_ready": false,
+        "recommended_methods": [],
+        "model": "openai/gpt-4o",
+        "api_provider": "openrouter"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "3c374dbf-4462-43f2-add8-93fd973948e3",
+      "session_id": "session_1764099377610_evgxvskf3",
+      "timestamp": "2025-11-25T19:37:16.253638",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "Mobile application",
+        "history_length": 3
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "52a24f8c-16bf-4d2b-82e7-1c09eaf06143",
+      "session_id": "session_1764099377610_evgxvskf3",
+      "timestamp": "2025-11-25T19:37:18.743136",
+      "event_type": "agent_response",
+      "agent_name": "ChatBotOpenRouter",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Great, we're looking at a mobile application project. To provide a more accurate recommendation, could you share more details on the following aspects?\n\n1. **Complexity:** Would you classify the mobil",
+        "is_ready": false,
+        "recommended_methods": [],
+        "model": "openai/gpt-4o",
+        "api_provider": "openrouter"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "982def50-6c97-468d-9089-d9db97e48630",
+      "session_id": "session_1764099377610_evgxvskf3",
+      "timestamp": "2025-11-25T19:37:47.960912",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "low to medium complexity",
+        "history_length": 5
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "7b726e7b-d070-43b0-b14a-664f54056af9",
+      "session_id": "session_1764099377610_evgxvskf3",
+      "timestamp": "2025-11-25T19:37:49.645771",
+      "event_type": "agent_response",
+      "agent_name": "ChatBotOpenRouter",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Thank you for providing information about the complexity. To better assist you, could you please provide more details about the project?\n\n1. What type of project are you working on? (e.g., Web, Mobile",
+        "is_ready": false,
+        "recommended_methods": [],
+        "model": "openai/gpt-4o",
+        "api_provider": "openrouter"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

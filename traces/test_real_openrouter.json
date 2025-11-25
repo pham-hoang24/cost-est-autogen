@@ -1,0 +1,41 @@
+{
+  "session_id": "test_real_openrouter",
+  "created_at": "2025-11-25T19:15:11.085339",
+  "updated_at": "2025-11-25T19:15:20.758838",
+  "events": [
+    {
+      "event_id": "df324df4-e209-46cc-b4f0-37db495b7560",
+      "session_id": "test_real_openrouter",
+      "timestamp": "2025-11-25T19:15:11.084997",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "I need to estimate a high-complexity e-commerce platform with React and Node.js",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "b312ee28-bcbb-4338-ad73-5d29923402ca",
+      "session_id": "test_real_openrouter",
+      "timestamp": "2025-11-25T19:15:20.758763",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "I need to estimate a high-complexity e-commerce platform with React and Node.js",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

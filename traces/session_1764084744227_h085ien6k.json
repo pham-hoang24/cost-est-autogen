@@ -1,0 +1,75 @@
+{
+  "session_id": "session_1764084744227_h085ien6k",
+  "created_at": "2025-11-25T16:28:12.156128",
+  "updated_at": "2025-11-25T16:28:27.186255",
+  "events": [
+    {
+      "event_id": "29e58055-e199-4524-836f-8d62d93c96f9",
+      "session_id": "session_1764084744227_h085ien6k",
+      "timestamp": "2025-11-25T16:28:12.154997",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "I want an AI fitness app",
+        "history_length": 1
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "77803457-f2ba-47b7-8c46-29ee65a7a354",
+      "session_id": "session_1764084744227_h085ien6k",
+      "timestamp": "2025-11-25T16:28:12.162106",
+      "event_type": "agent_response",
+      "agent_name": "ChatBotFallback",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Great! A web application project. To recommend the best estimation methodology, could you tell me about the complexity level and key features? For example, is it a simple CRUD application or does it i",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "6d31991a-e11d-446d-8359-d97aa37aab2e",
+      "session_id": "session_1764084744227_h085ien6k",
+      "timestamp": "2025-11-25T16:28:27.184568",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "a simple CRUD app",
+        "history_length": 3
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "e0fc0689-2516-4f89-9259-5176eb3a10f6",
+      "session_id": "session_1764084744227_h085ien6k",
+      "timestamp": "2025-11-25T16:28:27.186248",
+      "event_type": "agent_response",
+      "agent_name": "ChatBotFallback",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Great! A web application project. To recommend the best estimation methodology, could you tell me about the complexity level and key features? For example, is it a simple CRUD application or does it i",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

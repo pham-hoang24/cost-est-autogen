@@ -10,6 +10,7 @@ from .explainer import ExplainerService
 from .events import EventLogger
 from .repository import ProjectContextRepository
 from .report_generator import ReportGeneratorService
+from .tracing import trace_agent_call, trace_workflow_step
 from .schemas import (
     EventEntry,
     ExpansionV1,
@@ -96,6 +97,7 @@ class WorkflowOrchestrator:
     # ------------------------------------------------------------------
     # Expansion workflow
     # ------------------------------------------------------------------
+    @trace_agent_call("WorkflowOrchestrator")
     def generate_expansion(self, project_id: str) -> ProjectContext:
         context = self.load_context(project_id)
         if not context.user_description:
@@ -188,6 +190,7 @@ class WorkflowOrchestrator:
     # ------------------------------------------------------------------
     # Method selection
     # ------------------------------------------------------------------
+    @trace_agent_call("WorkflowOrchestrator")
     def evaluate_methods(self, project_id: str) -> ProjectContext:
         context = self.load_context(project_id)
         if context.expansion_confirmed is None:
@@ -309,6 +312,7 @@ class WorkflowOrchestrator:
     # ------------------------------------------------------------------
     # Full Report Generation
     # ------------------------------------------------------------------
+    @trace_agent_call("WorkflowOrchestrator")
     def generate_full_report(
         self, project_id: str, estimation_config: Dict[str, Any]
     ) -> CostEstimationReport:
