@@ -134,7 +134,7 @@ export default function CostEstimationChatbot({ onUpdateBasics, onMethodSelected
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim() && selectedMethods.length === 0) return;
 
     const userMsg: ChatMessage = {
@@ -171,50 +171,71 @@ export default function CostEstimationChatbot({ onUpdateBasics, onMethodSelected
       return;
     }
 
-    setTimeout(() => {
-      const lowerInput = userMsg.content.toLowerCase();
-      let responseText = "I see. Could you tell me more about the complexity and the expected duration?";
-      let showMethodRecommendation = false;
-      
-      if (lowerInput.includes('web') || lowerInput.includes('app') || lowerInput.includes('software')) {
-        responseText = "A software project! Based on your requirements, let me recommend the best estimation methodologies for you:";
-        showMethodRecommendation = true;
-        if (onUpdateBasics) onUpdateBasics('projectType', 'web');
-      } else if (lowerInput.includes('mobile')) {
-        responseText = "A mobile application! Here are my recommended estimation methods for mobile projects:";
-        showMethodRecommendation = true;
-        if (onUpdateBasics) onUpdateBasics('projectType', 'mobile');
-      } else if (lowerInput.includes('complex') || lowerInput.includes('enterprise')) {
-        responseText = "A complex project that requires detailed analysis. Here are the most suitable estimation methodologies:";
-        showMethodRecommendation = true;
-        if (onUpdateBasics) onUpdateBasics('complexity', 'complex');
+    try {
+      const response = await fetch('http://localhost:8000/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMsg.content,
+          history: messages.map(m => ({
+            role: m.type === 'user' ? 'user' : 'assistant',
+            content: m.content
+          }))
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from backend');
       }
 
+      const data = await response.json();
+      
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: responseText,
+        content: data.response,
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, botMsg]);
       setIsTyping(false);
 
-      if (showMethodRecommendation) {
-        setTimeout(() => {
-          const methodRecommendationMsg: ChatMessage = {
-            id: (Date.now() + 2).toString(),
-            type: 'method-recommendation',
-            content: '',
-            timestamp: new Date(),
-            recommendedMethod: methodsDatabase[0], // COCOMO
-            methodCards: methodsDatabase.slice(1), // Other methods
-            hybridOption: true
-          };
-          setMessages(prev => [...prev, methodRecommendationMsg]);
-        }, 500);
+      // Handle recommendations if ready
+      if (data.is_ready && data.recommended_methods.length > 0) {
+        // Map backend method IDs to frontend method objects
+        const recommended = methodsDatabase.find(m => m.id === data.recommended_methods[0]);
+        const others = methodsDatabase.filter(m => !data.recommended_methods.includes(m.id));
+        
+        if (recommended) {
+          setTimeout(() => {
+            const methodRecommendationMsg: ChatMessage = {
+              id: (Date.now() + 2).toString(),
+              type: 'method-recommendation',
+              content: '',
+              timestamp: new Date(),
+              recommendedMethod: recommended,
+              methodCards: others,
+              hybridOption: true
+            };
+            setMessages(prev => [...prev, methodRecommendationMsg]);
+          }, 500);
+        }
       }
-    }, 1500);
+      
+    } catch (error) {
+      console.error('Chat error:', error);
+      // Fallback response
+      const errorMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'bot',
+        content: "I'm having trouble connecting to my brain right now. Could you please try again?",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMsg]);
+      setIsTyping(false);
+    }
   };
 
   const handleMethodSelect = (methodId: string) => {

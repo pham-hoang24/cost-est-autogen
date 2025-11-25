@@ -1,0 +1,292 @@
+{
+  "report_title": "Cost Estimation Report",
+  "generated_at": "11/25/2025, 03:21:26 PM",
+  "project_details": {
+    "project_type": "web application",
+    "complexity": "high",
+    "tech_stack": "React, Node.js, PostgreSQL",
+    "team_pref": 8,
+    "region": "North America"
+  },
+  "estimation_config": {
+    "includeRisk": true,
+    "includeContingency": true,
+    "includeOverhead": true,
+    "includeProfit": true,
+    "currency": "USD",
+    "accuracy": "high"
+  },
+  "timestamp": "2025-11-25T13:21:26.164644Z",
+  "project_data": {
+    "original_project_type": "web application",
+    "project_type": "organic",
+    "technical_complexity": {
+      "high_complexity": true
+    },
+    "project_context_description": "This project aims to develop a web application with high complexity, designed to meet the evolving needs of modern users. The platform will provide core functionality including user authentication, data management, and comprehensive reporting capabilities.\n\nThe application will be built with scalability and maintainability in mind, ensuring that it can grow with the business. By leveraging modern development practices and focusing on user experience, the system will deliver value to stakeholders while maintaining high standards of code quality and performance.",
+    "project_requirements": "web application project with high complexity",
+    "functional_requirements": [
+      "User authentication",
+      "Dashboard",
+      "Data management",
+      "Reporting"
+    ]
+  },
+  "estimation_result": {
+    "executive_summary": "Intelligent multi-method estimate: \u20ac165,432 over 11 months using 3 methods [MEDIUM]",
+    "team_composition": {
+      "developers": [
+        {
+          "level": "senior",
+          "count": 1
+        }
+      ],
+      "designers": [],
+      "other_roles": []
+    },
+    "cost_estimate": {
+      "total_cost": 165432.58287245972,
+      "labor_cost": 107531.17886709882,
+      "infrastructure_cost": 24814.88743086896,
+      "other_expenses": 33086.51657449194,
+      "confidence_level": "MEDIUM - Moderate variance"
+    },
+    "timeline_estimate": {
+      "total_duration": "11 months"
+    },
+    "resource_allocation": {
+      "recommended_team_size": 1
+    },
+    "explanation": "Combined estimate from 3 methods with confidence weights. Cost variance: 26%",
+    "success_criteria": [
+      "The application should meet all specified functional requirements",
+      "The application should be delivered within the estimated timeline",
+      "The application should be delivered within the estimated budget",
+      "Code quality should meet industry standards"
+    ],
+    "deliverables": [
+      "Fully functional application",
+      "Source code and documentation",
+      "User manual and technical documentation",
+      "Deployment guide"
+    ],
+    "features": [
+      {
+        "name": "User authentication",
+        "description": "Implement user registration, login, and password reset functionalities to allow users to create accounts and securely access their profiles.",
+        "tags": [
+          "Authentication",
+          "User",
+          "Web App"
+        ],
+        "hours": 596.7922055962514,
+        "user_stories": [
+          "As a user, I want to register with email and password so that I can create an account.",
+          "As a user, I want to log in to my account so that I can access my profile.",
+          "As a user, I want to reset my password if I forget it so that I can regain access to my account."
+        ],
+        "cost": 37299.51284976571
+      },
+      {
+        "name": "Dashboard",
+        "description": "Create an intuitive dashboard to display key metrics, analytics, and user activity overview.",
+        "tags": [
+          "Dashboard",
+          "Analytics",
+          "Web App"
+        ],
+        "hours": 779.747223871832,
+        "user_stories": [
+          "As a user, I want to see my activity summary so that I can track my usage.",
+          "As a user, I want to view analytics charts so that I can understand trends.",
+          "As a user, I want quick access to common actions so that I can work efficiently."
+        ],
+        "cost": 48734.2014919895
+      },
+      {
+        "name": "Data management",
+        "description": "Build comprehensive data management tools for creating, editing, and organizing records with search and filtering.",
+        "tags": [
+          "Data",
+          "Management",
+          "CRUD"
+        ],
+        "hours": 574.2184732550336,
+        "user_stories": [
+          "As a user, I want to create new records so that I can add data to the system.",
+          "As a user, I want to edit existing records so that I can update information.",
+          "As a user, I want to delete records so that I can remove outdated data.",
+          "As a user, I want to search and filter records so that I can find specific items quickly."
+        ],
+        "cost": 35888.6545784396
+      },
+      {
+        "name": "Reporting",
+        "description": "Implement reporting features with customizable templates, export options, and scheduled report generation.",
+        "tags": [
+          "Reports",
+          "Analytics",
+          "Export"
+        ],
+        "hours": 792.589967364049,
+        "user_stories": [
+          "As a user, I want to generate reports so that I can analyze data.",
+          "As a user, I want to export reports to PDF so that I can share them.",
+          "As a user, I want to schedule automated reports so that I can receive them regularly."
+        ],
+        "cost": 49536.872960253066
+      }
+    ],
+    "timeline": [
+      {
+        "task": "Planning & Design",
+        "description": "Establish project requirements, design system architecture, and create UI/UX mockups",
+        "start_date": "2025-11-25",
+        "end_date": "2025-12-23",
+        "duration_weeks": 4,
+        "deliverables": [
+          "Requirements specification document",
+          "System architecture design",
+          "UI/UX mockups and prototypes",
+          "Technical specification document"
+        ]
+      },
+      {
+        "task": "Development",
+        "description": "Implement core features, integrate third-party services, and build the application",
+        "start_date": "2025-12-23",
+        "end_date": "2026-08-18",
+        "duration_weeks": 34,
+        "deliverables": [
+          "Functional application modules",
+          "API endpoints and integrations",
+          "Database schema and migrations",
+          "Code documentation"
+        ]
+      },
+      {
+        "task": "Testing & QA",
+        "description": "Perform unit testing, integration testing, and user acceptance testing",
+        "start_date": "2026-08-18",
+        "end_date": "2026-09-01",
+        "duration_weeks": 2,
+        "deliverables": [
+          "Test cases and test reports",
+          "Bug fix documentation",
+          "Performance optimization report",
+          "Security audit results"
+        ]
+      },
+      {
+        "task": "Deployment",
+        "description": "Deploy to production, configure infrastructure, and provide training",
+        "start_date": "2026-09-01",
+        "end_date": "2026-09-08",
+        "duration_weeks": 1,
+        "deliverables": [
+          "Production deployment",
+          "Infrastructure setup documentation",
+          "User training materials",
+          "Handover and support plan"
+        ]
+      }
+    ],
+    "charts": {
+      "timeline": [
+        {
+          "month": "Month 1",
+          "cost": 15126.978850172063
+        },
+        {
+          "month": "Month 2",
+          "cost": 15207.44865017459
+        },
+        {
+          "month": "Month 3",
+          "cost": 14456.399832842868
+        },
+        {
+          "month": "Month 4",
+          "cost": 14547.30144007466
+        },
+        {
+          "month": "Month 5",
+          "cost": 14899.738668476168
+        },
+        {
+          "month": "Month 6",
+          "cost": 15248.662496999963
+        },
+        {
+          "month": "Month 7",
+          "cost": 16247.932672714081
+        },
+        {
+          "month": "Month 8",
+          "cost": 14948.830790702435
+        },
+        {
+          "month": "Month 9",
+          "cost": 16663.961066711512
+        },
+        {
+          "month": "Month 10",
+          "cost": 15105.051779254793
+        },
+        {
+          "month": "Month 11",
+          "cost": 16678.782088806558
+        }
+      ]
+    },
+    "estimation_method": "Intelligent Multi-Method",
+    "methods_used": [
+      "analogous",
+      "cocomo2",
+      "bottomup"
+    ],
+    "individual_estimates": {
+      "analogous": {
+        "methodology": "Analogous Estimation",
+        "cost": 160000.0,
+        "duration": "3 months",
+        "weight": 0.75,
+        "breakdown": {
+          "development": 80000.0,
+          "testing": 32000.0,
+          "management": 24000.0,
+          "infrastructure": 16000.0,
+          "contingency": 8000.0
+        }
+      },
+      "cocomo2": {
+        "methodology": "COCOMO II",
+        "cost": 150000.0,
+        "duration": "3 months",
+        "weight": 0.9,
+        "breakdown": {
+          "development": 75000.0,
+          "testing": 30000.0,
+          "management": 22500.0,
+          "infrastructure": 15000.0,
+          "contingency": 7500.0
+        }
+      },
+      "bottomup": {
+        "methodology": "Bottomup",
+        "cost": 189384.265191871,
+        "duration": "3 months",
+        "weight": 0.75,
+        "breakdown": {
+          "development": 94692.1325959355,
+          "testing": 37876.8530383742,
+          "management": 28407.63977878065,
+          "infrastructure": 18938.4265191871,
+          "contingency": 9469.21325959355
+        }
+      }
+    },
+    "effort_person_months": 16.543258287245973,
+    "warning": "\u26a0\ufe0f CAUTION: Moderate variance (26%) between methods."
+  }
+}

@@ -9,11 +9,13 @@ from .selection import MethodSelector
 from .explainer import ExplainerService
 from .events import EventLogger
 from .repository import ProjectContextRepository
+from .report_generator import ReportGeneratorService
 from .schemas import (
     EventEntry,
     ExpansionV1,
     ProjectContext,
     SelectionPayload,
+    CostEstimationReport,
 )
 
 
@@ -303,4 +305,52 @@ class WorkflowOrchestrator:
         assumptions.append(f"User clarification: {approval_text.strip()}")
         updated.assumptions = assumptions
         return updated
+
+    # ------------------------------------------------------------------
+    # Full Report Generation
+    # ------------------------------------------------------------------
+    def generate_full_report(
+        self, project_id: str, estimation_config: Dict[str, Any]
+    ) -> CostEstimationReport:
+        """
+        Generate complete cost estimation report matching frontend schema.
+        
+        Args:
+            project_id: Project identifier
+            estimation_config: Configuration dict with currency, accuracy, etc.
+            
+        Returns:
+            CostEstimationReport with all fields populated
+        """
+        context = self.load_context(project_id)
+        generator = ReportGeneratorService()
+
+        # Determine methods used
+        methods_used = []
+        if context.selection and context.selection.primary:
+            methods_used.append(context.selection.primary)
+            if context.selection.backups:
+                methods_used.extend(context.selection.backups[:2])  # Max 3 methods
+
+        # Generate the full report
+        report = generator.generate_report(
+            project_id=project_id,
+            baseline=context.baseline,
+            user_description=context.user_description,
+            estimation_config=estimation_config,
+            estimates=context.estimates,
+            methods_used=methods_used,
+        )
+
+        # Store in context
+        context.full_report = report
+        self.repository.save(context)
+
+        # Log event
+        self.event_logger.log(
+            project_id, "FULL_REPORT_GENERATED", {"methods_count": len(methods_used)}
+        )
+
+        return report
+
 

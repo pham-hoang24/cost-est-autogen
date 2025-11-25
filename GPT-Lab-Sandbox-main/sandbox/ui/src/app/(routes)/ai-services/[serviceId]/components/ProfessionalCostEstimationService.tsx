@@ -271,6 +271,51 @@ export default function ProfessionalCostEstimationService({ service }: Professio
     URL.revokeObjectURL(url);
   };
 
+  const generateResults = async () => {
+    try {
+      // Parse team size to int (taking upper bound or simple parsing)
+      const teamSizeInt = parseInt(projectDetails.teamSize.split('-')[1] || projectDetails.teamSize.split('+')[0] || '5');
+
+      const requestBody = {
+        method_name: selectedMethodology[0] || "hybrid",
+        baseline_inputs: {
+          project_type: projectDetails.projectType,
+          complexity: projectDetails.complexity,
+          tech_stack: projectDetails.technology,
+          team_pref: teamSizeInt,
+          region: projectDetails.region,
+          project_duration: projectDetails.duration,
+          description: `A ${projectDetails.complexity} ${projectDetails.projectType} project using ${projectDetails.technology} in ${projectDetails.region}.`
+        },
+        additional_inputs: {
+          selected_methods: selectedMethodology,
+          estimation_config: estimationConfig
+        }
+      };
+
+      const response = await fetch('http://localhost:8000/generate-report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setEstimationResults(data);
+      setIsCalculating(false);
+      setCurrentStep(3); // Move to results step
+    } catch (error) {
+      console.error('Failed to generate report:', error);
+      setIsCalculating(false);
+      alert('Failed to generate estimation report. Please ensure the backend is running.');
+    }
+  };
+
   const startEstimation = () => {
     if (selectedMethodology.length === 0) {
       alert('Please select at least one estimation methodology before proceeding.');
@@ -294,13 +339,16 @@ export default function ProfessionalCostEstimationService({ service }: Professio
     ];
 
     let stepIndex = 0;
+    
+    // Start the API call immediately
+    generateResults();
+
+    // Run progress animation while waiting
     const interval = setInterval(() => {
       setCalculationProgress(prev => {
-        const newProgress = prev + Math.random() * 12;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          generateResults();
-          return 100;
+        const newProgress = prev + Math.random() * 5; // Slower progress to allow API time
+        if (newProgress >= 90) {
+          return 90; // Hold at 90% until API returns
         }
         return newProgress;
       });
@@ -309,237 +357,16 @@ export default function ProfessionalCostEstimationService({ service }: Professio
         setCurrentCalculation(calculationSteps[stepIndex]);
         stepIndex++;
       }
-    }, 1500);
-  };
+    }, 1000);
 
-  const generateResults = () => {
-    // Calculate base values
-    const totalCost = Math.random() * 400000 + 150000;
-    const laborCost = totalCost * 0.65;
-    const infrastructureCost = totalCost * 0.15;
-    const otherExpenses = totalCost * 0.20;
-    const effortMonths = (Math.random() * 2) + 1;
-    const durationMonths = Math.ceil(effortMonths * 0.7);
-    const teamSize = Math.ceil(effortMonths / durationMonths);
-    
-    // Calculate variance between methods
-    const methodCosts = selectedMethodology.map(() => Math.random() * 500000 + 100000);
-    const costVariance = methodCosts.length > 1 
-      ? Math.abs((Math.max(...methodCosts) - Math.min(...methodCosts)) / Math.min(...methodCosts) * 100)
-      : 0;
-    
-    const confidenceLevel = costVariance > 50 ? 'LOW - Significant variance between methods' 
-      : costVariance > 25 ? 'MEDIUM - Moderate variance' 
-      : 'HIGH - Low variance';
-    
-    // Generate features breakdown
-    const functionalReqs = [
-      'User authentication',
-      'Dashboard',
-      'Data management',
-      'Reporting'
-    ];
-    
-    // Generate features breakdown with detailed information
-    const featuresData = [
-      {
-        name: 'User authentication',
-        description: 'Implement user registration, login, and password reset functionalities to allow users to create accounts and securely access their profiles.',
-        tags: ['Authentication', 'User', 'Web App'],
-        hours: Math.random() * 50 + 100,
-        user_stories: [
-          'As a user, I want to register with email and password so that I can create an account.',
-          'As a user, I want to log in to my account so that I can access my profile.',
-          'As a user, I want to reset my password if I forget it so that I can regain access to my account.'
-        ]
-      },
-      {
-        name: 'Dashboard',
-        description: 'Create an intuitive dashboard to display key metrics, analytics, and user activity overview.',
-        tags: ['Dashboard', 'Analytics', 'Web App'],
-        hours: Math.random() * 50 + 120,
-        user_stories: [
-          'As a user, I want to see my activity summary so that I can track my usage.',
-          'As a user, I want to view analytics charts so that I can understand trends.',
-          'As a user, I want quick access to common actions so that I can work efficiently.'
-        ]
-      },
-      {
-        name: 'Data management',
-        description: 'Build comprehensive data management tools for creating, editing, and organizing records with search and filtering.',
-        tags: ['Data', 'Management', 'CRUD'],
-        hours: Math.random() * 50 + 150,
-        user_stories: [
-          'As a user, I want to create new records so that I can add data to the system.',
-          'As a user, I want to edit existing records so that I can update information.',
-          'As a user, I want to delete records so that I can remove outdated data.',
-          'As a user, I want to search and filter records so that I can find specific items quickly.'
-        ]
-      },
-      {
-        name: 'Reporting',
-        description: 'Implement reporting features with customizable templates, export options, and scheduled report generation.',
-        tags: ['Reports', 'Analytics', 'Export'],
-        hours: Math.random() * 50 + 80,
-        user_stories: [
-          'As a user, I want to generate reports so that I can analyze data.',
-          'As a user, I want to export reports to PDF so that I can share them.',
-          'As a user, I want to schedule automated reports so that I receive them regularly.'
-        ]
+    // Cleanup interval when calculation stops (which happens in generateResults)
+    const checkDone = setInterval(() => {
+      if (!isCalculating) {
+        clearInterval(interval);
+        clearInterval(checkDone);
+        setCalculationProgress(100);
       }
-    ];
-    
-    const features = featuresData.map(f => ({
-      ...f,
-      cost: f.hours * 62.5 // average hourly rate
-    }));
-    
-    const results = {
-      timestamp: new Date().toISOString(),
-      project_data: {
-        original_project_type: projectDetails.projectType,
-        project_type: projectDetails.projectType.includes('web') ? 'organic' : 'semi-detached',
-        technical_complexity: {
-          high_complexity: projectDetails.complexity === 'high' || projectDetails.complexity === 'very-high'
-        },
-        project_context_description: `This project aims to develop a ${projectDetails.projectType} with ${projectDetails.complexity} complexity, designed to meet the evolving needs of modern users. The platform will provide core functionality including user authentication, data management, and comprehensive reporting capabilities.\n\nThe application will be built with scalability and maintainability in mind, ensuring that it can grow with the business. By leveraging modern development practices and focusing on user experience, the system will deliver value to stakeholders while maintaining high standards of code quality and performance.`,
-        project_requirements: `${projectDetails.projectType} project with ${projectDetails.complexity} complexity`,
-        functional_requirements: functionalReqs
-      },
-      estimation_result: {
-        executive_summary: `Intelligent multi-method estimate: €${Math.round(totalCost).toLocaleString()} over ${durationMonths} months using ${selectedMethodology.length} method${selectedMethodology.length > 1 ? 's' : ''} [${confidenceLevel.split(' - ')[0]}]`,
-        team_composition: {
-          developers: [
-            { level: 'senior', count: Math.max(1, Math.floor(teamSize * 0.4)) },
-            { level: 'mid', count: Math.max(0, Math.floor(teamSize * 0.4)) },
-            { level: 'junior', count: Math.max(0, Math.floor(teamSize * 0.2)) }
-          ].filter(d => d.count > 0),
-          designers: teamSize > 3 ? [{ level: 'ui/ux', count: 1 }] : [],
-          other_roles: []
-        },
-        cost_estimate: {
-          total_cost: totalCost,
-          labor_cost: laborCost,
-          infrastructure_cost: infrastructureCost,
-          other_expenses: otherExpenses,
-          confidence_level: confidenceLevel
-        },
-        timeline_estimate: {
-          total_duration: `${durationMonths} month${durationMonths > 1 ? 's' : ''}`
-        },
-        resource_allocation: {
-          recommended_team_size: teamSize
-        },
-        explanation: `Combined estimate from ${selectedMethodology.length} method${selectedMethodology.length > 1 ? 's' : ''} with confidence weights. Cost variance: ${Math.round(costVariance)}%`,
-        success_criteria: [
-          'The application should meet all specified functional requirements',
-          'The application should be delivered within the estimated timeline',
-          'The application should be delivered within the estimated budget',
-          'Code quality should meet industry standards'
-        ],
-        deliverables: [
-          'Fully functional application',
-          'Source code and documentation',
-          'User manual and technical documentation',
-          'Deployment guide'
-        ],
-        features: features,
-        timeline: [
-          {
-            task: 'Planning & Design',
-            description: 'Establish project requirements, design system architecture, and create UI/UX mockups',
-            start_date: new Date().toISOString().split('T')[0],
-            end_date: new Date(Date.now() + 4 * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            duration_weeks: 4,
-            deliverables: [
-              'Requirements specification document',
-              'System architecture design',
-              'UI/UX mockups and prototypes',
-              'Technical specification document'
-            ]
-          },
-          {
-            task: 'Development',
-            description: 'Implement core features, integrate third-party services, and build the application',
-            start_date: new Date(Date.now() + 4 * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            end_date: new Date(Date.now() + (durationMonths * 30 - 14) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            duration_weeks: Math.max(8, durationMonths * 4 - 10),
-            deliverables: [
-              'Functional application modules',
-              'API endpoints and integrations',
-              'Database schema and migrations',
-              'Code documentation'
-            ]
-          },
-          {
-            task: 'Testing & QA',
-            description: 'Perform unit testing, integration testing, and user acceptance testing',
-            start_date: new Date(Date.now() + (durationMonths * 30 - 14) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            end_date: new Date(Date.now() + (durationMonths * 30 - 4) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            duration_weeks: 2,
-            deliverables: [
-              'Test cases and test reports',
-              'Bug fix documentation',
-              'Performance optimization report',
-              'Security audit results'
-            ]
-          },
-          {
-            task: 'Deployment',
-            description: 'Deploy to production, configure infrastructure, and provide training',
-            start_date: new Date(Date.now() + (durationMonths * 30 - 4) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            end_date: new Date(Date.now() + durationMonths * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            duration_weeks: 1,
-            deliverables: [
-              'Production deployment',
-              'Infrastructure setup documentation',
-              'User training materials',
-              'Handover and support plan'
-            ]
-          }
-        ],
-        charts: {
-          timeline: Array.from({ length: durationMonths }, (_, i) => ({
-            month: `Month ${i + 1}`,
-            cost: (totalCost / durationMonths) * (1 + Math.random() * 0.3 - 0.15) // Slight variation around average
-          }))
-        },
-        estimation_method: selectedMethodology.length > 1 ? 'Intelligent Multi-Method' : 'Single Method',
-        methods_used: selectedMethodology,
-        individual_estimates: Object.fromEntries(
-          selectedMethodology.map((methodId, i) => {
-            const methodology = methodId === 'hybrid' 
-              ? { name: 'Hybrid Method', accuracy: '60-75%' }
-              : costEstimationMethodologies.find(m => m.id === methodId);
-            
-            const confidence = parseFloat(methodology?.accuracy?.split('-')[1] || '75') / 100;
-            
-            return [methodId, {
-              methodology: methodology?.name || 'Unknown',
-              cost: methodCosts[i] || totalCost,
-              duration: `${Math.ceil((methodCosts[i] || totalCost) / (laborCost / durationMonths))} months`,
-              weight: confidence,
-              breakdown: {
-                development: (methodCosts[i] || totalCost) * 0.5,
-                testing: (methodCosts[i] || totalCost) * 0.2,
-                management: (methodCosts[i] || totalCost) * 0.15,
-                infrastructure: (methodCosts[i] || totalCost) * 0.10,
-                contingency: (methodCosts[i] || totalCost) * 0.05
-              }
-            }];
-          })
-        ),
-        effort_person_months: effortMonths,
-        warning: costVariance > 50 
-          ? `⚠️ WARNING: High variance (${Math.round(costVariance)}%) between methods. Consider reviewing individual estimates before proceeding.`
-          : costVariance > 25
-          ? `⚠️ CAUTION: Moderate variance (${Math.round(costVariance)}%) between methods.`
-          : null
-      }
-    };
-
-    setEstimationResults(results);
-    setIsCalculating(false);
+    }, 100);
   };
 
   const toggleMethodology = (methodologyId: string) => {

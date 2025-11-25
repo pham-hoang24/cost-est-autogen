@@ -199,4 +199,112 @@ class ProjectContext(BaseModel):
     normalized_inputs: Dict[str, Any] = Field(default_factory=dict)
     derived_coefficients: Dict[str, Any] = Field(default_factory=dict)
     inferred_fields: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    full_report: Optional["CostEstimationReport"] = None
 
+
+# Appending new schema models to workflow/schemas.py
+
+# ============================================================================
+# Frontend-Compatible Output Schemas
+# ============================================================================
+
+class FeatureEstimate(BaseModel):
+    """Individual feature estimation with user stories"""
+    name: str
+    description: str
+    tags: List[str]
+    hours: float
+    user_stories: List[str]
+    cost: float
+
+
+class TimelinePhase(BaseModel):
+    """Project timeline phase"""
+    task: str
+    description: str
+    start_date: str  # YYYY-MM-DD format
+    end_date: str
+    duration_weeks: int
+    deliverables: List[str]
+
+
+class TeamMember(BaseModel):
+    """Team member specification"""
+    level: str  # "senior", "mid", "junior", "ui/ux"
+    count: int
+
+
+class TeamComposition(BaseModel):
+    """Complete team structure"""
+    developers: List[TeamMember]
+    designers: List[TeamMember] = Field(default_factory=list)
+    other_roles: List[TeamMember] = Field(default_factory=list)
+
+
+class CostEstimate(BaseModel):
+    """Detailed cost breakdown"""
+    total_cost: float
+    labor_cost: float
+    infrastructure_cost: float
+    other_expenses: float
+    confidence_level: str  # "HIGH|MEDIUM|LOW - description"
+
+
+class TimelineEstimate(BaseModel):
+    """Timeline summary"""
+    total_duration: str  # "X months"
+
+
+class ResourceAllocation(BaseModel):
+    """Resource recommendations"""
+    recommended_team_size: int
+
+
+class MethodEstimate(BaseModel):
+    """Individual method estimation result"""
+    methodology: str
+    cost: float
+    duration: str
+    weight: float
+    breakdown: Dict[str, float]  # development, testing, management, infrastructure, contingency
+
+
+class EstimationResult(BaseModel):
+    """Complete estimation result"""
+    executive_summary: str
+    team_composition: TeamComposition
+    cost_estimate: CostEstimate
+    timeline_estimate: TimelineEstimate
+    resource_allocation: ResourceAllocation
+    explanation: str
+    success_criteria: List[str]
+    deliverables: List[str]
+    features: List[FeatureEstimate]
+    timeline: List[TimelinePhase]
+    charts: Dict[str, Any]
+    estimation_method: str
+    methods_used: List[str]
+    individual_estimates: Dict[str, MethodEstimate]
+    effort_person_months: float
+    warning: Optional[str] = None
+
+
+class ProjectData(BaseModel):
+    """Project context and metadata"""
+    original_project_type: str
+    project_type: str  # normalized: "organic", "semi-detached", "embedded"
+    technical_complexity: Dict[str, bool]
+    project_context_description: str
+    project_requirements: str
+    functional_requirements: List[str]
+
+
+class CostEstimationReport(BaseModel):
+    """Complete cost estimation report for frontend"""
+    report_title: str = "Cost Estimation Report"
+    generated_at: str
+    project_details: Dict[str, Any]
+    estimation_config: Dict[str, Any]
+    timestamp: str
+    project_data: ProjectData
+    estimation_result: EstimationResult

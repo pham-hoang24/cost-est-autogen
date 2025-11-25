@@ -1,0 +1,248 @@
+{
+  "report_title": "Cost Estimation Report",
+  "generated_at": "11/25/2025, 10:32:02 AM",
+  "project_details": {
+    "projectType": "system-integration",
+    "complexity": "complex",
+    "duration": "3-6-months",
+    "teamSize": "5-10",
+    "technology": "",
+    "region": "",
+    "compliance": ""
+  },
+  "estimation_config": {
+    "includeRisk": true,
+    "includeContingency": true,
+    "includeOverhead": true,
+    "includeProfit": true,
+    "currency": "EUR",
+    "accuracy": "high"
+  },
+  "timestamp": "2025-11-25T08:25:16.601Z",
+  "project_data": {
+    "original_project_type": "system-integration",
+    "project_type": "semi-detached",
+    "technical_complexity": {
+      "high_complexity": false
+    },
+    "project_context_description": "This project aims to develop a system-integration with complex complexity, designed to meet the evolving needs of modern users. The platform will provide core functionality including user authentication, data management, and comprehensive reporting capabilities.\n\nThe application will be built with scalability and maintainability in mind, ensuring that it can grow with the business. By leveraging modern development practices and focusing on user experience, the system will deliver value to stakeholders while maintaining high standards of code quality and performance.",
+    "project_requirements": "system-integration project with complex complexity",
+    "functional_requirements": [
+      "User authentication",
+      "Dashboard",
+      "Data management",
+      "Reporting"
+    ]
+  },
+  "estimation_result": {
+    "executive_summary": "Intelligent multi-method estimate: €499,646 over 3 months using 2 methods [MEDIUM]",
+    "team_composition": {
+      "developers": [
+        {
+          "level": "senior",
+          "count": 1
+        }
+      ],
+      "designers": [],
+      "other_roles": []
+    },
+    "cost_estimate": {
+      "total_cost": 499646.4759063422,
+      "labor_cost": 324770.20933912246,
+      "infrastructure_cost": 74946.97138595133,
+      "other_expenses": 99929.29518126845,
+      "confidence_level": "MEDIUM - Moderate variance"
+    },
+    "timeline_estimate": {
+      "total_duration": "3 months"
+    },
+    "resource_allocation": {
+      "recommended_team_size": 1
+    },
+    "explanation": "Combined estimate from 2 methods with confidence weights. Cost variance: 39%",
+    "success_criteria": [
+      "The application should meet all specified functional requirements",
+      "The application should be delivered within the estimated timeline",
+      "The application should be delivered within the estimated budget",
+      "Code quality should meet industry standards"
+    ],
+    "deliverables": [
+      "Fully functional application",
+      "Source code and documentation",
+      "User manual and technical documentation",
+      "Deployment guide"
+    ],
+    "features": [
+      {
+        "name": "User authentication",
+        "description": "Implement user registration, login, and password reset functionalities to allow users to create accounts and securely access their profiles.",
+        "tags": [
+          "Authentication",
+          "User",
+          "Web App"
+        ],
+        "hours": 134.33683485202144,
+        "user_stories": [
+          "As a user, I want to register with email and password so that I can create an account.",
+          "As a user, I want to log in to my account so that I can access my profile.",
+          "As a user, I want to reset my password if I forget it so that I can regain access to my account."
+        ],
+        "cost": 8396.05217825134
+      },
+      {
+        "name": "Dashboard",
+        "description": "Create an intuitive dashboard to display key metrics, analytics, and user activity overview.",
+        "tags": [
+          "Dashboard",
+          "Analytics",
+          "Web App"
+        ],
+        "hours": 128.3792596278305,
+        "user_stories": [
+          "As a user, I want to see my activity summary so that I can track my usage.",
+          "As a user, I want to view analytics charts so that I can understand trends.",
+          "As a user, I want quick access to common actions so that I can work efficiently."
+        ],
+        "cost": 8023.703726739406
+      },
+      {
+        "name": "Data management",
+        "description": "Build comprehensive data management tools for creating, editing, and organizing records with search and filtering.",
+        "tags": [
+          "Data",
+          "Management",
+          "CRUD"
+        ],
+        "hours": 192.8601346526894,
+        "user_stories": [
+          "As a user, I want to create new records so that I can add data to the system.",
+          "As a user, I want to edit existing records so that I can update information.",
+          "As a user, I want to delete records so that I can remove outdated data.",
+          "As a user, I want to search and filter records so that I can find specific items quickly."
+        ],
+        "cost": 12053.758415793087
+      },
+      {
+        "name": "Reporting",
+        "description": "Implement reporting features with customizable templates, export options, and scheduled report generation.",
+        "tags": [
+          "Reports",
+          "Analytics",
+          "Export"
+        ],
+        "hours": 113.76927593354466,
+        "user_stories": [
+          "As a user, I want to generate reports so that I can analyze data.",
+          "As a user, I want to export reports to PDF so that I can share them.",
+          "As a user, I want to schedule automated reports so that I receive them regularly."
+        ],
+        "cost": 7110.579745846541
+      }
+    ],
+    "timeline": [
+      {
+        "task": "Planning & Design",
+        "description": "Establish project requirements, design system architecture, and create UI/UX mockups",
+        "start_date": "2025-11-25",
+        "end_date": "2025-12-23",
+        "duration_weeks": 4,
+        "deliverables": [
+          "Requirements specification document",
+          "System architecture design",
+          "UI/UX mockups and prototypes",
+          "Technical specification document"
+        ]
+      },
+      {
+        "task": "Development",
+        "description": "Implement core features, integrate third-party services, and build the application",
+        "start_date": "2025-12-23",
+        "end_date": "2026-02-09",
+        "duration_weeks": 8,
+        "deliverables": [
+          "Functional application modules",
+          "API endpoints and integrations",
+          "Database schema and migrations",
+          "Code documentation"
+        ]
+      },
+      {
+        "task": "Testing & QA",
+        "description": "Perform unit testing, integration testing, and user acceptance testing",
+        "start_date": "2026-02-09",
+        "end_date": "2026-02-19",
+        "duration_weeks": 2,
+        "deliverables": [
+          "Test cases and test reports",
+          "Bug fix documentation",
+          "Performance optimization report",
+          "Security audit results"
+        ]
+      },
+      {
+        "task": "Deployment",
+        "description": "Deploy to production, configure infrastructure, and provide training",
+        "start_date": "2026-02-19",
+        "end_date": "2026-02-23",
+        "duration_weeks": 1,
+        "deliverables": [
+          "Production deployment",
+          "Infrastructure setup documentation",
+          "User training materials",
+          "Handover and support plan"
+        ]
+      }
+    ],
+    "charts": {
+      "timeline": [
+        {
+          "month": "Month 1",
+          "cost": 180026.06047880425
+        },
+        {
+          "month": "Month 2",
+          "cost": 182946.76756198588
+        },
+        {
+          "month": "Month 3",
+          "cost": 181848.2094773103
+        }
+      ]
+    },
+    "estimation_method": "Intelligent Multi-Method",
+    "methods_used": [
+      "story-points",
+      "analogous"
+    ],
+    "individual_estimates": {
+      "story-points": {
+        "methodology": "Story Points & Velocity",
+        "cost": 422627.2790675471,
+        "duration": "4 months",
+        "weight": 0.85,
+        "breakdown": {
+          "development": 211313.63953377356,
+          "testing": 84525.45581350943,
+          "management": 63394.091860132066,
+          "infrastructure": 42262.72790675471,
+          "contingency": 21131.363953377357
+        }
+      },
+      "analogous": {
+        "methodology": "Analogous Estimation",
+        "cost": 587323.9794107393,
+        "duration": "6 months",
+        "weight": 0.8,
+        "breakdown": {
+          "development": 293661.98970536963,
+          "testing": 117464.79588214785,
+          "management": 88098.59691161089,
+          "infrastructure": 58732.39794107393,
+          "contingency": 29366.198970536963
+        }
+      }
+    },
+    "effort_person_months": 2.9262056031414563,
+    "warning": "⚠️ CAUTION: Moderate variance (39%) between methods."
+  }
+}

@@ -108,3 +108,18 @@ def _missing_baseline(context: ProjectContext) -> Dict[str, str]:
             missing[field] = prompts[field]
     return missing
 
+
+def generate_full_report_tool(project_id: str, estimation_config: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate complete cost estimation report matching frontend expectations.
+    
+    Args:
+        project_id: Project identifier
+        estimation_config: Dictionary with keys like 'currency', 'accuracy', 'includeRisk', etc.
+        
+    Returns:
+        Complete cost estimation report as a dictionary
+    """
+    report = _ORCHESTRATOR.generate_full_report(project_id, estimation_config)
+    return report.dict()
+
