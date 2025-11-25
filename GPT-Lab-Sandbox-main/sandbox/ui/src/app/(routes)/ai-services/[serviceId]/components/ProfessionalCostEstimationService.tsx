@@ -79,6 +79,7 @@ export default function ProfessionalCostEstimationService({ service }: Professio
   const [calculationProgress, setCalculationProgress] = useState(0);
   const [currentCalculation, setCurrentCalculation] = useState('');
   const [expandedFeatures, setExpandedFeatures] = useState<Set<number>>(new Set());
+  const [estimationReady, setEstimationReady] = useState(false);
 
   // Industry-Standard Cost Estimation Methodologies
   const costEstimationMethodologies = [
@@ -243,12 +244,39 @@ export default function ProfessionalCostEstimationService({ service }: Professio
     setProjectDetails(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleExportReport = () => {
+    if (!estimationResults) return;
+    
+    // Create a formatted report object
+    const report = {
+      report_title: 'Cost Estimation Report',
+      generated_at: new Date().toLocaleString(),
+      project_details: projectDetails,
+      estimation_config: estimationConfig,
+      ...estimationResults
+    };
+    
+    // Convert to JSON string with formatting
+    const jsonString = JSON.stringify(report, null, 2);
+    
+    // Create blob and download
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `cost-estimation-report-${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const startEstimation = () => {
     if (selectedMethodology.length === 0) {
-      alert('Please select at least one estimation methodology');
+      alert('Please select at least one estimation methodology before proceeding.');
       return;
     }
-
+    
     setIsCalculating(true);
     // Transition to results step (Step 3 in our new flow)
     setCurrentStep(3);
@@ -374,6 +402,7 @@ export default function ProfessionalCostEstimationService({ service }: Professio
         technical_complexity: {
           high_complexity: projectDetails.complexity === 'high' || projectDetails.complexity === 'very-high'
         },
+        project_context_description: `This project aims to develop a ${projectDetails.projectType} with ${projectDetails.complexity} complexity, designed to meet the evolving needs of modern users. The platform will provide core functionality including user authentication, data management, and comprehensive reporting capabilities.\n\nThe application will be built with scalability and maintainability in mind, ensuring that it can grow with the business. By leveraging modern development practices and focusing on user experience, the system will deliver value to stakeholders while maintaining high standards of code quality and performance.`,
         project_requirements: `${projectDetails.projectType} project with ${projectDetails.complexity} complexity`,
         functional_requirements: functionalReqs
       },
@@ -469,6 +498,12 @@ export default function ProfessionalCostEstimationService({ service }: Professio
             ]
           }
         ],
+        charts: {
+          timeline: Array.from({ length: durationMonths }, (_, i) => ({
+            month: `Month ${i + 1}`,
+            cost: (totalCost / durationMonths) * (1 + Math.random() * 0.3 - 0.15) // Slight variation around average
+          }))
+        },
         estimation_method: selectedMethodology.length > 1 ? 'Intelligent Multi-Method' : 'Single Method',
         methods_used: selectedMethodology,
         individual_estimates: Object.fromEntries(
@@ -750,7 +785,13 @@ export default function ProfessionalCostEstimationService({ service }: Professio
           <div className="flex justify-end items-center">
             <Button 
               onClick={() => setCurrentStep(2)}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={
+                !projectDetails.projectType || 
+                !projectDetails.complexity || 
+                !projectDetails.teamSize || 
+                !projectDetails.duration
+              }
+              className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
             >
               Next: Select Methodology
               <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
@@ -766,6 +807,7 @@ export default function ProfessionalCostEstimationService({ service }: Professio
           <CostEstimationChatbot 
             onUpdateBasics={handleBasicChange} 
             onMethodSelected={(methodIds) => setSelectedMethodology(methodIds)}
+            onEstimationReady={(ready) => setEstimationReady(ready)}
             className="w-full" 
           />
 
@@ -779,19 +821,15 @@ export default function ProfessionalCostEstimationService({ service }: Professio
               Back to Configuration
             </Button>
             
-            <div className="flex items-center gap-4">
-              <p className="text-sm text-gray-400">
-                Selected: {selectedMethodology.length} method{selectedMethodology.length !== 1 ? 's' : ''}
-              </p>
+            {estimationReady && (
               <Button 
                 onClick={startEstimation}
-                disabled={selectedMethodology.length === 0}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                <Calculator className="w-4 h-4 mr-2" />
-                Calculate Cost
+                Generate Estimation
+                <Calculator className="w-4 h-4 ml-2" />
               </Button>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -835,14 +873,14 @@ export default function ProfessionalCostEstimationService({ service }: Professio
                     <div className="text-white font-semibold">{projectDetails.projectType || 'Not specified'}</div>
                   </div>
                   <div className="bg-gray-700 rounded-lg p-3">
-                    <div className="text-gray-400">Complexity</div>
+                  <div className="text-gray-400">Complexity</div>
                     <div className="text-white font-semibold">{projectDetails.complexity || 'Not specified'}</div>
                   </div>
                 </div>
               </div>
             </Card>
           ) : estimationResults && (
-            <div className="space-y-6">
+            <div id="estimation-results-container" className="space-y-6">
               {/* Executive Summary Banner */}
               <Card className="p-6 bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-blue-500/30">
                 <div className="flex items-center gap-3 mb-2">
@@ -870,9 +908,16 @@ export default function ProfessionalCostEstimationService({ service }: Professio
               {/* Project Context */}
               <Card className="p-6">
                 <h3 className="text-xl font-semibold text-white mb-4">Project Context</h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
+                  {/* Project Description */}
+                  <div className="bg-gray-700/30 rounded-lg p-4">
+                    <p className="text-gray-200 leading-relaxed whitespace-pre-line">
+                      {estimationResults.project_data.project_context_description}
+                    </p>
+                  </div>
+                  
                   <div>
-                    <div className="text-gray-400 text-sm">Requirements</div>
+                    <div className="text-gray-400 text-sm">Requirements Summary</div>
                     <div className="text-white">{estimationResults.project_data.project_requirements}</div>
                   </div>
                   <div>
@@ -903,7 +948,7 @@ export default function ProfessionalCostEstimationService({ service }: Professio
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-white">Cost Estimation Results</h3>
                   <div className="flex gap-2">
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={handleExportReport}>
                       <Download className="w-4 h-4 mr-2" />
                       Export Report
                     </Button>
@@ -984,64 +1029,83 @@ export default function ProfessionalCostEstimationService({ service }: Professio
                 </div>
               </Card>
 
-              {/* Detailed Cost Breakdown */}
-              <Card className="p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Detailed Cost Breakdown</h4>
-                <div className="relative h-96">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsPieChart>
-                      <Pie
-                        data={[
-                          { 
-                            category: 'Labor Cost', 
-                            value: estimationResults.estimation_result.cost_estimate.labor_cost, 
-                            color: '#3B82F6' 
-                          },
-                          { 
-                            category: 'Infrastructure', 
-                            value: estimationResults.estimation_result.cost_estimate.infrastructure_cost, 
-                            color: '#10B981' 
-                          },
-                          { 
-                            category: 'Other Expenses', 
-                            value: estimationResults.estimation_result.cost_estimate.other_expenses, 
-                            color: '#F59E0B' 
-                          }
-                        ]}
-                        cx="40%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                        nameKey="category"
-                        label={({ value }) => `€${Math.round(value).toLocaleString()}`}
-                        labelLine={true}
-                      >
-                        {[
-                          { color: '#3B82F6' },
-                          { color: '#10B981' },
-                          { color: '#F59E0B' }
-                        ].map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
-                      <Legend align="right" verticalAlign="middle" layout="vertical" />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
+              {/* Detailed Cost Breakdown & Timeline */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Detailed Cost Breakdown - Pie Chart */}
+                <Card className="p-6">
+                  <h4 className="text-lg font-semibold text-white mb-4">Detailed Cost Breakdown</h4>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPieChart>
+                        <Pie
+                          data={[
+                            { 
+                              category: 'Labor Cost', 
+                              value: estimationResults.estimation_result.cost_estimate.labor_cost, 
+                              color: '#3B82F6' 
+                            },
+                            { 
+                              category: 'Infrastructure', 
+                              value: estimationResults.estimation_result.cost_estimate.infrastructure_cost, 
+                              color: '#10B981' 
+                            },
+                            { 
+                              category: 'Other Expenses', 
+                              value: estimationResults.estimation_result.cost_estimate.other_expenses, 
+                              color: '#F59E0B' 
+                            }
+                          ]}
+                          cx="50%"
+                          cy="45%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={5}
+                          dataKey="value"
+                          nameKey="category"
+                          label={({ value }) => `€${Math.round(value).toLocaleString()}`}
+                          labelLine={true}
+                        >
+                          {[
+                            { color: '#3B82F6' },
+                            { color: '#10B981' },
+                            { color: '#F59E0B' }
+                          ].map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                        <Legend verticalAlign="bottom" height={36} />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
+                  </div>
                   
-                  {/* Total Cost positioned below legend */}
-                  <div className="absolute right-4 bottom-20 w-48">
-                    <div className="bg-blue-600/20 border border-blue-500/30 rounded px-3 py-2">
-                      <div className="text-gray-300 text-xs">Total Cost</div>
-                      <div className="text-white font-bold text-lg">
+                  {/* Total Cost below chart */}
+                  <div className="mt-4 pt-4 border-t border-gray-700">
+                    <div className="flex justify-between items-center bg-blue-600/20 border border-blue-500/30 rounded px-4 py-3">
+                      <span className="text-white font-semibold text-lg">Total Cost</span>
+                      <span className="text-white font-bold text-xl">
                         €{Math.round(estimationResults.estimation_result.cost_estimate.total_cost).toLocaleString()}
-                      </div>
+                      </span>
                     </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+
+                {/* Cost Timeline - Line Chart */}
+                <Card className="p-6">
+                  <h4 className="text-lg font-semibold text-white mb-4">Cost Timeline</h4>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsLineChart data={estimationResults.estimation_result.charts.timeline}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="month" stroke="#9CA3AF" />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                        <Line type="monotone" dataKey="cost" stroke="#3B82F6" strokeWidth={2} />
+                      </RechartsLineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Card>
+              </div>
 
               {/* Features Cost Breakdown */}
               <Card className="p-6">

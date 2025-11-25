@@ -44,10 +44,11 @@ interface ChatMessage {
 interface CostEstimationChatbotProps {
   onUpdateBasics?: (field: string, value: any) => void;
   onMethodSelected?: (methodIds: string[]) => void;
+  onEstimationReady?: (ready: boolean) => void;
   className?: string;
 }
 
-export default function CostEstimationChatbot({ onUpdateBasics, onMethodSelected, className = '' }: CostEstimationChatbotProps) {
+export default function CostEstimationChatbot({ onUpdateBasics, onMethodSelected, onEstimationReady, className = '' }: CostEstimationChatbotProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -134,18 +135,41 @@ export default function CostEstimationChatbot({ onUpdateBasics, onMethodSelected
   }, [messages, isTyping]);
 
   const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() && selectedMethods.length === 0) return;
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       type: 'user',
-      content: inputValue.trim(),
+      content: inputValue || 'Selected methods for estimation',
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMsg]);
     setInputValue('');
     setIsTyping(true);
+
+    // Check if user is confirming method selection
+    const isMethodConfirmation = selectedMethods.length > 0 && !inputValue.trim();
+    
+    if (isMethodConfirmation) {
+      // Simulate backend validation check
+      setTimeout(() => {
+        const validationMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'bot',
+          content: 'Perfect! I have sufficient information to generate a cost estimation. You can now proceed with the estimation.',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, validationMsg]);
+        setIsTyping(false);
+        
+        // Notify parent that estimation can be generated
+        if (onEstimationReady) {
+          onEstimationReady(true);
+        }
+      }, 1000);
+      return;
+    }
 
     setTimeout(() => {
       const lowerInput = userMsg.content.toLowerCase();
@@ -207,10 +231,15 @@ export default function CostEstimationChatbot({ onUpdateBasics, onMethodSelected
   };
 
   const handleHybridSelect = () => {
-    if (onMethodSelected) {
-      onMethodSelected(['hybrid']);
-    }
-    setSelectedMethods(['hybrid']);
+    setSelectedMethods(prev => {
+      const isCurrentlySelected = prev.includes('hybrid');
+      const newSelection = isCurrentlySelected ? [] : ['hybrid'];
+      
+      if (onMethodSelected) {
+        onMethodSelected(newSelection);
+      }
+      return newSelection;
+    });
   };
 
   const renderMethodCard = (method: MethodCard, isRecommended: boolean = false) => {
@@ -377,7 +406,7 @@ export default function CostEstimationChatbot({ onUpdateBasics, onMethodSelected
           />
           <Button 
             onClick={handleSendMessage} 
-            disabled={!inputValue.trim()} 
+            disabled={!inputValue.trim() && selectedMethods.length === 0} 
             className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
