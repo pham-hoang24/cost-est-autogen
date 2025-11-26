@@ -1,0 +1,42 @@
+{
+  "session_id": "session_1764147755450_yld8yk1hx",
+  "created_at": "2025-11-26T09:03:01.429484",
+  "updated_at": "2025-11-26T09:03:14.126855",
+  "events": [
+    {
+      "event_id": "d3991d9d-0b6e-44c6-8930-d8be744473f3",
+      "session_id": "session_1764147755450_yld8yk1hx",
+      "timestamp": "2025-11-26T09:03:01.426097",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "We are building a customer relationship management (CRM) platform for small to medium-sized businesses. The system will help businesses manage their customer contacts, track sales opportunities, manage marketing campaigns, and generate sales reports.",
+        "history_length": 1
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "0951a899-221e-48e1-9431-161c617fff82",
+      "session_id": "session_1764147755450_yld8yk1hx",
+      "timestamp": "2025-11-26T09:03:14.126783",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

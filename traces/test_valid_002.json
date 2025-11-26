@@ -1,0 +1,47 @@
+{
+  "session_id": "test_valid_002",
+  "created_at": "2025-11-25T20:24:02.048661",
+  "updated_at": "2025-11-25T20:24:02.101015",
+  "events": [
+    {
+      "event_id": "3a906664-d632-4b1f-b4ba-b37416b1d851",
+      "session_id": "test_valid_002",
+      "timestamp": "2025-11-25T20:24:02.048647",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "test_valid_002",
+        "project_type": "web_app",
+        "complexity": "medium",
+        "tech_stack": [
+          "React",
+          "Node.js"
+        ],
+        "team_pref": "vendor",
+        "region": "europe"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "fc055ae5-d286-4543-a5cf-ff58c83c3380",
+      "session_id": "test_valid_002",
+      "timestamp": "2025-11-25T20:24:02.101004",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "validate_step1_error",
+      "input_data": {},
+      "output_data": {
+        "error": "team_pref must be numeric."
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

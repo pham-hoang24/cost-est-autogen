@@ -7,8 +7,6 @@ It collaborates with the conversational agent by producing ExpansionV1 drafts
 and identifying missing signals.
 """
 
-from __future__ import annotations
-
 from autogen import ConversableAgent  # type: ignore[import]
 
 from tools.orchestrator_tools import (
@@ -17,6 +15,8 @@ from tools.orchestrator_tools import (
     record_baseline_field_tool,
     submit_user_description_tool,
     normalize_and_infer_tool,
+    validate_step1_tool,
+    get_method_requirements_tool,
 )
 
 
@@ -61,6 +61,12 @@ def build_interpreter_agent(llm_config) -> ConversableAgent:
         "   - Call `normalize_and_infer_tool(project_id)` to generate normalized inputs and coefficients.\n"
         "   - This is crucial for the Hybrid estimation mode.\n"
         "   - Report back: \"Inputs normalized and missing fields inferred.\"\n\n"
+        "4) STEP 1 VALIDATION (when Step 1 form is submitted):\n"
+        "   - When requested, validate Step 1 baseline data via `validate_step1_tool(project_id, baseline_data)`\n"
+        "   - Accept ANY valid type/enum combination - NO business rules like 'enterprise must be 3+ months'\n"
+        "   - Check for required fields: project_type, complexity, tech_stack, team_pref, region\n"
+        "   - After validation, the tool automatically computes missing_by_method\n"
+        "   - Report back: 'Step 1 validated. Ready for Step 2. Missing inputs: [summary of missing_by_method]'\n\n"
         "Do not ask users for baseline fields directly; coordinate with the Conversational agent instead."
     )
 
@@ -68,11 +74,18 @@ def build_interpreter_agent(llm_config) -> ConversableAgent:
         name="InterpreterAgent",
         llm_config=llm_config,
         system_message=system_message,
-        functions=[draft_expansion_tool, get_project_context_tool, record_baseline_field_tool, submit_user_description_tool, normalize_and_infer_tool],
+        functions=[
+            draft_expansion_tool,
+            get_project_context_tool,
+            record_baseline_field_tool,
+            submit_user_description_tool,
+            normalize_and_infer_tool,
+            validate_step1_tool,
+            get_method_requirements_tool,
+        ],
         human_input_mode="NEVER",
         max_consecutive_auto_reply=3,
     )
 
 
 __all__ = ["build_interpreter_agent"]
-

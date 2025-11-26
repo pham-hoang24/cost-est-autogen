@@ -1,6 +1,6 @@
-from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+
+from typing import Any, Dict, List, Optional, Union
 
 from workflow import ProjectContext, WorkflowOrchestrator
 
@@ -8,7 +8,7 @@ _ORCHESTRATOR = WorkflowOrchestrator()
 _BASELINE_FIELDS = ["project_type", "complexity", "tech_stack", "team_pref", "region"]
 
 
-def start_new_project_tool(project_id: Optional[str] = None) -> Dict[str, object]:
+def start_new_project_tool(project_id=None) -> Dict[str, object]:
     context = _ORCHESTRATOR.start_new_project(project_id=project_id)
     return _serialize_context(context)
 
@@ -123,3 +123,49 @@ def generate_full_report_tool(project_id: str, estimation_config: Dict[str, Any]
     report = _ORCHESTRATOR.generate_full_report(project_id, estimation_config)
     return report.dict()
 
+
+def validate_step1_tool(project_id: str, baseline_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validate Step 1 baseline data without business rules.
+    
+    Args:
+        project_id: Project/session identifier
+        baseline_data: Dict with project_type, complexity, tech_stack, team_pref, region
+        
+    Returns:
+        {
+            "is_valid": bool,
+            "errors": List[str],
+            "missing_by_method": Dict[str, List[str]],
+            "context": Dict
+        }
+    """
+    is_valid, errors, context = _ORCHESTRATOR.validate_step1_baseline(
+        project_id,
+        baseline_data
+    )
+    
+    return {
+        "is_valid": is_valid,
+        "errors": errors,
+        "missing_by_method": context.missing_by_method,
+        "context": _serialize_context(context)
+    }
+
+
+def get_method_requirements_tool(project_id: str, method_name: str) -> Dict[str, Any]:
+    """
+    Get known and missing requirements for a specific estimation method.
+    
+    Args:
+        project_id: Project/session identifier
+        method_name: Method name (cocomo2, analogous, fpa, story_points)
+        
+    Returns:
+        {
+            "known": Dict,  # Current method coefficients
+            "missing": List[str],  # Missing field paths
+            "baseline": Dict  # Baseline data for context
+        }
+    """
+    return _ORCHESTRATOR.get_method_requirements(project_id, method_name)

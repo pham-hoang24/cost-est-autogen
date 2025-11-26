@@ -1,0 +1,80 @@
+{
+  "session_id": "test_step1_integration_v2",
+  "created_at": "2025-11-26T17:30:11.326279",
+  "updated_at": "2025-11-26T17:30:23.628006",
+  "events": [
+    {
+      "event_id": "9e1cca9b-382f-452d-9c46-23d9edf95ae0",
+      "session_id": "test_step1_integration_v2",
+      "timestamp": "2025-11-26T17:30:11.326253",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "test_step1_integration_v2",
+        "project_type": "web application",
+        "complexity": "high",
+        "tech_stack": "React, Node.js, PostgreSQL",
+        "team_pref": 8,
+        "region": "North America",
+        "project_duration": "6-12 months"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "66258afa-b433-4ddf-a107-8de2d0bb4069",
+      "session_id": "test_step1_integration_v2",
+      "timestamp": "2025-11-26T17:30:11.367245",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1_complete",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "error_count": 0,
+        "missing_methods_count": 4
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "f5b76392-63fc-4351-a2d3-79436eee7e75",
+      "session_id": "test_step1_integration_v2",
+      "timestamp": "2025-11-26T17:30:13.399927",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "What estimation methods can I use for my project?",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "357bbecc-8a34-4a34-a95d-95c5dffb8ef0",
+      "session_id": "test_step1_integration_v2",
+      "timestamp": "2025-11-26T17:30:23.627868",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

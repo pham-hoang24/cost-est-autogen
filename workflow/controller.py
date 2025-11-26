@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
+from datetime import datetime
 
 from .expansion import ExpansionService
 from .parser import ParserService
@@ -356,5 +357,137 @@ class WorkflowOrchestrator:
         )
 
         return report
+
+    # ------------------------------------------------------------------
+    # Step 1 Validation & Method Requirements Tracking
+    # ------------------------------------------------------------------
+    
+    def validate_step1_baseline(
+        self,
+        project_id: str,
+        baseline_data: Dict[str, Any]
+    ) -> tuple[bool, List[str], ProjectContext]:
+        """
+        Validate Step 1 baseline WITHOUT business rules.
+        Returns: (is_valid, errors, context)
+        """
+        from .method_coefficients import MethodCoefficients
+        
+        context = self.load_context(project_id, create_if_missing=True)
+        errors = []
+        
+        # Required fields check
+        required = ["project_type", "complexity", "tech_stack", "team_pref", "region"]
+        for field in required:
+            if field not in baseline_data or not baseline_data[field]:
+                errors.append(f"{field} is required")
+        
+        if errors:
+            return (False, errors, context)
+        
+        # Store baseline (immutable), handle type conversions
+        for field, value in baseline_data.items():
+            if field in required or field == "project_duration":
+                # Convert tech_stack list to string
+                if field == "tech_stack" and isinstance(value, list):
+                    value = ", ".join(value)
+                # Convert team_pref to int if it's not already
+                if field == "team_pref" and isinstance(value, str):
+                    # Map common string values to integers
+                    team_map = {"vendor": 5, "in_house": 3, "mixed": 4, "small": 2, "large": 10}
+                    value = team_map.get(value.lower(), 5)
+                self.record_baseline_field(project_id, field, value)
+        
+        if "description" in baseline_data and baseline_data["description"]:
+            self.submit_description(project_id, baseline_data["description"])
+        
+        context = self.load_context(project_id)
+        context.step1_validated = True
+        context.validation_timestamp = datetime.utcnow()
+        
+        if context.method_coeffs is None:
+            context.method_coeffs = MethodCoefficients()
+        
+        context = self.compute_missing_by_method(project_id)
+        self.repository.save(context)
+        
+        return (True, [], context)
+    
+    def compute_missing_by_method(self, project_id: str) -> ProjectContext:
+        """Compute what's missing for each estimation method"""
+        from .method_coefficients import MethodCoefficients
+        
+        context = self.load_context(project_id)
+        missing_by_method = {}
+        
+        if context.method_coeffs is None:
+            context.method_coeffs = MethodCoefficients()
+        
+        coeffs = context.method_coeffs
+        
+        # COCOMO II
+        cocomo_missing = []
+        if not coeffs.cocomo2.mode:
+            cocomo_missing.append("mode")
+        if not coeffs.cocomo2.size_value:
+            cocomo_missing.append("size_value")
+        if cocomo_missing:
+            missing_by_method["cocomo2"] = cocomo_missing
+        
+        # Analogous
+        if not coeffs.analogous.tshirt_size:
+            missing_by_method["analogous"] = ["tshirt_size"]
+        
+        # FPA
+        fpa_missing = []
+        if not coeffs.fpa.ufp:
+            fpa_missing.append("ufp")
+        if not coeffs.fpa.vaf:
+            fpa_missing.append("vaf")
+        if fpa_missing:
+            missing_by_method["fpa"] = fpa_missing
+        
+        # Story Points
+        sp_missing = []
+        if not coeffs.story_points.team_velocity:
+            sp_missing.append("team_velocity")
+        if sp_missing:
+            missing_by_method["story_points"] = sp_missing
+        
+        context.missing_by_method = missing_by_method
+        self.repository.save(context)
+        return context
+    
+    def get_method_requirements(
+        self, 
+        project_id: str, 
+        method_name: str
+    ) -> Dict[str, Any]:
+        """Get known and missing requirements for a method"""
+        context = self.load_context(project_id)
+        
+        # Handle case where method_coeffs is None or dict
+        if not context.method_coeffs or isinstance(context.method_coeffs, dict):
+            return {
+                "known": {},
+                "missing": context.missing_by_method.get(method_name, []),
+                "baseline": context.baseline.model_dump() if context.baseline else {}
+            }
+        
+        method_map = {
+            "cocomo2": context.method_coeffs.cocomo2,
+            "analogous": context.method_coeffs.analogous,
+            "fpa": context.method_coeffs.fpa,
+            "story_points": context.method_coeffs.story_points,
+        }
+        
+        coeffs = method_map.get(method_name)
+        
+        return {
+            "known": coeffs.dict() if coeffs and hasattr(coeffs, 'dict') else {},
+            "missing": context.missing_by_method.get(method_name, []),
+            "baseline": context.baseline.model_dump() if context.baseline else {}
+        }
+
 
 

@@ -1,0 +1,42 @@
+{
+  "session_id": "test_intake_final",
+  "created_at": "2025-11-26T08:55:01.451090",
+  "updated_at": "2025-11-26T08:55:11.101634",
+  "events": [
+    {
+      "event_id": "be95fd94-f1a1-4bda-8eac-4e47fe2619d6",
+      "session_id": "test_intake_final",
+      "timestamp": "2025-11-26T08:55:01.450715",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "Building an e-commerce platform. High complexity. React, Node, MongoDB. Team of 10. EMEA.",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "7521b6eb-24ad-4c9c-8658-412d264aef60",
+      "session_id": "test_intake_final",
+      "timestamp": "2025-11-26T08:55:11.101574",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "{'project_id': '50510def-78a4-4020-9296-103d22838ff7', 'status': 'NEW', 'version': 4, 'baseline': {'complexity': 'high'}, 'user_description': '', 'missing_baseline': {'project_type': 'Select project t",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

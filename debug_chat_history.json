@@ -1,0 +1,70 @@
+[
+  {
+    "content": "We are building a customer relationship management (CRM) platform for small to medium-sized businesses. The system will help businesses manage their customer contacts, track sales opportunities, manage marketing campaigns, and generate sales reports.",
+    "role": "assistant",
+    "name": "User"
+  },
+  {
+    "content": "",
+    "name": "ConversationalAgent",
+    "tool_calls": [
+      {
+        "id": "call_q1yZoYJxLTWJuYzh1KHeaJt7",
+        "function": {
+          "arguments": "{\"project_id\":\"test_auto_intake_v1\"}",
+          "name": "get_project_context_tool"
+        },
+        "type": "function",
+        "index": 0
+      }
+    ],
+    "role": "assistant"
+  },
+  {
+    "content": "{'project_id': 'test_auto_intake_v1', 'status': 'NEW', 'version': 1, 'baseline': {}, 'user_description': '', 'missing_baseline': {'project_type': 'Select project type (software development, ai/ml project, system integration, cloud migration, mobile application, web application).', 'complexity': 'Specify complexity (low, medium, high, very high).', 'tech_stack': 'Describe the technology focus (web technologies, mobile development, ai/ml technologies, cloud technology, enterprise systems).', 'team_pref': 'Provide desired team size (numeric).', 'region': 'Provide the primary delivery region (e.g., North America, EMEA).'}, 'events': []}",
+    "tool_responses": [
+      {
+        "tool_call_id": "call_q1yZoYJxLTWJuYzh1KHeaJt7",
+        "role": "tool",
+        "content": "{'project_id': 'test_auto_intake_v1', 'status': 'NEW', 'version': 1, 'baseline': {}, 'user_description': '', 'missing_baseline': {'project_type': 'Select project type (software development, ai/ml project, system integration, cloud migration, mobile application, web application).', 'complexity': 'Specify complexity (low, medium, high, very high).', 'tech_stack': 'Describe the technology focus (web technologies, mobile development, ai/ml technologies, cloud technology, enterprise systems).', 'team_pref': 'Provide desired team size (numeric).', 'region': 'Provide the primary delivery region (e.g., North America, EMEA).'}, 'events': []}"
+      }
+    ],
+    "role": "tool",
+    "name": "User"
+  },
+  {
+    "content": "Please provide the baseline information for your CRM platform project. Include the following details:\n\n1. Project Type: Select from software development, AI/ML project, system integration, cloud migration, mobile application, web application.\n2. Complexity: Specify the complexity as low, medium, high, or very high.\n3. Tech Stack: Describe the technology focus such as web technologies, mobile development, AI/ML technologies, cloud technology, enterprise systems.\n4. Team Preference: Provide the desired team size (numeric).\n5. Region: Provide the primary delivery region (e.g., North America, EMEA).\n\nOnce I have this information, we can proceed further. [WAITING FOR USER INPUT]",
+    "name": "ConversationalAgent",
+    "role": "user"
+  },
+  {
+    "content": "",
+    "role": "assistant",
+    "name": "User"
+  },
+  {
+    "content": "",
+    "role": "assistant",
+    "name": "User"
+  },
+  {
+    "content": "",
+    "role": "assistant",
+    "name": "User"
+  },
+  {
+    "content": "",
+    "role": "assistant",
+    "name": "User"
+  },
+  {
+    "content": "",
+    "role": "assistant",
+    "name": "User"
+  },
+  {
+    "content": "",
+    "role": "assistant",
+    "name": "User"
+  }
+]

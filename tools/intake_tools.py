@@ -154,7 +154,7 @@ _FIELD_LABELS: Dict[str, Dict[str, List[str]]] = {
 
 def reset_session(session_id: str) -> Dict[str, str]:
     """Clear any stored context for a conversational session."""
-    _repo.delete_context(session_id)
+    _repo.delete(session_id)
     return {"status": "reset", "session_id": session_id}
 
 
@@ -168,8 +168,67 @@ def _default_session_factory():
     }
 
 
+def _save_session(session_id: str, session_data: Dict[str, Any]):
+    """Save session data to repository by converting back to ProjectContext."""
+    from workflow import ProjectContext
+    
+    # Filter out temporary intake fields that aren't in ProjectContext
+    valid_keys = ProjectContext.model_fields.keys()
+    filtered_data = {k: v for k, v in session_data.items() if k in valid_keys}
+    
+    # Ensure project_id is set
+    if "project_id" not in filtered_data:
+        filtered_data["project_id"] = session_id
+        
+    try:
+        context = ProjectContext.model_validate(filtered_data)
+        _repo.save(context)
+    except Exception as e:
+        print(f"Error saving session: {e}")
+        # Fallback: try to load and update
+        try:
+            context = _repo.load(session_id)
+            if context:
+                if "baseline" in filtered_data:
+                    context.baseline = filtered_data["baseline"]
+                if "user_description" in filtered_data:
+                    context.user_description = filtered_data["user_description"]
+                _repo.save(context)
+        except Exception as e2:
+            print(f"Fallback save failed: {e2}")
+
+
 def _ensure_session(session_id: str) -> Dict[str, Any]:
-    return _repo.get_or_create_context(session_id, default_factory=_default_session_factory)
+    """Load or create session data using repository's load method."""
+    from workflow import ProjectContext
+    
+    try:
+        # Try to load existing context
+        context = _repo.load(session_id)
+        if context:
+            # Convert ProjectContext to dict for intake processing
+            session_data = context.model_dump()
+        else:
+            # Create new default session
+            session_data = _default_session_factory()
+            session_data["project_id"] = session_id
+        
+        # Ensure intake-specific fields exist
+        if 'method' not in session_data:
+            session_data['method'] = None
+        if 'fields' not in session_data:
+            session_data['fields'] = {}
+        if 'baseline' not in session_data:
+            session_data['baseline'] = {}
+        if 'pending_field' not in session_data:
+            session_data['pending_field'] = None
+        if 'pending_baseline' not in session_data:
+            session_data['pending_baseline'] = None
+            
+        return session_data
+    except Exception:
+        # Context doesn't exist, create new one with default factory
+        return _default_session_factory()
 
 
 def _infer_method(text: str) -> Optional[str]:
@@ -238,7 +297,7 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
                     "next_question": _BASELINE_FIELDS[baseline_field]["question"],
                 }
             )
-            _repo.save_context(session_id, session)
+            _save_session(session_id, session)
             return response
         finally:
             session["pending_baseline"] = None
@@ -270,7 +329,7 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
                 "next_question": question,
             }
         )
-        _repo.save_context(session_id, session)
+        _save_session(session_id, session)
         return response
 
     if session["method"] is None:
@@ -301,7 +360,7 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
                 "next_question": next_question,
             }
         )
-        _repo.save_context(session_id, session)
+        _save_session(session_id, session)
         return response
 
     spec = _METHOD_SPEC[method]
@@ -332,7 +391,7 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
             "next_question": next_question,
         }
     )
-    _repo.save_context(session_id, session)
+    _save_session(session_id, session)
     return response
 
 
@@ -427,7 +486,7 @@ def _default_payload(method: str, fields: Dict[str, Any]) -> Dict[str, Any]:
 
 def intake_snapshot(session_id: str) -> Dict[str, Any]:
     """Return a payload preview without clearing stored state."""
-    session = _repo.get_context(session_id)
+    session = _repo.load(session_id)
     if not session:
         raise ValueError("Intake session not found.")
     baseline = session.get("baseline", {})
@@ -442,7 +501,7 @@ def intake_snapshot(session_id: str) -> Dict[str, Any]:
 
 def intake_finalize(session_id: str) -> Dict[str, Any]:
     """Return structured payload and clear session."""
-    session = _repo.get_context(session_id)
+    session = _repo.load(session_id)
     if not session:
         raise ValueError("Intake session not found.")
     method = session.get("method")
@@ -451,14 +510,14 @@ def intake_finalize(session_id: str) -> Dict[str, Any]:
         raise ValueError("Method was never determined.")
     payload = _default_payload(method, fields)
     payload["baseline"] = session.get("baseline", {})
-    _repo.save_completed_payload(session_id, payload)
-    _repo.delete_context(session_id)
+    _repo.save(session_id, payload)
+    _repo.delete(session_id)
     return payload
 
 
 def consume_final_payload(session_id: str) -> Dict[str, Any]:
     """Retrieve the payload produced by intake_finalize."""
-    payload = _repo.consume_completed_payload(session_id)
+    payload = _repo.load(session_id)
     if payload is None:
         raise ValueError("No completed payload available for this session.")
     return payload

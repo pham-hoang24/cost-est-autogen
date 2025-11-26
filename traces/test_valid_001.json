@@ -1,0 +1,47 @@
+{
+  "session_id": "test_valid_001",
+  "created_at": "2025-11-25T20:23:37.097991",
+  "updated_at": "2025-11-25T20:23:37.170632",
+  "events": [
+    {
+      "event_id": "80a0692a-125c-4967-8539-b5b9a11e04de",
+      "session_id": "test_valid_001",
+      "timestamp": "2025-11-25T20:23:37.097979",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "test_valid_001",
+        "project_type": "web_app",
+        "complexity": "medium",
+        "tech_stack": [
+          "React",
+          "Node.js"
+        ],
+        "team_pref": "vendor",
+        "region": "europe"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "433e99d5-6f0b-49f1-8688-162d3acc502e",
+      "session_id": "test_valid_001",
+      "timestamp": "2025-11-25T20:23:37.170616",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "validate_step1_error",
+      "input_data": {},
+      "output_data": {
+        "error": "1 validation error for ProjectContext\nbaseline.tech_stack\n  Input should be a valid string [type=string_type, input_value=['React', 'Node.js'], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

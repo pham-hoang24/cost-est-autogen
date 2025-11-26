@@ -5,6 +5,12 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field, validator
 
+# Import method coefficients for tracking
+try:
+    from workflow.method_coefficients import MethodCoefficients
+except ImportError:
+    MethodCoefficients = None  # Fallback if module not yet available
+
 SourceType = Literal["user", "inferred"]
 PlatformType = Literal["web", "ios", "android", "desktop", "cloud", "other"]
 MethodType = Literal["cocomo2", "fpa", "agile_sp", "analogous", "parametric", "bottomup", "blend"]
@@ -169,6 +175,7 @@ class BaselineInputs(BaseModel):
     tech_stack: Optional[str] = None
     team_pref: Optional[int] = None
     region: Optional[str] = None
+    project_duration: Optional[str] = None
 
 
 class ProjectContext(BaseModel):
@@ -198,6 +205,16 @@ class ProjectContext(BaseModel):
     missing_inputs_by_method: Dict[str, List[Dict[str, str]]] = Field(default_factory=dict)
     normalized_inputs: Dict[str, Any] = Field(default_factory=dict)
     derived_coefficients: Dict[str, Any] = Field(default_factory=dict)
+    
+    # NEW: Step 1 validation tracking
+    step1_validated: bool = False
+    validation_timestamp: Optional[datetime] = None
+    
+    # NEW: Method coefficients (from method_coefficients.py)
+    method_coeffs: Optional[Any] = None  # Will import MethodCoefficients
+    
+    # NEW: Missing fields per method for Step 2
+    missing_by_method: Dict[str, List[str]] = Field(default_factory=dict)
     inferred_fields: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
     full_report: Optional["CostEstimationReport"] = None
 

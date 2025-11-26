@@ -1,0 +1,42 @@
+{
+  "session_id": "test_fix_009",
+  "created_at": "2025-11-26T07:48:04.848643",
+  "updated_at": "2025-11-26T07:48:23.490948",
+  "events": [
+    {
+      "event_id": "5e46ad1e-08a9-44bc-a676-a33ae06046f1",
+      "session_id": "test_fix_009",
+      "timestamp": "2025-11-26T07:48:04.845758",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "I want to build a web app. Medium complexity. React, Node, Postgres. Team 5. Europe.",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "3d6ecec8-5ffa-4fb4-a6d6-e15701b7eb3c",
+      "session_id": "test_fix_009",
+      "timestamp": "2025-11-26T07:48:23.488221",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "{'project_id': 'fbdc6d14-bf0e-40d2-a95f-5a8aa657e810', 'status': 'BASELINE_COLLECTED', 'version': 12, 'baseline': {'project_type': 'web application', 'complexity': 'medium', 'tech_stack': 'React, Node",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

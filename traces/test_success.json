@@ -1,0 +1,47 @@
+{
+  "session_id": "test_success",
+  "created_at": "2025-11-25T20:24:36.914580",
+  "updated_at": "2025-11-25T20:24:36.957143",
+  "events": [
+    {
+      "event_id": "da585102-8033-4d90-a379-b1e7c4973b97",
+      "session_id": "test_success",
+      "timestamp": "2025-11-25T20:24:36.914559",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "test_success",
+        "project_type": "web_app",
+        "complexity": "medium",
+        "tech_stack": [
+          "React",
+          "Node.js"
+        ],
+        "team_pref": "vendor",
+        "region": "europe"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "045aac77-04bb-4749-a49e-3c0cc9306e04",
+      "session_id": "test_success",
+      "timestamp": "2025-11-25T20:24:36.957133",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "validate_step1_error",
+      "input_data": {},
+      "output_data": {
+        "error": "'ProjectContextRepository' object has no attribute 'save_context'"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

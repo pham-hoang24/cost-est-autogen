@@ -1,0 +1,44 @@
+Chat error: `TypeAdapter[ForwardRef('Optional[str]')]` is not fully defined; you should define `ForwardRef('Optional[str]')` and all referenced types, then call `.rebuild()` on the instance.
+
+For further information visit https://errors.pydantic.dev/2.12/u/class-not-fully-defined
+Traceback (most recent call last):
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/main.py", line 285, in chat_endpoint
+    conversational_agent = build_conversational_agent(llm_config)
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/agents/conversational_agent.py", line 72, in build_conversational_agent
+    return ConversableAgent(
+        name="ConversationalAgent",
+    ...<14 lines>...
+        max_consecutive_auto_reply=3,
+    )
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 302, in __init__
+    self._add_functions(functions)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 411, in _add_functions
+    self._add_single_function(func)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 438, in _add_single_function
+    self.register_for_llm(name=name, description=description, silent_override=True)(func)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 3649, in _decorator
+    self._register_for_llm(tool, api_style, silent_override=silent_override)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 3678, in _register_for_llm
+    self.update_tool_signature(tool.tool_schema, is_remove=is_remove, silent_override=silent_override)
+                               ^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/tools/tool.py", line 147, in tool_schema
+    return get_function_schema(self.func, name=self.name, description=self.description)
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/tools/function_utils.py", line 297, in get_function_schema
+    parameters = get_parameters(required, param_annotations, default_values=default_values)
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/tools/function_utils.py", line 208, in get_parameters
+    k: get_parameter_json_schema(k, v, default_values)
+       ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/tools/function_utils.py", line 157, in get_parameter_json_schema
+    schema = TypeAdapter(v).json_schema()
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/pydantic/type_adapter.py", line 725, in json_schema
+    self.core_schema.rebuild()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/pydantic/_internal/_mock_val_ser.py", line 67, in rebuild
+    raise PydanticUserError(self._error_message, code=self._code)
+pydantic.errors.PydanticUserError: `TypeAdapter[ForwardRef('Optional[str]')]` is not fully defined; you should define `ForwardRef('Optional[str]')` and all referenced types, then call `.rebuild()` on the instance.
+
+For further information visit https://errors.pydantic.dev/2.12/u/class-not-fully-defined

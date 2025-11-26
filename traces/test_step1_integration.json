@@ -1,0 +1,113 @@
+{
+  "session_id": "test_step1_integration",
+  "created_at": "2025-11-26T09:30:59.513922",
+  "updated_at": "2025-11-26T09:32:47.518050",
+  "events": [
+    {
+      "event_id": "f04b7038-5d5d-447f-8b21-d348e7c2e109",
+      "session_id": "test_step1_integration",
+      "timestamp": "2025-11-26T09:30:59.513908",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "test_step1_integration",
+        "project_type": "web application",
+        "complexity": "high",
+        "tech_stack": "React, Node.js, PostgreSQL",
+        "team_pref": 8,
+        "region": "North America",
+        "project_duration": "6-12 months"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "b87a974a-93c1-4414-bba4-d3b40deeed0b",
+      "session_id": "test_step1_integration",
+      "timestamp": "2025-11-26T09:30:59.565991",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1_complete",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "error_count": 0,
+        "missing_methods_count": 4
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "f84db83b-6cf9-4370-87e2-a4254a4097c8",
+      "session_id": "test_step1_integration",
+      "timestamp": "2025-11-26T09:31:12.074021",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "What estimation methods can I use for my project?",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d7935140-370f-4dd7-8cf2-59be5252b83f",
+      "session_id": "test_step1_integration",
+      "timestamp": "2025-11-26T09:31:23.021424",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "eb5f13ff-af49-4a3e-a197-2de2d5bf6fbd",
+      "session_id": "test_step1_integration",
+      "timestamp": "2025-11-26T09:32:36.228595",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "What methods are best for my project?",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "3ad8ab74-467c-47d0-9348-b2adf9aff4d3",
+      "session_id": "test_step1_integration",
+      "timestamp": "2025-11-26T09:32:47.517952",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "It seems like your message didn't come through. Could you please provide the baseline information and project description as requested? This will help us determine the best estimation methods for your",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

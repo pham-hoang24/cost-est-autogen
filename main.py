@@ -10,6 +10,23 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+from agents.conversational_agent import build_conversational_agent
+from agents.interpreter_agent import build_interpreter_agent
+from tools.orchestrator_tools import (
+    start_new_project_tool,
+    record_baseline_field_tool,
+    submit_user_description_tool,
+    draft_expansion_tool,
+    confirm_expansion_tool,
+    evaluate_methods_tool,
+    generate_explanation_tool,
+    register_estimate_tool,
+    get_project_context_tool,
+    normalize_and_infer_tool,
+    validate_step1_tool,
+    get_method_requirements_tool,
+)
+
 app = FastAPI(title="Cost Estimation Microservice")
 
 # Add CORS middleware to allow frontend connections
@@ -148,22 +165,109 @@ def generate_fallback_response(message: str, history: List[Dict[str, str]] = [])
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     """
-    Handle chat messages using AutoGen agents or intelligent fallback.
+    Chat with the conversational agent and interpreter.
+    If session_id exists and has complete baseline from Step 1 form,
+    the chatbot will not re-ask for baseline fields.
     """
+    import time
     from workflow.tracing import get_trace_store, TraceEvent, TraceEventType
-    import time as time_module
     
-    # Generate or use provided session_id
-    session_id = request.session_id or f"chat_{int(time_module.time())}"
+    session_id = request.session_id or f"chat_{int(time.time() * 1000)}"
     store = get_trace_store()
     
-    # Log user input
     store.add_event(session_id, TraceEvent(
         session_id=session_id,
         event_type=TraceEventType.USER_INPUT,
         step_name="chat",
         input_data={"message": request.message, "history_length": len(request.history)}
     ))
+    
+    # NEW: Check if ProjectContext exists from Step 1 form submission
+    baseline_from_step1 = False
+    baseline_summary = ""
+    
+    try:
+        from tools.orchestrator_tools import get_project_context_tool
+        from tools.intake_tools import intake_step
+        
+        # Try to load existing context
+        project_context = get_project_context_tool(session_id)
+        
+        # Check if baseline was already collected in Step 1
+        baseline_data = project_context.get("baseline", {})
+        missing_baseline = project_context.get("missing_baseline", {})
+        
+        # AUTO-INTAKE: If baseline is empty/incomplete AND user message is rich, try to parse it immediately
+        if (not baseline_data or missing_baseline) and len(request.message) > 20 and "WAITING FOR USER INPUT" not in request.message:
+            print(f"Auto-running intake_step for session {session_id} with message length {len(request.message)}")
+            try:
+                intake_result = intake_step(session_id=session_id, user_text=request.message)
+                # Reload context to see if baseline was updated
+                project_context = get_project_context_tool(session_id)
+                baseline_data = project_context.get("baseline", {})
+                missing_baseline = project_context.get("missing_baseline", {})
+            except Exception as e:
+                print(f"Auto-intake failed: {e}")
+
+        if baseline_data and not missing_baseline:
+            # Baseline is complete from Step 1 form OR auto-intake
+            baseline_from_step1 = True
+            baseline_summary = (
+                f"Session {session_id} has complete baseline data:\n"
+                f"- Project Type: {baseline_data.get('project_type', 'N/A')}\n"
+                f"- Complexity: {baseline_data.get('complexity', 'N/A')}\n"
+                f"- Tech Stack: {baseline_data.get('tech_stack', 'N/A')}\n"
+                f"- Team Preference: {baseline_data.get('team_pref', 'N/A')}\n"
+                f"- Region: {baseline_data.get('region', 'N/A')}\n"
+                f"- Project Duration: {baseline_data.get('project_duration', 'N/A')}\n"
+                f"IMPORTANT: Do NOT re-ask for these baseline fields. Proceed directly to the next workflow step."
+            )
+    except Exception as e:
+        # Context doesn't exist yet or error loading - proceed normally
+        pass
+    
+    # Prepend system message if baseline exists from Step 1
+    if baseline_from_step1:
+        system_context_message = {
+            "role": "system",
+            "content": baseline_summary,
+            "name": "System"
+        }
+        
+        if not request.history:
+            request.history = [system_context_message]
+        else:
+            # Insert at beginning so agents see it first
+            request.history.insert(0, system_context_message)
+    
+    # Read project context to know what's already captured
+    context_data = None
+    baseline_info = ""
+    missing_info = ""
+    try:
+        from tools.orchestrator_tools import get_project_context_tool
+        context = get_project_context_tool(session_id)
+        if context and context.get("baseline"):
+            baseline = context["baseline"]
+            missing_by_method = context.get("missing_by_method", {})
+            
+            # Build baseline summary
+            baseline_items = []
+            for key, value in baseline.items():
+                if value:
+                    baseline_items.append(f"  - {key.replace('_', ' ').title()}: {value}")
+            
+            if baseline_items:
+                baseline_info = "\n".join(baseline_items)
+            
+            # Build missing inputs summary
+            if missing_by_method:
+                missing_items = []
+                for method, fields in missing_by_method.items():
+                    missing_items.append(f"  - {method}: {', '.join(fields)}")
+                missing_info = "\n".join(missing_items)
+    except Exception as e:
+        print(f"Could not load context: {e}")
     
     # Check for OpenRouter API key only  
     api_key = os.environ.get("OPENROUTER_API_KEY")
@@ -210,80 +314,99 @@ async def chat_endpoint(request: ChatRequest):
         }
         
         # User Proxy Agent
+        def check_termination(msg):
+            content = msg.get("content", "")
+            if content and "WAITING FOR USER INPUT" in content:
+                print(f"DEBUG: Termination condition met. Content: {content[:50]}...")
+                return True
+            return False
+
         user_proxy = autogen.UserProxyAgent(
             name="User",
             human_input_mode="NEVER",
-            max_consecutive_auto_reply=0,
+            max_consecutive_auto_reply=10,
             code_execution_config=False,
+            is_termination_msg=check_termination,
         )
         
-        # Assistant Agent (Consultant)
-        consultant = autogen.AssistantAgent(
-            name="Consultant",
-            system_message="""You are a helpful Cost Estimation Consultant. 
-            Your goal is to gather project requirements from the user to recommend the best estimation method.
-            
-            Ask clarifying questions about:
-            1. Project Type (Web, Mobile, AI, etc.)
-            2. Complexity (Low, Medium, High)
-            3. Team Size
-            4. Duration
-            
-            Once you have enough information, recommend one or more methods from:
-            - COCOMO II (Software Development)
-            - Function Points (Software Metrics)
-            - Story Points (Agile)
-            - Parametric (Statistical)
-            - Bottom-Up (Detailed)
-            - Analogous (Expert Judgment)
-            
-            If you are ready to recommend, end your message with "RECOMMENDATION_READY: [method_id_1, method_id_2]".
-            """,
-            llm_config=llm_config,
+        # Register all orchestrator tools with user_proxy for execution
+        from tools.intake_tools import intake_step
+        
+        user_proxy.register_function(
+            function_map={
+                "start_new_project_tool": start_new_project_tool,
+                "record_baseline_field_tool": record_baseline_field_tool,
+                "submit_user_description_tool": submit_user_description_tool,
+                "get_project_context_tool": get_project_context_tool,
+                "draft_expansion_tool": draft_expansion_tool,
+                "confirm_expansion_tool": confirm_expansion_tool,
+                "evaluate_methods_tool": evaluate_methods_tool,
+                "normalize_and_infer_tool": normalize_and_infer_tool,
+                "generate_explanation_tool": generate_explanation_tool,
+                "validate_step1_tool": validate_step1_tool,
+                "get_method_requirements_tool": get_method_requirements_tool,
+                "register_estimate_tool": register_estimate_tool, # This was in the original, keeping it.
+                "intake_step": intake_step,  # For parsing free-form user input
+            }
         )
         
-        # Construct history for context
-        # In a real scenario, we'd inject this into the agent's memory
+        # Instantiate the real agents
+        conversational_agent = build_conversational_agent(llm_config, session_id=session_id)
+        interpreter_agent = build_interpreter_agent(llm_config)
+        
+        # Create GroupChat
+        # We pass the history so the agents have context of previous turns
+        groupchat = autogen.GroupChat(
+            agents=[user_proxy, conversational_agent, interpreter_agent],
+            messages=request.history or [],
+            max_round=10,
+            speaker_selection_method="auto"
+        )
+        
+        manager = autogen.GroupChatManager(
+            groupchat=groupchat,
+            llm_config=llm_config
+        )
         
         # Initiate chat with the user's message
-        # We use a simple one-turn interaction here for the API
-        user_proxy.initiate_chat(
-            consultant,
+        # The manager handles the orchestration
+        chat_result = user_proxy.initiate_chat(
+            manager,
             message=request.message,
-            clear_history=False
+            clear_history=False # Keep history we just passed
         )
         
-        # Get the last message from the consultant
-        last_message = user_proxy.last_message()["content"]
+        # DEBUG: Dump chat history
+        import json
+        with open("debug_chat_history.json", "w") as f:
+            json.dump(chat_result.chat_history, f, indent=2, default=str)
         
+        # Extract the last message from the conversational agent or manager
+        # We want the final response to the user
+        last_message = chat_result.chat_history[-1]["content"]
+        
+        # Check for recommendation signal
         is_ready = "RECOMMENDATION_READY" in last_message
         recommended_methods = []
-        
         if is_ready:
-            # Extract methods from the tag
             import re
-            match = re.search(r"RECOMMENDATION_READY: \[(.*?)\]", last_message)
+            match = re.search(r"RECOMMENDATION_READY:\s*\[(.*?)\]", last_message)
             if match:
                 methods_str = match.group(1)
-                recommended_methods = [m.strip().strip("'").strip('"') for m in methods_str.split(",")]
-            
-            # Clean up the message for display
-            last_message = last_message.split("RECOMMENDATION_READY")[0].strip()
-            
-        # Log AutoGen response
+                recommended_methods = [m.strip().strip('"\'') for m in methods_str.split(",")]
+        
+        # Log agent response
         store.add_event(session_id, TraceEvent(
             session_id=session_id,
             event_type=TraceEventType.AGENT_RESPONSE,
-            agent_name="ChatBotOpenRouter",
+            agent_name="GroupChatManager",
             output_data={
-                "response": last_message[:200],
+                "response": last_message[:200], # Log first 200 chars
                 "is_ready": is_ready,
-                "recommended_methods": recommended_methods,
-                "model": model,
-                "api_provider": "openrouter"
+                "recommended_methods": recommended_methods
             }
         ))
-            
+        
         return ChatResponse(
             response=last_message,
             is_ready=is_ready,
@@ -292,19 +415,175 @@ async def chat_endpoint(request: ChatRequest):
         
     except Exception as e:
         print(f"Chat error: {e}")
+        # Log error to file
+        with open("error.log", "w") as f:
+            f.write(f"Chat error: {str(e)}\n")
+            import traceback
+            traceback.print_exc(file=f)
+            
         # Fallback for demo if error occurs
         return generate_fallback_response(request.message, request.history)
 
+
+@app.post("/validate-step1")
+async def validate_step1(request: Dict[str, Any]):
+    """
+    Validate Step 1 baseline data and create project context.
+    
+    This endpoint validates user inputs from Step 1 without business rules,
+    creates a ProjectContext, and determines what's missing for each method.
+    """
+    from workflow.tracing import get_trace_store, TraceEvent, TraceEventType
+    import time as time_module
+    
+    session_id = request.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
+    
+    store = get_trace_store()
+    
+    # Log validation request
+    store.add_event(session_id, TraceEvent(
+        session_id=session_id,
+        event_type=TraceEventType.WORKFLOW_STEP,
+        step_name="validate_step1",
+        input_data=request
+    ))
+    
+    try:
+        # Call validation tool
+        from tools.orchestrator_tools import validate_step1_tool
+        
+        result = validate_step1_tool(
+            project_id=session_id,
+            baseline_data=request
+        )
+        
+        # Log result
+        store.add_event(session_id, TraceEvent(
+            session_id=session_id,
+            event_type=TraceEventType.WORKFLOW_STEP,
+            step_name="validate_step1_complete",
+            output_data={
+                "is_valid": result["is_valid"],
+                "error_count": len(result.get("errors", [])),
+                "missing_methods_count": len(result.get("missing_by_method", {}))
+            }
+        ))
+        
+        if result["is_valid"]:
+            return {
+                "status": "ok",
+                "step1_validated": True,
+                "missing_by_method": result["missing_by_method"]
+            }
+        else:
+            return {
+                "status": "error",
+                "step1_validated": False,
+                "errors": result["errors"]
+            }
+            
+    except Exception as e:
+        store.add_event(session_id, TraceEvent(
+            session_id=session_id,
+            event_type=TraceEventType.ERROR,
+            step_name="validate_step1_error",
+            output_data={"error": str(e)}
+        ))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/method-requirements/{session_id}/{method_name}")
+async def get_method_requirements(session_id: str, method_name: str):
+    """
+    Get known and missing requirements for a specific estimation method.
+    
+    Args:
+        session_id: Project/session identifier
+        method_name: Method name (cocomo2, analogous, fpa, story_points)
+        
+    Returns:
+        Known coefficients, missing fields, and baseline data
+    """
+    try:
+        from tools.orchestrator_tools import get_method_requirements_tool
+        
+        return get_method_requirements_tool(session_id, method_name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/intake", response_model=Dict[str, Any])
 async def intake_baseline(inputs: BaselineInputs):
     """
-    Step 1: Receive baseline inputs.
-    In a real scenario, this might store state or just validate and return a session ID.
-    For now, we just echo back with a success status.
+    Step 1: Receive baseline inputs from the form.
+    Validates data via InterpreterAgent and stores in ProjectContext.
+    Returns validation status and missing method-specific inputs.
     """
-    return {"status": "received", "inputs": inputs.dict()}
+    from workflow.tracing import get_trace_store, TraceEvent, TraceEventType
+    import time as time_module
+    
+    # Generate session_id if not provided
+    session_id = f"intake_{int(time_module.time() * 1000)}"
+    store = get_trace_store()
+    
+    # Log intake request
+    store.add_event(session_id, TraceEvent(
+        session_id=session_id,
+        event_type=TraceEventType.USER_INPUT,
+        step_name="intake",
+        input_data=inputs.dict()
+    ))
+    
+    try:
+        from tools.orchestrator_tools import validate_step1_tool
+        
+        # Convert BaselineInputs to dict for validation
+        baseline_data = inputs.dict(exclude_none=True)
+        
+        # Call InterpreterAgent's Step 1 validation tool
+        # This validates, stores in ProjectContext, and computes missing_by_method
+        result = validate_step1_tool(session_id, baseline_data)
+        
+        # Log validation result
+        store.add_event(session_id, TraceEvent(
+            session_id=session_id,
+            event_type=TraceEventType.AGENT_RESPONSE,
+            agent_name="InterpreterAgent",
+            step_name="validate_step1",
+            output_data={
+                "is_valid": result["is_valid"],
+                "errors": result.get("errors", []),
+                "missing_by_method": result.get("missing_by_method", {})
+            }
+        ))
+        
+        return {
+            "status": "validated" if result["is_valid"] else "invalid",
+            "session_id": session_id,
+            "is_valid": result["is_valid"],
+            "errors": result.get("errors", []),
+            "missing_by_method": result.get("missing_by_method", {}),
+            "context": result.get("context", {})
+        }
+        
+    except Exception as e:
+        store.add_event(session_id, TraceEvent(
+            session_id=session_id,
+            event_type=TraceEventType.ERROR,
+            step_name="intake",
+            output_data={"error": str(e)}
+        ))
+        
+        return {
+            "status": "error",
+            "session_id": session_id,
+            "is_valid": False,
+            "errors": [f"Validation error: {str(e)}"],
+            "missing_by_method": {},
+            "context": {}
+        }
 
 @app.get("/methods", response_model=List[MethodSelection])
 async def get_methods():

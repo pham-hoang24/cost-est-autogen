@@ -1,0 +1,88 @@
+{
+  "session_id": "test_unusual",
+  "created_at": "2025-11-25T20:24:59.979221",
+  "updated_at": "2025-11-25T20:27:28.862042",
+  "events": [
+    {
+      "event_id": "d53a8753-6fdc-4213-a3b4-6ff385e1a946",
+      "session_id": "test_unusual",
+      "timestamp": "2025-11-25T20:24:59.978881",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "test_unusual",
+        "project_type": "enterprise_saas",
+        "complexity": "high",
+        "tech_stack": [
+          "Java",
+          "Spring"
+        ],
+        "team_pref": "vendor",
+        "region": "north_america",
+        "project_duration": "1_month"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "27793d92-190a-45ec-ac71-59964d1f5d92",
+      "session_id": "test_unusual",
+      "timestamp": "2025-11-25T20:25:00.003931",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "validate_step1_error",
+      "input_data": {},
+      "output_data": {
+        "error": "\"BaselineInputs\" object has no field \"project_duration\""
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d105e981-3359-4b48-a365-0ae2f7450476",
+      "session_id": "test_unusual",
+      "timestamp": "2025-11-25T20:27:28.832331",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "test_unusual",
+        "project_type": "enterprise_saas",
+        "complexity": "high",
+        "tech_stack": [
+          "Java"
+        ],
+        "team_pref": "vendor",
+        "region": "north_america",
+        "project_duration": "1_month"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "30c5be6a-8930-4f9d-aa97-3a25f3459c0f",
+      "session_id": "test_unusual",
+      "timestamp": "2025-11-25T20:27:28.862030",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1_complete",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "error_count": 0,
+        "missing_methods_count": 4
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

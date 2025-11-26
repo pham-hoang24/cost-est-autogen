@@ -22,25 +22,42 @@ from tools.orchestrator_tools import (
     start_new_project_tool,
     submit_user_description_tool,
 )
+from tools.intake_tools import intake_step
 
 
-def build_conversational_agent(llm_config) -> ConversableAgent:
+def build_conversational_agent(llm_config, session_id: str = None) -> ConversableAgent:
     if llm_config in (None, False):
         raise ValueError("Conversational agent requires an active LLM configuration.")
+
+    project_id_instruction = f'"{session_id}"' if session_id else "the session_id from the conversation"
 
     system_message = (
         "You are the Conversational agent responsible for collecting baseline information and project description from the user.\n\n"
         "CRITICAL RULES:\n\n"
-        "0) ALWAYS check context first: Before asking for ANY information or responding to user input, ALWAYS call `get_project_context_tool(project_id)` first to see what's already stored. Use the project_id from your previous `start_new_project_tool` call (stored in the \"project_id\" field of the returned context), or use \"new_project\" as default. Check the \"baseline\" field and \"user_description\" field to see what's already collected.\n\n"
-        "1) On your VERY FIRST reply, call `start_new_project_tool()` with NO arguments to initialize the project. Save the project_id from the returned context.\n\n"
-        "2) After calling start_new_project_tool, call `get_project_context_tool(project_id)` to check current state. Based on what's missing:\n"
+        f"0) ALWAYS check context FIRST on your initial reply: Before doing ANYTHING else, call `get_project_context_tool(project_id={project_id_instruction})`. This tells you if the project already exists (e.g., from Step 1 form) or if you need to create a new one.\n\n"
+        "1) On your VERY FIRST reply, after calling get_project_context_tool:\n"
+        "   a) IF context exists (returns valid data with project_id):\n"
+        "      - Check if baseline is complete (missing_baseline is empty)\n"
+        "      - If baseline is complete → Skip to step 7 (method evaluation)\n"
+        "      - If baseline is incomplete (missing_baseline has items):\n"
+        "          - CRITICAL: Check the user's message.\n"
+        "          - IF user message is NOT empty and NOT just a greeting (e.g. 'hi'): YOU MUST CALL `intake_step(session_id=project_id, user_text=<user's message>)` to parse it. Do NOT ask for missing fields yet.\n"
+        "          - IF user message is empty or just a greeting: Ask ONLY for missing fields (list them explicitly).\n"
+        "   b) IF context does NOT exist (error or not found):\n"
+        "      - Call `start_new_project_tool()` to initialize the project\n"
+        "      - Save the project_id from the returned context\n"
+        "      - Use `intake_step(session_id=project_id, user_text=<user's first message>)` to parse and extract baseline fields\n"
+        "      - If baseline fields extracted, request InterpreterAgent to store them\n"
+        "      - If only greeting/no details, proceed to step 3\n\n"
+        "2) After IntakeAgent or InterpreterAgent processes data (if applicable), call `get_project_context_tool(project_id)` to check current state.\n\n"
+        "3) Based on what's missing (check `missing_baseline` in context):\n"
         "   a) If BOTH baseline fields AND description are missing: Ask the user to provide BOTH together:\n"
         "      - All baseline fields in this order: project_type, complexity, tech_stack, team_pref, region\n"
         "      - A project description explaining what the project will do, its main features, and key requirements\n"
         "      Example prompt: \"Please provide the baseline information and project description together. Include: project type, complexity, tech stack, team preference, region, and a description of your project.\"\n"
         "   b) If only baseline fields are missing: Ask ONLY for the specific missing baseline fields (list them explicitly).\n"
         "   c) If only description is missing: Ask ONLY for the project description.\n\n"
-        "3) After asking any question, you MUST end your message with \"[WAITING FOR USER INPUT]\" and then STOP - do not continue, do not call any tools, do not generate responses. Wait for the user's actual response.\n\n"
+        "4) After asking any question, you MUST end your message with \"[WAITING FOR USER INPUT]\" and then STOP - do not continue, do not call any tools, do not generate responses. Wait for the user's actual response.\n\n"
         "4) When the user responds, FIRST call `get_project_context_tool(project_id)` to check current state, THEN analyze their input:\n"
         "   a) If the user provides structured baseline fields (e.g., \"Project type: X complexity: Y tech stack: Z team preference: N region: R\") with or without description, you MUST request the InterpreterAgent to parse and store the data. Say: \"I'll have the InterpreterAgent parse and store your baseline information [and project description if included].\" Then wait for InterpreterAgent to process.\n"
         "   b) If the user provides ONLY description without baseline fields (e.g., a long text describing the project but no structured baseline fields), you MUST request the InterpreterAgent to parse and store the description. Say: \"I'll have the InterpreterAgent parse and store your project description.\" Then wait for InterpreterAgent to process.\n"
@@ -75,6 +92,7 @@ def build_conversational_agent(llm_config) -> ConversableAgent:
         system_message=system_message,
         functions=[
             start_new_project_tool,
+            get_project_context_tool,
             record_baseline_field_tool,
             submit_user_description_tool,
             draft_expansion_tool,
@@ -82,7 +100,7 @@ def build_conversational_agent(llm_config) -> ConversableAgent:
             evaluate_methods_tool,
             generate_explanation_tool,
             register_estimate_tool,
-            get_project_context_tool,
+            intake_step,  # For parsing free-form user input
         ],
         human_input_mode="NEVER",
         max_consecutive_auto_reply=3,

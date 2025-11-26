@@ -1,0 +1,42 @@
+{
+  "session_id": "test_final_intake",
+  "created_at": "2025-11-26T08:56:37.838137",
+  "updated_at": "2025-11-26T08:56:53.527525",
+  "events": [
+    {
+      "event_id": "5bd09183-8b98-4bac-8592-ed3c0d63d31f",
+      "session_id": "test_final_intake",
+      "timestamp": "2025-11-26T08:56:37.837695",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "AI chatbot for customer support. Very high complexity. AI/ML technologies. Team of 12. Asia Pacific.",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "06ad7f50-aabe-4aae-aeb2-12fef607b09b",
+      "session_id": "test_final_intake",
+      "timestamp": "2025-11-26T08:56:53.526709",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}
