@@ -12,6 +12,7 @@ load_dotenv()
 
 from agents.conversational_agent import build_conversational_agent
 from agents.interpreter_agent import build_interpreter_agent
+from agents.method_selector_agent import build_method_selector_agent
 from tools.orchestrator_tools import (
     start_new_project_tool,
     record_baseline_field_tool,
@@ -49,8 +50,7 @@ class BaselineInputs(BaseModel):
     tech_stack: str = Field(..., description="Primary tech stack")
     team_pref: int = Field(..., description="Desired team size")
     region: str = Field(..., description="Primary delivery region")
-    project_duration: Optional[str] = Field(None, description="Expected duration")
-    description: Optional[str] = Field(None, description="Free text description of the project")
+    duration: Optional[str] = Field(..., description="Expected duration")
 
 class MethodSelection(BaseModel):
     method_name: str
@@ -302,6 +302,7 @@ async def chat_endpoint(request: ChatRequest):
                 "api_key": api_key,
                 "base_url": "https://openrouter.ai/api/v1",
                 "api_type": "openai",  # OpenRouter is OpenAI-compatible
+                "price": [0.01, 0.03]  # Silence warning about missing model price
             }
         ]
         
@@ -353,13 +354,14 @@ async def chat_endpoint(request: ChatRequest):
         # Instantiate the real agents
         conversational_agent = build_conversational_agent(llm_config, session_id=session_id)
         interpreter_agent = build_interpreter_agent(llm_config)
+        method_selector_agent = build_method_selector_agent(llm_config)
         
         # Create GroupChat
         # We pass the history so the agents have context of previous turns
         groupchat = autogen.GroupChat(
-            agents=[user_proxy, conversational_agent, interpreter_agent],
+            agents=[user_proxy, conversational_agent, interpreter_agent, method_selector_agent],
             messages=request.history or [],
-            max_round=10,
+            max_round=30,  # Increased to allow full workflow completion
             speaker_selection_method="auto"
         )
         
@@ -382,8 +384,48 @@ async def chat_endpoint(request: ChatRequest):
             json.dump(chat_result.chat_history, f, indent=2, default=str)
         
         # Extract the last message from the conversational agent or manager
-        # We want the final response to the user
-        last_message = chat_result.chat_history[-1]["content"]
+        # We want the final response to the user, NOT tool execution results
+        # Filter out tool response messages and get the last assistant message
+        last_message = None
+        for msg in reversed(chat_result.chat_history):
+            role = msg.get("role")
+            content = msg.get("content", "")
+            
+            # Skip tool messages entirely
+            if role == "tool":
+                continue
+                
+            # Skip empty messages or messages with just tool calls
+            if not content or "tool_calls" in msg:
+                continue
+                
+            # Skip messages that look like raw JSON/dict outputs
+            if content.startswith("{") or content.startswith("["):
+                continue
+                
+            # Skip messages that contain project_id, status, version - these are tool outputs
+            if "project_id" in content and ("'status':" in content or "\"status\":" in content):
+                continue
+            
+            # We found a good human-readable message!
+            if role in ["assistant", "user"] and content:
+                last_message = content
+                break
+        
+        # Fallback: if no clean message found, look for any assistant message
+        if not last_message:
+            for msg in reversed(chat_result.chat_history):
+                if msg.get("role") == "assistant" and msg.get("content"):
+                    last_message = msg["content"]
+                    break
+        
+        # Last resort: take the last message with content
+        if not last_message:
+            for msg in reversed(chat_result.chat_history):
+                if msg.get("content"):
+                    last_message = msg["content"]
+                    break
+
         
         # Check for recommendation signal
         is_ready = "RECOMMENDATION_READY" in last_message

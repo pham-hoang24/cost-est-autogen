@@ -47,7 +47,7 @@ def build_method_selector_agent(llm_config) -> ConversableAgent:
         system_message=system_message,
         functions=[evaluate_methods_tool, get_project_context_tool],
         human_input_mode="NEVER",
-        max_consecutive_auto_reply=3,
+        max_consecutive_auto_reply=10,
     )
 
 

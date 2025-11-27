@@ -1,0 +1,111 @@
+{
+  "session_id": "test-workflow-1764183545",
+  "created_at": "2025-11-26T18:59:05.889048",
+  "updated_at": "2025-11-26T18:59:05.924315",
+  "events": [
+    {
+      "event_id": "75b7c4f9-2400-4c03-b993-516c26aa133d",
+      "session_id": "test-workflow-1764183545",
+      "timestamp": "2025-11-26T18:59:05.889029",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x100e87b60>, 'test-workflow-1764183545')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "4dcec7a6-6e40-45e5-a2bd-608372d25413",
+      "session_id": "test-workflow-1764183545",
+      "timestamp": "2025-11-26T18:59:05.895894",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-workflow-1764183545' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='web application', complexity='high', tech_stack='React, Node.js, PostgreSQL', team_pref=8, region='North America', project_duration=None) user_description='We need to build a comprehensive e-commerce platform with the following features:\\n    - User authentication and authorization\\n    - Product catalog with search and filtering\\n    - Shopping cart and checkout process\\n    - Payment gateway integration (Stripe)\\n    - Order management system\\n    - Admin dashboard for inventory management\\n    - Email notifications\\n    - Basic analytics and reporting\\n    \\n    The platform should handle approximately 10,000 users with expected growth.\\n    We estimate around 200 story points of work with a team velocity of 25 points per sprint.\\n    Estimated 15 KSLOC of new code.' expansion_draft=ExpansionV1(summary='Overview: We need to build a comprehensive e-commerce platform with"
+      },
+      "metadata": {},
+      "duration_ms": 6.778955459594727,
+      "parent_event_id": "75b7c4f9-2400-4c03-b993-516c26aa133d"
+    },
+    {
+      "event_id": "86f10dbe-8679-4905-b102-b2a75508c2a7",
+      "session_id": "test-workflow-1764183545",
+      "timestamp": "2025-11-26T18:59:05.899485",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x100e87b60>, 'test-workflow-1764183545')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "71a9640d-2827-49c3-9075-bcb96e0f2f6b",
+      "session_id": "test-workflow-1764183545",
+      "timestamp": "2025-11-26T18:59:05.906302",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-workflow-1764183545' version=20 status='INPUTS_REQUESTED' baseline=BaselineInputs(project_type='web application', complexity='high', tech_stack='React, Node.js, PostgreSQL', team_pref=8, region='North America', project_duration=None) user_description='We need to build a comprehensive e-commerce platform with the following features:\\n    - User authentication and authorization\\n    - Product catalog with search and filtering\\n    - Shopping cart and checkout process\\n    - Payment gateway integration (Stripe)\\n    - Order management system\\n    - Admin dashboard for inventory management\\n    - Email notifications\\n    - Basic analytics and reporting\\n    \\n    The platform should handle approximately 10,000 users with expected growth.\\n    We estimate around 200 story points of work with a team velocity of 25 points per sprint.\\n    Estimated 15 KSLOC of new code.' expansion_draft=ExpansionV1(summary='Overview: We need to build a comprehensive e-commerce platform with t"
+      },
+      "metadata": {},
+      "duration_ms": 6.599187850952148,
+      "parent_event_id": "86f10dbe-8679-4905-b102-b2a75508c2a7"
+    },
+    {
+      "event_id": "5712b46f-66c6-4df7-a5bb-191ef840e29f",
+      "session_id": "test-workflow-1764183545",
+      "timestamp": "2025-11-26T18:59:05.917429",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_full_report",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x100e87b60>, 'test-workflow-1764183545', {'includeRisk': True, 'includeContingency': True, 'includeOverhead': True, 'includeProfit': True, 'currency': 'USD', 'accuracy': 'high'})",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "38eeb4d2-9626-41a8-a750-651d2061c355",
+      "session_id": "test-workflow-1764183545",
+      "timestamp": "2025-11-26T18:59:05.924304",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_full_report",
+        "result_type": "CostEstimationReport",
+        "result_preview": "report_title='Cost Estimation Report' generated_at='11/26/2025, 08:59:05 PM' project_details={'project_type': 'web application', 'complexity': 'high', 'tech_stack': 'React, Node.js, PostgreSQL', 'team_pref': 8, 'region': 'North America', 'project_duration': None} estimation_config={'includeRisk': True, 'includeContingency': True, 'includeOverhead': True, 'includeProfit': True, 'currency': 'USD', 'accuracy': 'high'} timestamp='2025-11-26T18:59:05.918912Z' project_data=ProjectData(original_project_type='web application', project_type='organic', technical_complexity={'high_complexity': True}, project_context_description='This project aims to develop a web application with high complexity, designed to meet the evolving needs of modern users. The platform will provide core functionality including user authentication, data management, and comprehensive reporting capabilities.\\n\\nThe application will be built with scalability and maintainability in mind, ensuring that it can grow with the bus"
+      },
+      "metadata": {},
+      "duration_ms": 6.467103958129883,
+      "parent_event_id": "5712b46f-66c6-4df7-a5bb-191ef840e29f"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

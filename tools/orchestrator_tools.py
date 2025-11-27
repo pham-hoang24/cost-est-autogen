@@ -8,7 +8,7 @@ _ORCHESTRATOR = WorkflowOrchestrator()
 _BASELINE_FIELDS = ["project_type", "complexity", "tech_stack", "team_pref", "region"]
 
 
-def start_new_project_tool(project_id=None) -> Dict[str, object]:
+def start_new_project_tool(project_id: Optional[str] = None) -> Dict[str, object]:
     context = _ORCHESTRATOR.start_new_project(project_id=project_id)
     return _serialize_context(context)
 

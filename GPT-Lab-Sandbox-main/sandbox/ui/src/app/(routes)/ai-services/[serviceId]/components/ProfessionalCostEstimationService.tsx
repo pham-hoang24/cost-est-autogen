@@ -620,17 +620,73 @@ export default function ProfessionalCostEstimationService({ service }: Professio
 
           <div className="flex justify-end items-center">
             <Button 
-              onClick={() => setCurrentStep(2)}
+              onClick={async () => {
+                setIsCalculating(true); // Reuse calculating state for loading
+                try {
+                  // Parse team size
+                  const teamSizeInt = parseInt(projectDetails.teamSize.split('-')[1] || projectDetails.teamSize.split('+')[0] || '5');
+                  
+                  const payload = {
+                    session_id: sessionId,
+                    project_type: projectDetails.projectType,
+                    complexity: projectDetails.complexity,
+                    tech_stack: projectDetails.technology,
+                    team_pref: teamSizeInt,
+                    region: projectDetails.region,
+                    project_duration: projectDetails.duration,
+                    description: `A ${projectDetails.complexity} ${projectDetails.projectType} project using ${projectDetails.technology} in ${projectDetails.region}.`
+                  };
+
+                  console.log('Validating Step 1:', payload);
+
+                  const response = await fetch('http://localhost:8000/validate-step1', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                  });
+
+                  if (!response.ok) {
+                    throw new Error(`Validation failed: ${response.statusText}`);
+                  }
+
+                  const result = await response.json();
+                  console.log('Validation result:', result);
+
+                  if (result.status === 'ok' || result.is_valid) {
+                    setCurrentStep(2);
+                  } else {
+                    alert(`Please fix the following errors: ${result.errors?.join(', ')}`);
+                  }
+                } catch (error) {
+                  console.error('Step 1 validation error:', error);
+                  // Optional: allow proceeding even if backend fails, or show error
+                  // For now, we'll alert but allow proceeding for demo continuity if it's just a connection error
+                  alert('Backend validation failed. Proceeding to next step, but AI context may be limited.');
+                  setCurrentStep(2);
+                } finally {
+                  setIsCalculating(false);
+                }
+              }}
               disabled={
                 !projectDetails.projectType || 
                 !projectDetails.complexity || 
                 !projectDetails.teamSize || 
-                !projectDetails.duration
+                !projectDetails.duration ||
+                isCalculating
               }
               className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
             >
-              Next: Select Methodology
-              <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+              {isCalculating ? (
+                <>
+                  <Activity className="w-4 h-4 mr-2 animate-spin" />
+                  Validating...
+                </>
+              ) : (
+                <>
+                  Next: Select Methodology
+                  <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+                </>
+              )}
             </Button>
           </div>
         </div>

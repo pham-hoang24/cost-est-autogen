@@ -1,0 +1,42 @@
+{
+  "session_id": "399cbe9c-8634-4e97-9f51-3dfe2eb765d9",
+  "created_at": "2025-11-27T11:28:33.730543",
+  "updated_at": "2025-11-27T11:28:45.761398",
+  "events": [
+    {
+      "event_id": "106058d2-8b42-4beb-bfa8-03949c847cb3",
+      "session_id": "399cbe9c-8634-4e97-9f51-3dfe2eb765d9",
+      "timestamp": "2025-11-27T11:28:33.730527",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "Hi, I want to build a mobile app.",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "740352cf-c98d-42e7-aa7e-c3a4501a4ecf",
+      "session_id": "399cbe9c-8634-4e97-9f51-3dfe2eb765d9",
+      "timestamp": "2025-11-27T11:28:45.761317",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "It seems like I need to gather some more information from you to proceed. Could you please provide the following baseline information:\n\n1. Project type (you mentioned mobile app, but let's confirm thi",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

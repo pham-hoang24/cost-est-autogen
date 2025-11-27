@@ -1,0 +1,115 @@
+{
+  "session_id": "session_1764241641073_ykmtuk4ms",
+  "created_at": "2025-11-27T11:07:37.682771",
+  "updated_at": "2025-11-27T11:08:39.388474",
+  "events": [
+    {
+      "event_id": "7cb123b9-6cd4-4fea-ac9f-d32cd026c9d5",
+      "session_id": "session_1764241641073_ykmtuk4ms",
+      "timestamp": "2025-11-27T11:07:37.681502",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1764241641073_ykmtuk4ms",
+        "project_type": "web-application",
+        "complexity": "medium",
+        "tech_stack": "web",
+        "team_pref": 10,
+        "region": "europe",
+        "project_duration": "3-6-months",
+        "description": "A medium web-application project using web in europe."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "ee0d5d13-c448-46c2-804c-dd8f12ea9639",
+      "session_id": "session_1764241641073_ykmtuk4ms",
+      "timestamp": "2025-11-27T11:07:37.822691",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1_complete",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "error_count": 0,
+        "missing_methods_count": 4
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "19e1fb01-8d36-4b92-91f1-9f584305da88",
+      "session_id": "session_1764241641073_ykmtuk4ms",
+      "timestamp": "2025-11-27T11:08:26.367411",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "We are building a customer relationship management (CRM) platform for small to medium-sized businesses. The system will help businesses manage their customer contacts, track sales opportunities, manage marketing campaigns, and generate sales reports.",
+        "history_length": 1
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "78c37566-dc8e-412f-b874-f477eb6bec99",
+      "session_id": "session_1764241641073_ykmtuk4ms",
+      "timestamp": "2025-11-27T11:08:34.525535",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10707c6e0>, 'session_1764241641073_ykmtuk4ms')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "bb7716ec-3cdb-4dbf-8a8a-759ffdf6d6b7",
+      "session_id": "session_1764241641073_ykmtuk4ms",
+      "timestamp": "2025-11-27T11:08:34.564289",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='session_1764241641073_ykmtuk4ms' version=19 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='web-application', complexity='medium', tech_stack='web', team_pref=10, region='europe', project_duration='3-6-months') user_description='A medium web-application project using web in europe.' expansion_draft=ExpansionV1(summary='Overview: A medium web-application project using web in europe.\\nProject Type: web-application\\nComplexity: medium\\nTech Stack Focus: web', features=[NamedItem(name='A medium web-application project using web in europe.', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A medium web-application project using web in europe.', source='inferred', note='auto'), TraceEntry(field='platforms', value='web', source='user', note='prior_answer')], missing_signals=[]) expansion_confirmed=None parsed_context=None selec"
+      },
+      "metadata": {},
+      "duration_ms": 37.97197341918945,
+      "parent_event_id": "78c37566-dc8e-412f-b874-f477eb6bec99"
+    },
+    {
+      "event_id": "9feeb701-0318-4e83-875f-1bab1d5393e1",
+      "session_id": "session_1764241641073_ykmtuk4ms",
+      "timestamp": "2025-11-27T11:08:39.388392",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "The project expansion has been drafted and confirmed. I'll have the MethodSelectorAgent evaluate which estimation methods are suitable for this project. Please hold on.",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

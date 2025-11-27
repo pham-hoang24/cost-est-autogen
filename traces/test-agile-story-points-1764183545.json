@@ -1,0 +1,77 @@
+{
+  "session_id": "test-agile-story-points-1764183545",
+  "created_at": "2025-11-26T18:59:05.949797",
+  "updated_at": "2025-11-26T18:59:05.960990",
+  "events": [
+    {
+      "event_id": "f7405c68-ac62-4328-9700-4c29cd9c1a9c",
+      "session_id": "test-agile-story-points-1764183545",
+      "timestamp": "2025-11-26T18:59:05.949785",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x1042a6710>, 'test-agile-story-points-1764183545')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "02bd7f53-b44f-4909-83b6-3add625f4c8c",
+      "session_id": "test-agile-story-points-1764183545",
+      "timestamp": "2025-11-26T18:59:05.954041",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-agile-story-points-1764183545' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='software development', complexity='medium', tech_stack='web technologies', team_pref=6, region='North America', project_duration=None) user_description='A mobile app with 120 story points, team velocity of 15 points/sprint.' expansion_draft=ExpansionV1(summary='Overview: A mobile app with 120 story points, team velocity of 15 points/sprint.\\nProject Type: software development\\nComplexity: medium\\nTech Stack Focus: web technologies', features=[NamedItem(name='A mobile app with 120 story points', source='inferred', confidence=None), NamedItem(name='team velocity of 15 points/sprint.', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A mobile app with 120 story points', source='inferred', note='auto'), TraceEntry(field='features',"
+      },
+      "metadata": {},
+      "duration_ms": 4.158973693847656,
+      "parent_event_id": "f7405c68-ac62-4328-9700-4c29cd9c1a9c"
+    },
+    {
+      "event_id": "a2b67c2e-789f-43dc-a16e-99296195b0ae",
+      "session_id": "test-agile-story-points-1764183545",
+      "timestamp": "2025-11-26T18:59:05.957372",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x1042a6710>, 'test-agile-story-points-1764183545')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "eab34ddb-b854-4f65-a0ac-71ed4b325793",
+      "session_id": "test-agile-story-points-1764183545",
+      "timestamp": "2025-11-26T18:59:05.960982",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-agile-story-points-1764183545' version=20 status='INPUTS_REQUESTED' baseline=BaselineInputs(project_type='software development', complexity='medium', tech_stack='web technologies', team_pref=6, region='North America', project_duration=None) user_description='A mobile app with 120 story points, team velocity of 15 points/sprint.' expansion_draft=ExpansionV1(summary='Overview: A mobile app with 120 story points, team velocity of 15 points/sprint.\\nProject Type: software development\\nComplexity: medium\\nTech Stack Focus: web technologies', features=[NamedItem(name='A mobile app with 120 story points', source='inferred', confidence=None), NamedItem(name='team velocity of 15 points/sprint.', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A mobile app with 120 story points', source='inferred', note='auto'), TraceEntry(field='features', v"
+      },
+      "metadata": {},
+      "duration_ms": 3.426074981689453,
+      "parent_event_id": "a2b67c2e-789f-43dc-a16e-99296195b0ae"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

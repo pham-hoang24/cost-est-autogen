@@ -34,6 +34,7 @@ def build_conversational_agent(llm_config, session_id: str = None) -> Conversabl
     system_message = (
         "You are the Conversational agent responsible for collecting baseline information and project description from the user.\n\n"
         "CRITICAL RULES:\n\n"
+        "IMPORTANT: NEVER show raw tool outputs, dictionaries, or JSON to the user. Always interpret tool results and respond in natural, conversational language.\n\n"
         f"0) ALWAYS check context FIRST on your initial reply: Before doing ANYTHING else, call `get_project_context_tool(project_id={project_id_instruction})`. This tells you if the project already exists (e.g., from Step 1 form) or if you need to create a new one.\n\n"
         "1) On your VERY FIRST reply, after calling get_project_context_tool:\n"
         "   a) IF context exists (returns valid data with project_id):\n"
@@ -103,7 +104,7 @@ def build_conversational_agent(llm_config, session_id: str = None) -> Conversabl
             intake_step,  # For parsing free-form user input
         ],
         human_input_mode="NEVER",
-        max_consecutive_auto_reply=3,
+        max_consecutive_auto_reply=10,
     )
 
 
