@@ -1,0 +1,64 @@
+{
+  "session_id": "session_1764315903327_2n00n8m9w",
+  "created_at": "2025-11-28T07:45:18.824628",
+  "updated_at": "2025-11-28T07:45:26.360613",
+  "events": [
+    {
+      "event_id": "00b89bc4-62cb-4725-8ac3-360521bc987d",
+      "session_id": "session_1764315903327_2n00n8m9w",
+      "timestamp": "2025-11-28T07:45:18.824593",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1764315903327_2n00n8m9w",
+        "project_type": "web-application",
+        "complexity": "medium",
+        "tech_stack": "web",
+        "team_pref": 10,
+        "region": "north-america",
+        "project_duration": "3-6-months",
+        "description": "A medium web-application project using web in north-america."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "82fb1c29-46af-4c5c-bd45-90fd40471e6f",
+      "session_id": "session_1764315903327_2n00n8m9w",
+      "timestamp": "2025-11-28T07:45:18.879670",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1_complete",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "error_count": 0,
+        "missing_methods_count": 4
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "b0b1a3bd-858c-4d9e-a6ac-22b2f4600fea",
+      "session_id": "session_1764315903327_2n00n8m9w",
+      "timestamp": "2025-11-28T07:45:26.360504",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "We are building a customer relationship management (CRM) platform for small to medium-sized businesses. The system will help businesses manage their customer contacts, track sales opportunities, manage marketing campaigns, and generate sales reports. Key features include:  - User authentication and role-based access control (admin, sales manager, sales rep) - Contact management: add, edit, delete, and search customer contacts - Sales pipeline management: track deals through stages (lead, qualified, proposal, negotiation, closed-won, closed-lost) - Task and activity tracking: schedule meetings, set reminders, log calls and emails - Email integration: sync with Gmail and Outlook for email tracking - Reporting dashboard: visual analytics for sales performance, conversion rates, and revenue trends - Mobile responsive design: access from desktop and mobile devices  The platform needs to support up to 1000 concurrent users and should integrate with popular third-party services like Stripe for payments and Mailchimp for email marketing. We expect the MVP to launch in 6 months with core features, followed by iterative enhancements based on user feedback.",
+        "history_length": 1
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

@@ -22,6 +22,7 @@ class ParserService:
         user_text: str,
         prior_answers: Dict[str, str],
         expansion: Optional[ExpansionV1] = None,
+        inferred_fields: Optional[Dict[str, Any]] = None,
     ) -> ParsedContextV1:
         context = ParsedContextV1()
         provenance: list[ProvenanceEntry] = []
@@ -32,10 +33,83 @@ class ParserService:
             seed_missing = self._ingest_expansion(expansion, context, provenance)
         else:
             seed_missing = []
+            
+        if inferred_fields:
+            self._ingest_inferred_fields(context, inferred_fields, provenance)
 
         context.provenance = provenance
         context.missing_signals = self._compute_missing_signals(context, seed_missing)
         return context
+
+    def _ingest_inferred_fields(
+        self,
+        context: ParsedContextV1,
+        inferred: Dict[str, Any],
+        provenance: list[ProvenanceEntry],
+    ) -> None:
+        """Map inferred fields to ParsedContextV1 structure."""
+        # KSLOC
+        if ksloc_data := inferred.get("ksloc"):
+            if context.size.ksloc is None:  # Only if not already set by user
+                context.size.ksloc = ksloc_data.get("value")
+                provenance.append(ProvenanceEntry(
+                    field="size.ksloc", 
+                    source="inferred", 
+                    span="auto-inferred", 
+                    confidence=ksloc_data.get("confidence", 0.5)
+                ))
+        
+        # Function Points
+        if fp_data := inferred.get("unadjusted_fp"):
+            if context.size.ufp is None:
+                context.size.ufp = fp_data.get("value")
+                provenance.append(ProvenanceEntry(
+                    field="size.ufp", 
+                    source="inferred", 
+                    span="auto-inferred", 
+                    confidence=fp_data.get("confidence", 0.5)
+                ))
+                
+        # Story Points
+        if sp_data := inferred.get("story_points"):
+            if context.size.story_points is None:
+                context.size.story_points = sp_data.get("value")
+                provenance.append(ProvenanceEntry(
+                    field="size.story_points", 
+                    source="inferred", 
+                    span="auto-inferred", 
+                    confidence=sp_data.get("confidence", 0.5)
+                ))
+                
+        # Velocity
+        if vel_data := inferred.get("team_velocity"):
+            if context.agile.velocity_sp_per_sprint is None:
+                context.agile.velocity_sp_per_sprint = vel_data.get("value")
+                provenance.append(ProvenanceEntry(
+                    field="agile.velocity_sp_per_sprint", 
+                    source="inferred", 
+                    span="auto-inferred", 
+                    confidence=vel_data.get("confidence", 0.5)
+                ))
+                
+        # Reuse Profile
+        if reuse_data := inferred.get("reuse_profile"):
+            values = reuse_data.get("value", {})
+            if isinstance(values, dict):
+                # Map reuse profile keys to context.reuse fields
+                if context.reuse.dm_pct is None: context.reuse.dm_pct = values.get("design")
+                if context.reuse.cm_pct is None: context.reuse.cm_pct = values.get("code")
+                if context.reuse.im_pct is None: context.reuse.im_pct = values.get("integration")
+                # Testing reuse maps to aa_pct (assessment & assimilation) or su_pct (software understanding)
+                # For now, let's map testing to aa_pct as a proxy
+                if context.reuse.aa_pct is None: context.reuse.aa_pct = values.get("testing")
+                
+                provenance.append(ProvenanceEntry(
+                    field="reuse.profile", 
+                    source="inferred", 
+                    span="auto-inferred", 
+                    confidence=reuse_data.get("confidence", 0.5)
+                ))
 
     def _ingest_prior_answers(
         self,

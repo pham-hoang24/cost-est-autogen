@@ -127,7 +127,8 @@ class WorkflowOrchestrator:
             "EXPANSION_CONFIRMED",
             {"approval_text": approval_text},
         )
-        return context
+        # Auto-trigger normalization and inference
+        return self.normalize_and_infer(project_id)
 
     # ------------------------------------------------------------------
     # Normalization & Inference
@@ -166,25 +167,46 @@ class WorkflowOrchestrator:
         context.normalized_inputs = normalized
         context.derived_coefficients = coefficients
         
-        # 2. Hybrid Mode Inference (Mock logic for now)
-        # If specific fields are missing, infer them from description
-        inferred = {}
-        if "ksloc" not in context.normalized_inputs:
-             # Simple inference based on complexity
-             base_ksloc = 10.0
-             inferred["ksloc"] = {
-                 "value": base_ksloc * normalized["complexity_factor"],
-                 "confidence": 0.5,
-                 "source": "inferred_from_complexity"
-             }
+        # 2. Enhanced Inference using InferenceService
+        from workflow.inference_service import InferenceService, InferenceResult
         
-        context.inferred_fields = inferred
+        inference_service = InferenceService()
+        
+        # Extract features from expansion
+        features = []
+        if context.expansion_confirmed:
+            features = context.expansion_confirmed.features or []
+        
+        # Run comprehensive inference
+        inferred_result: InferenceResult = inference_service.infer_all_parameters(
+            baseline=baseline,
+            features=[f.model_dump() if hasattr(f, 'model_dump') else f for f in features],
+            description=context.user_description or "",
+            user_provided={}  # TODO: Check for user overrides in context
+        )
+        
+        # Convert InferenceResult to dict for storage
+        context.inferred_fields = inferred_result.model_dump(exclude_none=True)
+        
+        # Calculate average confidence for logging
+        confidences = []
+        for field_name in ['ksloc', 'story_points', 'team_velocity', 'unadjusted_fp', 'reuse_profile']:
+            field_data = context.inferred_fields.get(field_name)
+            if field_data and isinstance(field_data, dict):
+                confidences.append(field_data.get('confidence', 0.5))
+        
+        avg_confidence = sum(confidences) / len(confidences) if confidences else 0.5
         
         context = self.repository.save(context)
         context = self.event_logger.log(
             project_id,
             "INPUTS_NORMALIZED",
-            {"normalized": normalized, "inferred_count": len(inferred)}
+            {
+                "normalized": normalized,
+                "inferred_count": len([k for k in context.inferred_fields.keys() if k not in ['ksloc_range', 'story_points_range']]),
+                "avg_confidence": round(avg_confidence, 2),
+                "ksloc": context.inferred_fields.get('ksloc', {}).get('value') if context.inferred_fields.get('ksloc') else None
+            }
         )
         return context
 
@@ -198,7 +220,12 @@ class WorkflowOrchestrator:
             raise ValueError("Expansion must be confirmed before method selection.")
 
         prior = context.baseline.model_dump(exclude_none=True)
-        parsed = self.parser_service.parse(context.user_description, prior, context.expansion_confirmed)
+        parsed = self.parser_service.parse(
+            context.user_description, 
+            prior, 
+            context.expansion_confirmed,
+            inferred_fields=context.inferred_fields
+        )
         selection = self.selector.evaluate(parsed)
 
         context.parsed_context = parsed

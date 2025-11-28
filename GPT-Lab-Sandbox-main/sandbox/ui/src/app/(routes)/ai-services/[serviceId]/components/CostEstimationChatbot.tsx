@@ -211,6 +211,14 @@ export default function CostEstimationChatbot({
       setMessages(prev => [...prev, botMsg]);
       setIsTyping(false);
 
+      // Check for validation success message
+      if (data.response.includes("Perfect! I have sufficient information") || 
+          data.response.includes("You can now proceed with the estimation")) {
+        if (onEstimationReady) {
+          onEstimationReady(true);
+        }
+      }
+
       // Handle recommendations if ready
       if (data.is_ready && data.recommended_methods.length > 0) {
         // Map backend method IDs to frontend method objects

@@ -1,0 +1,43 @@
+{
+  "session_id": "2ac832bf-fc73-47cc-960f-e2236e9355b4",
+  "created_at": "2025-11-27T20:57:00.311938",
+  "updated_at": "2025-11-27T20:57:00.315081",
+  "events": [
+    {
+      "event_id": "038317d3-ac27-452b-b1fd-f3cc54702e96",
+      "session_id": "2ac832bf-fc73-47cc-960f-e2236e9355b4",
+      "timestamp": "2025-11-27T20:57:00.311929",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x102ed1a90>, '2ac832bf-fc73-47cc-960f-e2236e9355b4')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d132827e-6b9e-4e3c-830b-aa8909cfb03a",
+      "session_id": "2ac832bf-fc73-47cc-960f-e2236e9355b4",
+      "timestamp": "2025-11-27T20:57:00.315073",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='2ac832bf-fc73-47cc-960f-e2236e9355b4' version=18 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='web application', complexity='medium', tech_stack='React, Node.js, PostgreSQL, AWS', team_pref=8, region='north-america', project_duration='3-6 months') user_description='We are building a customer relationship management (CRM) platform for small to medium-sized businesses. \\nThe system will help businesses manage their customer contacts, track sales opportunities, manage marketing campaigns, and generate sales reports.\\n\\nKey features include:\\n- User authentication and role-based access control (admin, sales manager, sales rep)\\n- Contact management: add, edit, delete, and search customer contacts\\n- Sales pipeline management: track deals through stages (lead, qualified, proposal, negotiation, closed-won, closed-lost)\\n- Task and activity tracking: schedule meetings, set reminders, log calls and emails\\n- Email integration: sync with Gmail and Outlook for ema"
+      },
+      "metadata": {},
+      "duration_ms": 3.056049346923828,
+      "parent_event_id": "038317d3-ac27-452b-b1fd-f3cc54702e96"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

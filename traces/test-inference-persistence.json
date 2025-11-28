@@ -1,0 +1,77 @@
+{
+  "session_id": "test-inference-persistence",
+  "created_at": "2025-11-28T07:10:35.301878",
+  "updated_at": "2025-11-28T07:10:35.338828",
+  "events": [
+    {
+      "event_id": "3454b2d0-d6c3-464d-8228-88460c7d7454",
+      "session_id": "test-inference-persistence",
+      "timestamp": "2025-11-28T07:10:35.301866",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x102f31a90>, 'test-inference-persistence')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "08114557-1a42-4542-aebd-e0b55617ea3b",
+      "session_id": "test-inference-persistence",
+      "timestamp": "2025-11-28T07:10:35.305962",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-inference-persistence' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='web application', complexity='medium', tech_stack='React, Node.js', team_pref=5, region='US', project_duration=None) user_description='A simple e-commerce website with product listing, cart, and checkout.' expansion_draft=ExpansionV1(summary='Overview: A simple e-commerce website with product listing, cart, and checkout.\\nProject Type: web application\\nComplexity: medium\\nTech Stack Focus: React, Node.js', features=[NamedItem(name='A simple e-commerce website with product listing', source='inferred', confidence=None), NamedItem(name='cart', source='inferred', confidence=None), NamedItem(name='and checkout.', source='inferred', confidence=None)], non_functionals=[], platforms=[], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A simple e-commerce website with product listing', source='inferred', note='auto'), TraceEntry(field='features', value='"
+      },
+      "metadata": {},
+      "duration_ms": 4.047870635986328,
+      "parent_event_id": "3454b2d0-d6c3-464d-8228-88460c7d7454"
+    },
+    {
+      "event_id": "2eeb83a2-84e9-4c94-b375-6afc83225576",
+      "session_id": "test-inference-persistence",
+      "timestamp": "2025-11-28T07:10:35.332542",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x102f31a90>, 'test-inference-persistence')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "a3b3af64-886c-4632-b375-b5c261311e52",
+      "session_id": "test-inference-persistence",
+      "timestamp": "2025-11-28T07:10:35.338820",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-inference-persistence' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='web application', complexity='medium', tech_stack='React, Node.js', team_pref=5, region='US', project_duration=None) user_description='A simple e-commerce website with product listing, cart, and checkout.' expansion_draft=ExpansionV1(summary='Overview: A simple e-commerce website with product listing, cart, and checkout.\\nProject Type: web application\\nComplexity: medium\\nTech Stack Focus: React, Node.js', features=[NamedItem(name='A simple e-commerce website with product listing', source='inferred', confidence=None), NamedItem(name='cart', source='inferred', confidence=None), NamedItem(name='and checkout.', source='inferred', confidence=None)], non_functionals=[], platforms=[], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A simple e-commerce website with product listing', source='inferred', note='auto'), TraceEntry(field='features', value='car"
+      },
+      "metadata": {},
+      "duration_ms": 6.125926971435547,
+      "parent_event_id": "2eeb83a2-84e9-4c94-b375-6afc83225576"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

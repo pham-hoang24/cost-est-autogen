@@ -215,7 +215,7 @@ class ProjectContext(BaseModel):
     
     # NEW: Missing fields per method for Step 2
     missing_by_method: Dict[str, List[str]] = Field(default_factory=dict)
-    inferred_fields: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    inferred_fields: Dict[str, Any] = Field(default_factory=dict)
     full_report: Optional["CostEstimationReport"] = None
 
 

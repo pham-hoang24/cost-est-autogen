@@ -18,12 +18,12 @@ from tools.orchestrator_tools import (
 )
 
 
-def build_evaluate_agent(llm_config) -> ConversableAgent:
+def build_explainer_agent(llm_config) -> ConversableAgent:
     if llm_config in (None, False):
-        raise ValueError("Evaluate agent requires an active LLM configuration.")
+        raise ValueError("Explainer agent requires an active LLM configuration.")
 
     system_message = (
-        "You are the Evaluate agent (formerly Explainer). "
+        "You are the Explainer agent. "
         "CRITICAL: During baseline collection, remain SILENT. "
         "Only respond when explicitly requested or when estimates have been attached. "
         "Your responsibilities:\n"
@@ -42,7 +42,7 @@ def build_evaluate_agent(llm_config) -> ConversableAgent:
     )
 
     return ConversableAgent(
-        name="EvaluateAgent",
+        name="ExplainerAgent",
         llm_config=llm_config,
         system_message=system_message,
         functions=[generate_explanation_tool, get_project_context_tool, generate_full_report_tool],
@@ -51,5 +51,5 @@ def build_evaluate_agent(llm_config) -> ConversableAgent:
     )
 
 
-__all__ = ["build_evaluate_agent"]
+__all__ = ["build_explainer_agent"]
 

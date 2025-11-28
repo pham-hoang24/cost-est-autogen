@@ -352,14 +352,46 @@ async def chat_endpoint(request: ChatRequest):
         )
         
         # Instantiate the real agents
+        from agents.conversational_agent import build_conversational_agent
+        from agents.interpreter_agent import build_interpreter_agent
+        from agents.method_selector_agent import build_method_selector_agent
+        from agents.cocomo_agent import build_cocomo_agent
+        from agents.storypoints_agent import build_storypoints_agent
+        from agents.fpa_agent import build_fpa_agent
+        from agents.parametric_agent import build_parametric_agent
+        from agents.bottomup_agent import build_bottomup_agent
+        from agents.analogous_agent import build_analogous_agent
+        from agents.explainer_agent import build_explainer_agent
+
         conversational_agent = build_conversational_agent(llm_config, session_id=session_id)
         interpreter_agent = build_interpreter_agent(llm_config)
         method_selector_agent = build_method_selector_agent(llm_config)
         
+        # Instantiate estimation agents
+        cocomo_agent = build_cocomo_agent(llm_config)
+        storypoints_agent = build_storypoints_agent(llm_config)
+        fpa_agent = build_fpa_agent(llm_config)
+        parametric_agent = build_parametric_agent(llm_config)
+        bottomup_agent = build_bottomup_agent(llm_config)
+        analogous_agent = build_analogous_agent(llm_config)
+        explainer_agent = build_explainer_agent(llm_config)
+        
         # Create GroupChat
         # We pass the history so the agents have context of previous turns
         groupchat = autogen.GroupChat(
-            agents=[user_proxy, conversational_agent, interpreter_agent, method_selector_agent],
+            agents=[
+                user_proxy, 
+                conversational_agent, 
+                interpreter_agent, 
+                method_selector_agent,
+                cocomo_agent,
+                storypoints_agent,
+                fpa_agent,
+                parametric_agent,
+                bottomup_agent,
+                analogous_agent,
+                explainer_agent
+            ],
             messages=request.history or [],
             max_round=30,  # Increased to allow full workflow completion
             speaker_selection_method="auto"
@@ -707,23 +739,41 @@ async def generate_report(request: EstimationRequest):
         
         # Use session_id as project_id for workflow tracing
         project_id = session_id
-        context = orchestrator.start_new_project(project_id)
         
-        # Record baseline inputs
-        baseline = request.baseline_inputs
-        orchestrator.record_baseline_field(project_id, "project_type", baseline.project_type)
-        orchestrator.record_baseline_field(project_id, "complexity", baseline.complexity)
-        orchestrator.record_baseline_field(project_id, "tech_stack", baseline.tech_stack)
-        orchestrator.record_baseline_field(project_id, "team_pref", str(baseline.team_pref))
-        orchestrator.record_baseline_field(project_id, "region", baseline.region)
+        # Try to load existing context first
+        try:
+            context = orchestrator.load_context(project_id)
+            print(f"Loaded existing context for {project_id}, status: {context.status}")
+        except Exception:
+            print(f"No existing context for {project_id}, starting new project")
+            context = orchestrator.start_new_project(project_id)
+            
+            # Record baseline inputs only if new project
+            baseline = request.baseline_inputs
+            orchestrator.record_baseline_field(project_id, "project_type", baseline.project_type)
+            orchestrator.record_baseline_field(project_id, "complexity", baseline.complexity)
+            orchestrator.record_baseline_field(project_id, "tech_stack", baseline.tech_stack)
+            orchestrator.record_baseline_field(project_id, "team_pref", str(baseline.team_pref))
+            orchestrator.record_baseline_field(project_id, "region", baseline.region)
+            
+            if baseline.description:
+                orchestrator.submit_description(project_id, baseline.description)
+            
+            # Generate expansion and select methods
+            orchestrator.generate_expansion(project_id)
+            orchestrator.confirm_expansion(project_id, "approve")
+            orchestrator.evaluate_methods(project_id)
         
-        if baseline.description:
-            orchestrator.submit_description(project_id, baseline.description)
+        # If context exists but estimates are missing, we might need to trigger estimation
+        # But for now, we assume the Chatbot flow has populated the estimates
+        # or that generate_full_report handles it.
         
-        # Generate expansion and select methods
-        orchestrator.generate_expansion(project_id)
-        orchestrator.confirm_expansion(project_id, "approve")
-        orchestrator.evaluate_methods(project_id)
+        # Check if we need to run estimation (if not done yet)
+        if not context.estimates and context.status == "METHOD_SELECTED":
+             # This might happen if user skipped chat or chat didn't finish estimation
+             # We could trigger agents here, but that's complex.
+             # For now, let's rely on what we have.
+             pass
         
         # Prepare estimation config
         estimation_config = {
