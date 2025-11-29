@@ -210,7 +210,7 @@ def _build_team_roles(staff_count: int, base_rate: float) -> List[TeamRoleCount]
 def generate_cocomo_ii_estimation(
     project_name: str,
     ksloc: float,
-    scale_factor_ratings: Mapping[str, Union[str, Number]],
+    scale_factor_ratings: Optional[Mapping[str, Union[str, Number]]] = None,
     cost_driver_ratings: Optional[Mapping[str, Union[str, Number]]] = None,
     *,
     hourly_rate: float = 120.0,
@@ -230,8 +230,8 @@ def generate_cocomo_ii_estimation(
     ksloc:
         Estimated thousands of source lines of code (KSLOC).
     scale_factor_ratings:
-        Mapping of the five scale factors (`prec`, `flex`, `resl`, `team`, `pmat`)
-        to rating labels or numeric multipliers.
+        Optional mapping of the five scale factors (`prec`, `flex`, `resl`, `team`, `pmat`)
+        to rating labels or numeric multipliers. If not provided, all factors default to 'nominal'.
     cost_driver_ratings:
         Optional mapping for the 17 cost drivers. Unspecified drivers default to nominal.
     hourly_rate:
@@ -256,8 +256,15 @@ def generate_cocomo_ii_estimation(
     if missing_constants:
         raise ValueError(f"Missing COCOMO constants: {sorted(missing_constants)}.")
 
+    # Default scale factors to 'nominal' if not provided
     if not scale_factor_ratings:
-        raise ValueError("scale_factor_ratings must include all five scale factors.")
+        scale_factor_ratings = {
+            "prec": "nominal",
+            "flex": "nominal", 
+            "resl": "nominal",
+            "team": "nominal",
+            "pmat": "nominal",
+        }
 
     sf_inputs: Dict[str, Union[str, Number]] = {}
     for raw_key, raw_value in scale_factor_ratings.items():

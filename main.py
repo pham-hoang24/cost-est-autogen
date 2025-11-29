@@ -26,6 +26,7 @@ from tools.orchestrator_tools import (
     normalize_and_infer_tool,
     validate_step1_tool,
     get_method_requirements_tool,
+    generate_full_report_tool,
 )
 
 app = FastAPI(title="Cost Estimation Microservice")
@@ -50,7 +51,8 @@ class BaselineInputs(BaseModel):
     tech_stack: str = Field(..., description="Primary tech stack")
     team_pref: int = Field(..., description="Desired team size")
     region: str = Field(..., description="Primary delivery region")
-    duration: Optional[str] = Field(..., description="Expected duration")
+    duration: Optional[str] = Field(None, description="Expected duration")  # Made optional
+    description: Optional[str] = Field(None, description="Project description")  # Added
 
 class MethodSelection(BaseModel):
     method_name: str
@@ -93,6 +95,7 @@ class ChatResponse(BaseModel):
     response: str
     is_ready: bool = False
     recommended_methods: List[str] = []
+    summary_confirmed: bool = False  # Track if user has confirmed the summary
 
 # Endpoints
 
@@ -269,6 +272,104 @@ async def chat_endpoint(request: ChatRequest):
     except Exception as e:
         print(f"Could not load context: {e}")
     
+    # ============================================================================
+    # NEW: Confirmation Flow Logic
+    # ============================================================================
+    # Check if we need to handle summary confirmation flow
+    try:
+        from tools.orchestrator_tools import get_project_context_tool
+        context = get_project_context_tool(session_id)
+        
+        # Check if expansion is confirmed and we should show summary
+        if context.get("status") == "EXPANSION_CONFIRMED" and context.get("expansion_confirmed"):
+            # Phase 1: Generate and show summary for confirmation
+            expansion = context["expansion_confirmed"]
+            
+            # Check if user is responding to confirm or modify the summary
+            message_lower = request.message.lower()
+            confirmation_keywords = ["yes", "correct", "looks good", "look good", "right", "yep", "approve", "confirmed", "confirm", "ok", "okay", "good"]
+            modification_keywords = ["change", "modify", "update", "wrong", "no", "not", "different", "should be"]
+            
+            is_confirmation = any(kw in message_lower for kw in confirmation_keywords)
+            is_modification = any(kw in message_lower for kw in modification_keywords)
+            
+            if is_confirmation and not is_modification:
+                # Phase 2: User confirmed! Now show methods
+                # Let agents process and return methods
+                # We'll mark this so agents know to proceed with method selection
+                pass  # Continue to agent processing below
+            elif is_modification:
+                # User wants to change something - let agents handle the modification
+                pass  # Continue to agent processing
+            else:
+                # First time seeing EXPANSION_CONFIRMED - show summary
+                # Build readable summary from expansion_confirmed
+                summary_parts = [
+                    "Based on your description, here's what I understand:\n"
+                ]
+                
+                baseline = context.get("baseline", {})
+                if baseline.get("project_type"):
+                    summary_parts.append(f"- **Project Type**: {baseline['project_type']}")
+                if baseline.get("complexity"):
+                    summary_parts.append(f"- **Complexity**: {baseline['complexity']}")
+                if baseline.get("tech_stack"):
+                    summary_parts.append(f"- **Tech Stack**: {baseline['tech_stack']}")
+                if baseline.get("team_pref"):
+                    summary_parts.append(f"- **Team Size**: {baseline['team_pref']}")
+                if baseline.get("region"):
+                    summary_parts.append(f"- **Region**: {baseline['region']}")
+                
+                # Add features if available
+                features = expansion.get("features", [])
+                if features:
+                    summary_parts.append("\n**Features Detected:**")
+                    for feature in features[:5]:  # Show top 5 features
+                        if isinstance(feature, dict):
+                            name = feature.get("name", "Unknown")
+                            summary_parts.append(f"  • {name}")
+                        else:
+                            summary_parts.append(f"  • {feature}")
+                
+                # Add assumptions if available
+                assumptions = expansion.get("assumptions", [])
+                if assumptions:
+                    summary_parts.append("\n**Assumptions:**")
+                    for assumption in assumptions[:3]:  # Show top 3 assumptions
+                        summary_parts.append(f"  • {assumption}")
+                
+                summary_parts.append("\n**Is this understanding correct?** Please confirm or tell me what to change.")
+                
+                summary_text = "\n".join(summary_parts)
+                
+                # Log summary generation
+                store.add_event(session_id, TraceEvent(
+                    session_id=session_id,
+                    event_type=TraceEventType.AGENT_RESPONSE,
+                    agent_name="ChatBot_SummaryGeneration",
+                    output_data={
+                        "response": summary_text[:200],
+                        "is_ready": True,
+                        "recommended_methods": [],
+                        "summary_confirmed": False
+                    }
+                ))
+                
+                return ChatResponse(
+                    response=summary_text,
+                    is_ready=True,
+                    recommended_methods=[],  # Don't show methods yet
+                    summary_confirmed=False
+                )
+    except Exception as e:
+        print(f"Error in confirmation flow: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    # ============================================================================
+    # End of Confirmation Flow Logic
+    # ============================================================================
+    
     # Check for OpenRouter API key only  
     api_key = os.environ.get("OPENROUTER_API_KEY")
     model = os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o")
@@ -332,9 +433,16 @@ async def chat_endpoint(request: ChatRequest):
         
         # Register all orchestrator tools with user_proxy for execution
         from tools.intake_tools import intake_step
+        from tools.cocomo_tools import generate_cocomo_ii_estimation
+        from tools.storypoints_tools import generate_storypoints_estimation
+        from tools.fpa_tools import generate_fpa_estimation  
+        from tools.analogous_tools import generate_analogous_estimation
+        from tools.parametric_tools import generate_parametric_estimation
+        from tools.bottomup_tools import generate_bottom_up_estimation
         
         user_proxy.register_function(
             function_map={
+                # Orchestrator tools
                 "start_new_project_tool": start_new_project_tool,
                 "record_baseline_field_tool": record_baseline_field_tool,
                 "submit_user_description_tool": submit_user_description_tool,
@@ -346,8 +454,16 @@ async def chat_endpoint(request: ChatRequest):
                 "generate_explanation_tool": generate_explanation_tool,
                 "validate_step1_tool": validate_step1_tool,
                 "get_method_requirements_tool": get_method_requirements_tool,
-                "register_estimate_tool": register_estimate_tool, # This was in the original, keeping it.
-                "intake_step": intake_step,  # For parsing free-form user input
+                "register_estimate_tool": register_estimate_tool,
+                "generate_full_report_tool": generate_full_report_tool,  # Added this
+                "intake_step": intake_step,
+                # Estimation method tools
+                "generate_cocomo_ii_estimation": generate_cocomo_ii_estimation,
+                "generate_storypoints_estimation": generate_storypoints_estimation,
+                "generate_fpa_estimation": generate_fpa_estimation,
+                "generate_analogous_estimation": generate_analogous_estimation,
+                "generate_parametric_estimation": generate_parametric_estimation,
+                "generate_bottom_up_estimation": generate_bottom_up_estimation,
             }
         )
         
@@ -786,7 +902,11 @@ async def generate_report(request: EstimationRequest):
         }
         
         # Generate full report
-        report = orchestrator.generate_full_report(project_id, estimation_config)
+        report = orchestrator.generate_full_report(
+            project_id=project_id, 
+            estimation_config=estimation_config,
+            selected_method=request.method_name  # Pass user selection
+        )
         
         # Log session completion
         store.add_event(session_id, TraceEvent(

@@ -85,18 +85,19 @@ class ExpansionService:
     def _infer_platforms(self, prior_answers: Dict[str, str]) -> list[PlatformEntry]:
         stack = prior_answers.get("tech_stack", "").lower()
         mapping = {
-            "web": "web",
-            "mobile": "mobile",
-            "ios": "ios",
-            "android": "android",
-            "cloud": "cloud",
-            "desktop": "desktop",
-            "ai": "cloud",
+            "web": ["web"],
+            "mobile": ["ios", "android"],  # Map mobile to both
+            "ios": ["ios"],
+            "android": ["android"],
+            "cloud": ["cloud"],
+            "desktop": ["desktop"],
+            "ai": ["cloud"],
         }
         platforms = []
-        for token, platform in mapping.items():
+        for token, mapped_platforms in mapping.items():
             if token in stack:
-                platforms.append(PlatformEntry(name=platform, source="user"))
+                for platform in mapped_platforms:
+                    platforms.append(PlatformEntry(name=platform, source="user"))
         return platforms
 
     def _infer_constraints(self, user_text: str) -> list[ConstraintEntry]:

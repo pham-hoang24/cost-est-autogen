@@ -342,7 +342,7 @@ class WorkflowOrchestrator:
     # ------------------------------------------------------------------
     @trace_agent_call("WorkflowOrchestrator")
     def generate_full_report(
-        self, project_id: str, estimation_config: Dict[str, Any]
+        self, project_id: str, estimation_config: Dict[str, Any], selected_method: Optional[str] = None
     ) -> CostEstimationReport:
         """
         Generate complete cost estimation report matching frontend schema.
@@ -350,6 +350,7 @@ class WorkflowOrchestrator:
         Args:
             project_id: Project identifier
             estimation_config: Configuration dict with currency, accuracy, etc.
+            selected_method: Optional method name selected by user to override default
             
         Returns:
             CostEstimationReport with all fields populated
@@ -359,7 +360,29 @@ class WorkflowOrchestrator:
 
         # Determine methods used
         methods_used = []
-        if context.selection and context.selection.primary:
+        
+        # If user explicitly selected a method, prioritize it
+        if selected_method:
+            # Map frontend names to backend names if needed
+            method_map = {
+                "cocomo": "cocomo2",
+                "function-points": "fpa",
+                "story-points": "agile_sp",
+                "parametric": "parametric",
+                "bottom-up": "bottomup",
+                "analogous": "analogous",
+                "hybrid": "blend"
+            }
+            backend_method = method_map.get(selected_method, selected_method)
+            methods_used.append(backend_method)
+            
+            # Add backups from context if they are different
+            if context.selection and context.selection.backups:
+                for backup in context.selection.backups[:2]:
+                    if backup != backend_method:
+                        methods_used.append(backup)
+        # Otherwise use auto-selected methods
+        elif context.selection and context.selection.primary:
             methods_used.append(context.selection.primary)
             if context.selection.backups:
                 methods_used.extend(context.selection.backups[:2])  # Max 3 methods

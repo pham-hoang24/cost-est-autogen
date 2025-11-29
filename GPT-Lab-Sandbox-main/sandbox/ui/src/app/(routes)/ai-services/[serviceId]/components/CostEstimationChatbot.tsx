@@ -41,6 +41,14 @@ interface ChatMessage {
   hybridOption?: boolean;
 }
 
+// Backend response interface
+interface ChatResponse {
+  response: string;
+  is_ready: boolean;
+  recommended_methods: string[];
+  summary_confirmed?: boolean;
+}
+
 interface CostEstimationChatbotProps {
   sessionId: string;  // Session ID for tracing
   onMethodsSelected?: (methods: string[]) => void;
@@ -219,8 +227,10 @@ export default function CostEstimationChatbot({
         }
       }
 
-      // Handle recommendations if ready
-      if (data.is_ready && data.recommended_methods.length > 0) {
+      // NEW: Handle recommendations if ready AND has methods
+      // Phase 1: If is_ready but no methods, it's the summary - just show the text (already added above)
+      // Phase 2: If is_ready AND has methods, show the method cards
+      if (data.is_ready && data.recommended_methods && data.recommended_methods.length > 0) {
         // Map backend method IDs to frontend method objects
         const recommended = methodsDatabase.find(m => m.id === data.recommended_methods[0]);
         const others = methodsDatabase.filter(m => !data.recommended_methods.includes(m.id));
@@ -240,6 +250,8 @@ export default function CostEstimationChatbot({
           }, 500);
         }
       }
+      // If is_ready is true but no methods, it's Phase 1 (summary) - user needs to confirm
+      // The summary text is already displayed in botMsg above
       
     } catch (error) {
       console.error('Chat error:', error);

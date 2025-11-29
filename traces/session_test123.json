@@ -1,0 +1,51 @@
+{
+  "session_id": "session_test123",
+  "created_at": "2025-11-28T16:28:28.414450",
+  "updated_at": "2025-11-28T16:28:28.467745",
+  "events": [
+    {
+      "event_id": "0c3a7a95-b89c-487f-9772-5949c009cedd",
+      "session_id": "session_test123",
+      "timestamp": "2025-11-28T16:28:28.412848",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "web-application",
+          "complexity": "medium",
+          "tech_stack": "web",
+          "team_pref": 5,
+          "region": "europe",
+          "duration": "6-12-months"
+        },
+        "method_name": "cocomo",
+        "additional_inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "93aa9009-5ea8-40f4-b3da-9afa156dc7db",
+      "session_id": "session_test123",
+      "timestamp": "2025-11-28T16:28:28.467367",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "error": "'BaselineInputs' object has no attribute 'description'",
+        "error_type": "AttributeError"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "error"
+}

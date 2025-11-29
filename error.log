@@ -1,5 +1,77 @@
-Chat error: cannot import name 'build_explainer_agent' from 'agents.explainer_agent' (/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/agents/explainer_agent.py)
+Chat error: Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}}
 Traceback (most recent call last):
-  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/main.py", line 364, in chat_endpoint
-    from agents.explainer_agent import build_explainer_agent
-ImportError: cannot import name 'build_explainer_agent' from 'agents.explainer_agent' (/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/agents/explainer_agent.py). Did you mean: 'explainer_agent'?
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/main.py", line 520, in chat_endpoint
+    chat_result = user_proxy.initiate_chat(
+        manager,
+        message=request.message,
+        clear_history=False # Keep history we just passed
+    )
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 1475, in initiate_chat
+    self.send(msg2send, recipient, silent=silent)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 1128, in send
+    recipient.receive(message, self, request_reply, silent)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 1236, in receive
+    reply = self.generate_reply(messages=self.chat_messages[sender], sender=sender)
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 2881, in generate_reply
+    final, reply = reply_func(self, messages=messages, sender=sender, config=reply_func_tuple["config"])
+                   ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/groupchat.py", line 1255, in run_chat
+    speaker = groupchat.select_speaker(speaker, self)
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/groupchat.py", line 581, in select_speaker
+    return self._auto_select_speaker(last_speaker, selector, messages if messages else self.messages, agents)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/groupchat.py", line 762, in _auto_select_speaker
+    result = checking_agent.initiate_chat(
+        speaker_selection_agent,
+    ...<5 lines>...
+        silent=not self.select_speaker_auto_verbose,  # Base silence on the verbose attribute
+    )
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 1462, in initiate_chat
+    self.send(msg2send, recipient, request_reply=True, silent=silent)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 1128, in send
+    recipient.receive(message, self, request_reply, silent)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 1236, in receive
+    reply = self.generate_reply(messages=self.chat_messages[sender], sender=sender)
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 2881, in generate_reply
+    final, reply = reply_func(self, messages=messages, sender=sender, config=reply_func_tuple["config"])
+                   ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 2164, in generate_oai_reply
+    extracted_response = self._generate_oai_reply_from_client(
+        client,
+    ...<2 lines>...
+        **kwargs,
+    )
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/agentchat/conversable_agent.py", line 2199, in _generate_oai_reply_from_client
+    response = llm_client.create(
+        context=messages[-1].pop("context", None),
+    ...<3 lines>...
+        **kwargs,
+    )
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/oai/client.py", line 1232, in create
+    response = client.create(params)
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/oai/client.py", line 654, in create
+    response = create_or_parse(**params)
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/autogen/oai/client.py", line 454, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/openai/resources/chat/completions/completions.py", line 1189, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<47 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/openai/_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/openai/_base_client.py", line 1047, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}}

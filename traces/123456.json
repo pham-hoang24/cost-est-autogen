@@ -1,0 +1,43 @@
+{
+  "session_id": "123456",
+  "created_at": "2025-11-29T12:56:23.473967",
+  "updated_at": "2025-11-29T12:56:23.479716",
+  "events": [
+    {
+      "event_id": "d5b76e9e-2b24-4b8c-b7bb-87293c721bbc",
+      "session_id": "123456",
+      "timestamp": "2025-11-29T12:56:23.473897",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x1087186e0>, '123456')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "109cf0e5-df97-4d9d-9c36-038bf35ccc59",
+      "session_id": "123456",
+      "timestamp": "2025-11-29T12:56:23.479655",
+      "event_type": "error",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "error": "Project context '123456' not found.",
+        "error_type": "ValueError"
+      },
+      "metadata": {},
+      "duration_ms": 5.792856216430664,
+      "parent_event_id": "d5b76e9e-2b24-4b8c-b7bb-87293c721bbc"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

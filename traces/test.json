@@ -1,7 +1,7 @@
 {
   "session_id": "test",
   "created_at": "2025-11-25T19:10:05.994853",
-  "updated_at": "2025-11-25T19:10:06.000531",
+  "updated_at": "2025-11-28T16:27:46.629368",
   "events": [
     {
       "event_id": "9de74e97-4544-40ca-b916-a2e85518a168",
@@ -35,8 +35,50 @@
       "metadata": {},
       "duration_ms": null,
       "parent_event_id": null
+    },
+    {
+      "event_id": "8f28cd17-96c3-47b8-8a94-031ad29af684",
+      "session_id": "test",
+      "timestamp": "2025-11-28T16:27:46.555399",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "web-application",
+          "complexity": "medium",
+          "tech_stack": "web",
+          "team_pref": 5,
+          "region": "europe",
+          "duration": "6-12-months"
+        },
+        "method_name": "cocomo",
+        "additional_inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "c080849c-bc8d-4ed5-8104-bb1414f8eddc",
+      "session_id": "test",
+      "timestamp": "2025-11-28T16:27:46.626351",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "error": "'BaselineInputs' object has no attribute 'description'",
+        "error_type": "AttributeError"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
     }
   ],
   "metadata": {},
-  "status": "active"
+  "status": "error"
 }

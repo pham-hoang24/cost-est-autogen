@@ -109,19 +109,25 @@ def _missing_baseline(context: ProjectContext) -> Dict[str, str]:
     return missing
 
 
-def generate_full_report_tool(project_id: str, estimation_config: Dict[str, Any]) -> Dict[str, Any]:
+def generate_full_report_tool(
+    project_id: str, 
+    estimation_config: Dict[str, Any],
+    selected_method: Optional[str] = None
+) -> Dict[str, Any]:
     """
     Generate complete cost estimation report matching frontend expectations.
     
     Args:
         project_id: Project identifier
         estimation_config: Dictionary with keys like 'currency', 'accuracy', 'includeRisk', etc.
+        selected_method: Optional method name to override default selection
         
     Returns:
-        Complete cost estimation report as a dictionary
+        Dictionary representation of the full CostEstimationReport
     """
-    report = _ORCHESTRATOR.generate_full_report(project_id, estimation_config)
-    return report.dict()
+    orchestrator = WorkflowOrchestrator()
+    report = orchestrator.generate_full_report(project_id, estimation_config, selected_method)
+    return report.model_dump()
 
 
 def validate_step1_tool(project_id: str, baseline_data: Dict[str, Any]) -> Dict[str, Any]:
