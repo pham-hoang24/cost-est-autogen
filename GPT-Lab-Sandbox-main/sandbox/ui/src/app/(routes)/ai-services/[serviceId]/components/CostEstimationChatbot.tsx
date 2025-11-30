@@ -51,6 +51,8 @@ interface ChatResponse {
 
 interface CostEstimationChatbotProps {
   sessionId: string;  // Session ID for tracing
+  projectDetails?: any; // Added project details
+  estimationConfig?: any; // Added estimation config
   onMethodsSelected?: (methods: string[]) => void;
   onUpdateBasics?: (field: string, value: any) => void;
   onMethodSelected?: (methodIds: string[]) => void;
@@ -60,6 +62,8 @@ interface CostEstimationChatbotProps {
 
 export default function CostEstimationChatbot({
   sessionId,
+  projectDetails,
+  estimationConfig,
   onUpdateBasics,
   onMethodSelected,
   onEstimationReady,
@@ -194,12 +198,21 @@ export default function CostEstimationChatbot({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          session_id: sessionId,  // Add session ID for tracing
+          session_id: sessionId,
           message: userMsg.content,
           history: messages.map(m => ({
             role: m.type === 'user' ? 'user' : 'assistant',
             content: m.content
-          }))
+          })),
+          // Pass baseline inputs if this is the first message or they are available
+          baseline_inputs: projectDetails ? {
+            project_type: projectDetails.projectType,
+            complexity: projectDetails.complexity,
+            tech_stack: projectDetails.technology,
+            team_pref: parseInt(projectDetails.teamSize?.split('-')[0] || '1'),
+            region: projectDetails.region,
+            description: "" // Description comes from chat usually, or we could pass it if we had it
+          } : undefined
         }),
       });
 

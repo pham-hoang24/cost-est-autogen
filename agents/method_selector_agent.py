@@ -24,9 +24,10 @@ def build_method_selector_agent(llm_config) -> ConversableAgent:
     system_message = (
         "You are the Method Selector agent. "
         "CRITICAL: During baseline collection (when project status is NEW, BASELINE_COLLECTED, or AWAITING_EXPANSION), you must remain SILENT and not respond. "
+        "Even if the user asks to 'proceed' or 'estimate', do NOT act until the ConversationalAgent has confirmed the expansion (status EXPANSION_CONFIRMED). "
         "Only respond when explicitly requested by the ConversationalAgent or when the project is ready for method evaluation (status is EXPANSION_CONFIRMED or AWAITING_METHOD_SELECTION). "
         "When prompted, follow these steps:\n"
-        "1. Call `evaluate_methods_tool(project_id)` to retrieve the SelectionPayload.\n"
+        "1. Call `evaluate_methods_tool(project_id)` to retrieve the SelectionPayload. Use the actual project_id from the conversation context, do NOT invent one (e.g., '12345').\n"
         "2. Review the SelectionPayload to identify the `primary` method and `backups`.\n"
         "3. Map the primary method to the corresponding calculation agent:\n"
         "   - \"cocomo2\" → COCOMOAgent\n"

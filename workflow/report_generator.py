@@ -33,6 +33,7 @@ class ReportGeneratorService:
         estimation_config: Dict[str, Any],
         estimates: List[Dict[str, Any]],
         methods_used: List[str],
+        expansion: Optional[Any] = None,  # Added expansion context
     ) -> CostEstimationReport:
         """
         Main entry point: generates complete cost estimation report.
@@ -44,16 +45,17 @@ class ReportGeneratorService:
             estimation_config: Configuration for estimation
             estimates: List of estimation results from different methods
             methods_used: List of method IDs used
+            expansion: Optional ExpansionV1 object with inferred features
 
         Returns:
             Complete CostEstimationReport matching frontend schema
         """
         # Generate project data
-        project_data = self._generate_project_data(baseline, user_description)
+        project_data = self._generate_project_data(baseline, user_description, expansion)
 
         # Generate estimation result
         estimation_result = self._generate_estimation_result(
-            baseline, user_description, estimates, methods_used, estimation_config
+            baseline, user_description, estimates, methods_used, estimation_config, expansion
         )
 
         # Build complete report
@@ -70,12 +72,10 @@ class ReportGeneratorService:
         return report
 
     def _generate_project_data(
-        self, baseline: BaselineInputs, user_description: str
+        self, baseline: BaselineInputs, user_description: str, expansion: Optional[Any] = None
     ) -> ProjectData:
         """
         Generate project context and metadata.
-
-        Normalizes project type and generates comprehensive project description.
         """
         # Normalize project type
         original_type = baseline.project_type or "software development"
@@ -84,8 +84,11 @@ class ReportGeneratorService:
         # Detect high complexity
         high_complexity = baseline.complexity in ["high", "very high", "complex"]
 
-        # Extract functional requirements
-        functional_reqs = self._extract_functional_requirements(user_description)
+        # Extract functional requirements from expansion if available
+        if expansion and hasattr(expansion, "features"):
+            functional_reqs = [f.name for f in expansion.features[:8]]  # Top 8 features
+        else:
+            functional_reqs = self._extract_functional_requirements(user_description)
 
         # Generate rich project context description
         context_description = self._generate_project_context_description(
@@ -111,6 +114,7 @@ class ReportGeneratorService:
         estimates: List[Dict[str, Any]],
         methods_used: List[str],
         estimation_config: Dict[str, Any],
+        expansion: Optional[Any] = None,
     ) -> EstimationResult:
         """Generate complete estimation result with all components."""
         # Aggregate multi-method estimates
@@ -132,8 +136,8 @@ class ReportGeneratorService:
         # Generate cost breakdown
         cost_estimate = self._calculate_cost_breakdown(total_cost, confidence_level)
 
-        # Generate features
-        features = self._generate_features(baseline, total_cost)
+        # Generate features from expansion
+        features = self._generate_features(baseline, total_cost, expansion)
 
         # Generate timeline
         timeline = self._generate_timeline(duration_months)
@@ -200,68 +204,86 @@ class ReportGeneratorService:
         )
 
     def _generate_features(
-        self, baseline: BaselineInputs, total_cost: float
+        self, baseline: BaselineInputs, total_cost: float, expansion: Optional[Any] = None
     ) -> List[FeatureEstimate]:
         """
-        Generate feature breakdowns with user stories.
-
-        Creates standard features based on project type.
+        Generate feature breakdowns using actual inferred features.
         """
+        if not expansion or not hasattr(expansion, "features") or not expansion.features:
+            # Fallback to templates if no expansion features
+            return self._generate_template_features(baseline, total_cost)
+
+        # Use actual features from expansion
+        features = []
+        num_features = len(expansion.features)
+        cost_per_feature_base = total_cost / max(1, num_features)
+        hourly_rate = 62.5  # EUR
+
+        for item in expansion.features:
+            # Add variation based on feature name length (heuristic for complexity)
+            complexity_factor = 1.0 + (len(item.name) / 100.0)
+            variation = random.uniform(0.8, 1.2) * complexity_factor
+            
+            hours = (cost_per_feature_base / hourly_rate) * variation
+            cost = hours * hourly_rate
+            
+            # Generate generic user stories based on feature name
+            user_stories = [
+                f"As a user, I want to use {item.name} functionality.",
+                f"As an admin, I want to manage {item.name} settings."
+            ]
+
+            features.append(
+                FeatureEstimate(
+                    name=item.name[:50] + "..." if len(item.name) > 50 else item.name,
+                    description=f"Implementation of {item.name}",
+                    tags=[baseline.project_type or "General", "Feature"],
+                    hours=hours,
+                    user_stories=user_stories,
+                    cost=cost,
+                )
+            )
+            
+        return features
+
+    def _generate_template_features(self, baseline: BaselineInputs, total_cost: float) -> List[FeatureEstimate]:
+        """Fallback to template features."""
         features_templates = [
             {
                 "name": "User authentication",
-                "description": "Implement user registration, login, and password reset functionalities to allow users to create accounts and securely access their profiles.",
-                "tags": ["Authentication", "User", "Web App"],
-                "user_stories": [
-                    "As a user, I want to register with email and password so that I can create an account.",
-                    "As a user, I want to log in to my account so that I can access my profile.",
-                    "As a user, I want to reset my password if I forget it so that I can regain access to my account.",
-                ],
+                "description": "Implement user registration, login, and password reset functionalities.",
+                "tags": ["Authentication", "User"],
+                "user_stories": ["User registration", "User login", "Password reset"],
             },
             {
-                "name": "Dashboard",
-                "description": "Create an intuitive dashboard to display key metrics, analytics, and user activity overview.",
-                "tags": ["Dashboard", "Analytics", "Web App"],
-                "user_stories": [
-                    "As a user, I want to see my activity summary so that I can track my usage.",
-                    "As a user, I want to view analytics charts so that I can understand trends.",
-                    "As a user, I want quick access to common actions so that I can work efficiently.",
-                ],
+                "name": "Core Functionality",
+                "description": "Implementation of primary business logic.",
+                "tags": ["Core", "Logic"],
+                "user_stories": ["Main workflow", "Data processing"],
             },
             {
-                "name": "Data management",
-                "description": "Build comprehensive data management tools for creating, editing, and organizing records with search and filtering.",
-                "tags": ["Data", "Management", "CRUD"],
-                "user_stories": [
-                    "As a user, I want to create new records so that I can add data to the system.",
-                    "As a user, I want to edit existing records so that I can update information.",
-                    "As a user, I want to delete records so that I can remove outdated data.",
-                    "As a user, I want to search and filter records so that I can find specific items quickly.",
-                ],
+                "name": "Data Management",
+                "description": "CRUD operations for core data entities.",
+                "tags": ["Data", "CRUD"],
+                "user_stories": ["Create records", "View records", "Update records"],
             },
             {
-                "name": "Reporting",
-                "description": "Implement reporting features with customizable templates, export options, and scheduled report generation.",
-                "tags": ["Reports", "Analytics", "Export"],
-                "user_stories": [
-                    "As a user, I want to generate reports so that I can analyze data.",
-                    "As a user, I want to export reports to PDF so that I can share them.",
-                    "As a user, I want to schedule automated reports so that I can receive them regularly.",
-                ],
+                "name": "Reporting & Analytics",
+                "description": "Dashboards and reporting tools.",
+                "tags": ["Reporting", "Analytics"],
+                "user_stories": ["View dashboard", "Export reports"],
             },
         ]
-
-        # Calculate cost per feature (total / number of features)
+        
         cost_per_feature_base = total_cost / len(features_templates)
-        hourly_rate = 62.5  # Average hourly rate in EUR
-
+        hourly_rate = 62.5
         features = []
+        
         for template in features_templates:
-            # Add some variation to hours
             variation = random.uniform(0.8, 1.2)
             hours = (cost_per_feature_base / hourly_rate) * variation
             cost = hours * hourly_rate
-
+            
             features.append(
                 FeatureEstimate(
                     name=template["name"],
@@ -272,181 +294,61 @@ class ReportGeneratorService:
                     cost=cost,
                 )
             )
-
         return features
-
-    def _generate_timeline(self, duration_months: int) -> List[TimelinePhase]:
-        """Generate project timeline phases with dates and deliverables."""
-        start_date = datetime.now()
-
-        phases = [
-            {
-                "task": "Planning & Design",
-                "description": "Establish project requirements, design system architecture, and create UI/UX mockups",
-                "duration_weeks": 4,
-                "deliverables": [
-                    "Requirements specification document",
-                    "System architecture design",
-                    "UI/UX mockups and prototypes",
-                    "Technical specification document",
-                ],
-            },
-            {
-                "task": "Development",
-                "description": "Implement core features, integrate third-party services, and build the application",
-                "duration_weeks": max(8, duration_months * 4 - 10),
-                "deliverables": [
-                    "Functional application modules",
-                    "API endpoints and integrations",
-                    "Database schema and migrations",
-                    "Code documentation",
-                ],
-            },
-            {
-                "task": "Testing & QA",
-                "description": "Perform unit testing, integration testing, and user acceptance testing",
-                "duration_weeks": 2,
-                "deliverables": [
-                    "Test cases and test reports",
-                    "Bug fix documentation",
-                    "Performance optimization report",
-                    "Security audit results",
-                ],
-            },
-            {
-                "task": "Deployment",
-                "description": "Deploy to production, configure infrastructure, and provide training",
-                "duration_weeks": 1,
-                "deliverables": [
-                    "Production deployment",
-                    "Infrastructure setup documentation",
-                    "User training materials",
-                    "Handover and support plan",
-                ],
-            },
-        ]
-
-        timeline_phases = []
-        current_date = start_date
-
-        for phase in phases:
-            phase_start = current_date
-            phase_end = current_date + timedelta(weeks=phase["duration_weeks"])
-
-            timeline_phases.append(
-                TimelinePhase(
-                    task=phase["task"],
-                    description=phase["description"],
-                    start_date=phase_start.strftime("%Y-%m-%d"),
-                    end_date=phase_end.strftime("%Y-%m-%d"),
-                    duration_weeks=phase["duration_weeks"],
-                    deliverables=phase["deliverables"],
-                )
-            )
-
-            current_date = phase_end
-
-        return timeline_phases
-
-    def _generate_team_composition(
-        self, team_size: int, effort_months: float
-    ) -> TeamComposition:
-        """Calculate recommended team composition by seniority level."""
-        developers = []
-
-        if team_size >= 1:
-            # Senior developers (40% of team, at least 1)
-            senior_count = max(1, int(team_size * 0.4))
-            developers.append(TeamMember(level="senior", count=senior_count))
-
-            # Mid-level developers (40% of team)
-            mid_count = max(0, int(team_size * 0.4))
-            if mid_count > 0:
-                developers.append(TeamMember(level="mid", count=mid_count))
-
-            # Junior developers (20% of team)
-            junior_count = max(0, int(team_size * 0.2))
-            if junior_count > 0:
-                developers.append(TeamMember(level="junior", count=junior_count))
-
-        # Add designers if team is large enough
-        designers = []
-        if team_size > 3:
-            designers.append(TeamMember(level="ui/ux", count=1))
-
-        return TeamComposition(developers=developers, designers=designers, other_roles=[])
-
-    def _calculate_cost_breakdown(
-        self, total_cost: float, confidence_level: str
-    ) -> CostEstimate:
-        """Calculate cost breakdown by category (labor, infrastructure, other)."""
-        labor_cost = total_cost * 0.65
-        infrastructure_cost = total_cost * 0.15
-        other_expenses = total_cost * 0.20
-
-        return CostEstimate(
-            total_cost=total_cost,
-            labor_cost=labor_cost,
-            infrastructure_cost=infrastructure_cost,
-            other_expenses=other_expenses,
-            confidence_level=confidence_level,
-        )
 
     def _aggregate_multi_method_estimates(
         self, estimates: List[Dict[str, Any]], methods_used: List[str]
     ) -> Tuple[float, Dict[str, MethodEstimate], float, str]:
         """
-        Aggregate estimates from multiple methods.
-
-        Returns: (total_cost, individual_estimates, variance_pct, confidence_level)
+        Aggregate estimates from multiple methods using actual data.
         """
-        if not estimates or not methods_used:
-            # Default fallback
-            default_cost = 250000.0
-            return (
-                default_cost,
-                {},
-                0.0,
-                "LOW - Insufficient data",
-            )
+        if not estimates:
+            return (250000.0, {}, 0.0, "LOW - Insufficient data")
 
-        # Extract costs and build individual estimates
-        method_costs = []
         individual_estimates = {}
+        weighted_cost_sum = 0.0
+        total_weight = 0.0
+        costs = []
 
-        # Method accuracy to weight mapping
-        method_accuracies = {
-            "cocomo": 0.90,
-            "cocomo2": 0.90,
-            "fpa": 0.85,
-            "function-points": 0.85,
-            "story-points": 0.80,
+        # Method accuracy/confidence weights
+        method_weights = {
+            "cocomo": 0.90, "cocomo2": 0.90,
+            "fpa": 0.85, "function-points": 0.85,
+            "story-points": 0.80, "agile_sp": 0.80,
             "parametric": 0.85,
-            "bottom-up": 0.95,
+            "bottom-up": 0.95, "bottomup": 0.95,
             "analogous": 0.75,
             "hybrid": 0.70,
         }
 
-        for i, method_id in enumerate(methods_used):
-            if i < len(estimates):
-                estimate = estimates[i]
-                cost = estimate.get("cost", estimate.get("total_cost", 200000.0))
+        # Process each estimate
+        # Note: estimates list might not align 1:1 with methods_used if some failed
+        # We assume estimates contains dicts with 'method' key or we try to map them
+        
+        for est in estimates:
+            # Extract cost
+            cost = est.get("cost", est.get("total_cost", 0.0))
+            if cost <= 0:
+                continue
+                
+            # Identify method
+            method_id = est.get("method", "unknown")
+            # If method_id is not in methods_used, try to infer or skip
+            # For now, we'll just use it
+            
+            weight = method_weights.get(method_id, 0.75)
+            
+            # Calculate duration (simple heuristic if not provided)
+            duration_val = est.get("duration", int(cost / 15000)) 
+            if isinstance(duration_val, str):
+                duration_str = duration_val
             else:
-                cost = 200000.0 * random.uniform(0.8, 1.2)
+                duration_str = f"{max(1, int(duration_val))} months"
 
-            method_costs.append(cost)
-
-            # Get accuracy/weight for this method
-            weight = method_accuracies.get(method_id, 0.75)
-
-            # Calculate duration
-            duration_months = int(cost / 150000) + 2
-
-            # Build method estimate
             individual_estimates[method_id] = MethodEstimate(
                 methodology=self._get_method_name(method_id),
                 cost=cost,
-                duration=f"{duration_months} months",
+                duration=duration_str,
                 weight=weight,
                 breakdown={
                     "development": cost * 0.50,
@@ -456,26 +358,25 @@ class ReportGeneratorService:
                     "contingency": cost * 0.05,
                 },
             )
+            
+            weighted_cost_sum += cost * weight
+            total_weight += weight
+            costs.append(cost)
 
-        # Calculate weighted average cost
-        if len(method_costs) == 1:
-            total_cost = method_costs[0]
-            variance_pct = 0.0
+        if not costs:
+             return (250000.0, {}, 0.0, "LOW - Estimation failed")
+
+        # Calculate weighted average
+        if total_weight > 0:
+            total_cost = weighted_cost_sum / total_weight
         else:
-            # Weight by confidence
-            weights = [individual_estimates[m].weight for m in methods_used]
-            total_weight = sum(weights)
-            if total_weight > 0:
-                total_cost = sum(
-                    c * w for c, w in zip(method_costs, weights)
-                ) / total_weight
-            else:
-                total_cost = sum(method_costs) / len(method_costs)
+            total_cost = sum(costs) / len(costs)
 
-            # Calculate variance
-            variance_pct = (
-                (max(method_costs) - min(method_costs)) / min(method_costs) * 100
-            )
+        # Calculate variance
+        if len(costs) > 1:
+            variance_pct = ((max(costs) - min(costs)) / min(costs)) * 100
+        else:
+            variance_pct = 0.0
 
         # Determine confidence level
         if variance_pct > 50:

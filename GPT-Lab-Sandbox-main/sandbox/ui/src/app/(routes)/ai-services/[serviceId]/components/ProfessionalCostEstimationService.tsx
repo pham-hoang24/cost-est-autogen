@@ -698,6 +698,8 @@ export default function ProfessionalCostEstimationService({ service }: Professio
           {/* Full Width Chatbot with Method Selection */}
           <CostEstimationChatbot 
             sessionId={sessionId}
+            projectDetails={projectDetails}
+            estimationConfig={estimationConfig}
             onMethodSelected={(methods) => {
               setSelectedMethodology(methods);
               setEstimationReady(true);

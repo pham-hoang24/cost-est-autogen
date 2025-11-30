@@ -167,8 +167,44 @@ class WorkflowOrchestrator:
         context.normalized_inputs = normalized
         context.derived_coefficients = coefficients
         
-        # 2. Enhanced Inference using InferenceService
-        from workflow.inference_service import InferenceService, InferenceResult
+        # Infer COCOMO Cost Drivers from description
+        cost_drivers = {}
+        desc_lower = (context.user_description or "").lower()
+        
+        # Reliability (RELY)
+        if "critical" in desc_lower or "medical" in desc_lower or "financial" in desc_lower:
+            cost_drivers["rely"] = "very_high"
+        elif "high reliability" in desc_lower or "stable" in desc_lower:
+            cost_drivers["rely"] = "high"
+            
+        # Complexity (CPLX)
+        if "algorithm" in desc_lower or "complex" in desc_lower or "ai" in desc_lower:
+            cost_drivers["cplx"] = "very_high"
+        elif "advanced" in desc_lower or "custom" in desc_lower:
+            cost_drivers["cplx"] = "high"
+            
+        # Storage (STOR)
+        if "big data" in desc_lower or "large dataset" in desc_lower:
+            cost_drivers["stor"] = "very_high"
+        elif "database" in desc_lower or "storage" in desc_lower:
+            cost_drivers["stor"] = "high"
+            
+        # Database Size (DATA)
+        if "data intensive" in desc_lower or "analytics" in desc_lower:
+            cost_drivers["data"] = "high"
+            
+        # Reusability (RUSE)
+        if "library" in desc_lower or "framework" in desc_lower or "reusable" in desc_lower:
+            cost_drivers["ruse"] = "high"
+            
+        # Documentation (DOCU)
+        if "documentation" in desc_lower or "compliance" in desc_lower:
+            cost_drivers["docu"] = "high"
+            
+        # Store in context for agents to use
+        if not context.inferred_fields:
+            context.inferred_fields = {}
+        context.inferred_fields["cost_drivers"] = cost_drivers
         
         inference_service = InferenceService()
         
@@ -395,6 +431,7 @@ class WorkflowOrchestrator:
             estimation_config=estimation_config,
             estimates=context.estimates,
             methods_used=methods_used,
+            expansion=context.expansion,  # Pass expansion context
         )
 
         # Store in context

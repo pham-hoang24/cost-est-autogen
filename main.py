@@ -87,15 +87,16 @@ class HybridRequest(BaseModel):
     baseline_inputs: BaselineInputs
 
 class ChatRequest(BaseModel):
-    session_id: Optional[str] = None
+    session_id: str
     message: str
     history: List[Dict[str, str]] = []
+    baseline_inputs: Optional[Dict[str, Any]] = None  # Added field
 
 class ChatResponse(BaseModel):
     response: str
-    is_ready: bool = False
+    is_ready: bool
     recommended_methods: List[str] = []
-    summary_confirmed: bool = False  # Track if user has confirmed the summary
+    summary_confirmed: bool = False
 
 # Endpoints
 
