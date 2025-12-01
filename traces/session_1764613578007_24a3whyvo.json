@@ -1,0 +1,64 @@
+{
+  "session_id": "session_1764613578007_24a3whyvo",
+  "created_at": "2025-12-01T18:26:35.905559",
+  "updated_at": "2025-12-01T18:26:40.602254",
+  "events": [
+    {
+      "event_id": "adb97f91-751a-4a82-8e9d-87bd5e485b3e",
+      "session_id": "session_1764613578007_24a3whyvo",
+      "timestamp": "2025-12-01T18:26:35.905533",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1764613578007_24a3whyvo",
+        "project_type": "mobile-app",
+        "complexity": "high",
+        "tech_stack": "mobile",
+        "team_pref": 20,
+        "region": "europe",
+        "project_duration": "6-12-months",
+        "description": "A high mobile-app project using mobile in europe."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "ed45af34-5ab6-430e-9181-79bff4260aa3",
+      "session_id": "session_1764613578007_24a3whyvo",
+      "timestamp": "2025-12-01T18:26:35.946858",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1_complete",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "error_count": 0,
+        "missing_methods_count": 4
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d7fc8ca7-7cba-4a07-917a-1b79051aabf9",
+      "session_id": "session_1764613578007_24a3whyvo",
+      "timestamp": "2025-12-01T18:26:40.602046",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "A comprehensive e-commerce mobile application for fashion retail. The app will enable users to browse products, add items to cart, make secure payments, track orders, and manage their profiles. Key features:  - Product catalog with advanced filtering (category, size, color, price range) - Personalized recommendations using ML algorithms - Shopping cart and wishlist management - Multiple payment methods (credit card, PayPal, Apple Pay, Google Pay) - Real-time order tracking with push notifications - User reviews and ratings system - Social sharing features - Augmented reality try-on for clothing items - Multi-language support (English, French, German, Spanish) - Admin dashboard for inventory and order management  The app must handle 50,000+ concurrent users during peak shopping seasons, integrate with existing ERP systems, and comply with GDPR regulations.",
+        "history_length": 1
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

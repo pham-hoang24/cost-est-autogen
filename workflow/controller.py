@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 from uuid import uuid4
 from datetime import datetime
 
+from .inference_service import InferenceService, InferenceResult
 from .expansion import ExpansionService
 from .parser import ParserService
 from .selection import MethodSelector
@@ -392,10 +393,24 @@ class WorkflowOrchestrator:
             CostEstimationReport with all fields populated
         """
         context = self.load_context(project_id)
+        if context is None:
+            raise ValueError(f"No project context found for id={project_id!r}")
+
+        # Prefer confirmed expansion, fall back to draft if needed
+        expansion = getattr(context, "expansion_confirmed", None) or getattr(
+            context, "expansion_draft", None
+        )
+        if expansion is None:
+            raise ValueError(
+                "No expansion context available. Make sure the expanded "
+                "project summary has been generated (and ideally confirmed) "
+                "before generating a full report."
+            )
+
         generator = ReportGeneratorService()
 
         # Determine methods used
-        methods_used = []
+        methods_used: list[str] = []
         
         # If user explicitly selected a method, prioritize it
         if selected_method:
@@ -407,7 +422,7 @@ class WorkflowOrchestrator:
                 "parametric": "parametric",
                 "bottom-up": "bottomup",
                 "analogous": "analogous",
-                "hybrid": "blend"
+                "hybrid": "blend",
             }
             backend_method = method_map.get(selected_method, selected_method)
             methods_used.append(backend_method)
@@ -431,7 +446,7 @@ class WorkflowOrchestrator:
             estimation_config=estimation_config,
             estimates=context.estimates,
             methods_used=methods_used,
-            expansion=context.expansion,  # Pass expansion context
+            expansion=expansion,  # ✅ use confirmed/draft expansion instead of context.expansion
         )
 
         # Store in context
@@ -444,6 +459,7 @@ class WorkflowOrchestrator:
         )
 
         return report
+
 
     # ------------------------------------------------------------------
     # Step 1 Validation & Method Requirements Tracking

@@ -1,6 +1,6 @@
-Chat error: Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}}
+Chat error: Error code: 402 - {'error': {'message': 'This request requires more credits, or fewer max_tokens. You requested up to 16384 tokens, but can only afford 757. To increase, visit https://openrouter.ai/settings/keys and create a key with a higher total limit', 'code': 402, 'metadata': {'provider_name': None}}, 'user_id': 'user_2xhHLcOp9oXEJRjxs1tdpB4cYV3'}
 Traceback (most recent call last):
-  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/main.py", line 520, in chat_endpoint
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/main.py", line 524, in chat_endpoint
     chat_result = user_proxy.initiate_chat(
         manager,
         message=request.message,
@@ -74,4 +74,4 @@ Traceback (most recent call last):
                            ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/venv/lib/python3.13/site-packages/openai/_base_client.py", line 1047, in request
     raise self._make_status_error_from_response(err.response) from None
-openai.AuthenticationError: Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}}
+openai.APIStatusError: Error code: 402 - {'error': {'message': 'This request requires more credits, or fewer max_tokens. You requested up to 16384 tokens, but can only afford 757. To increase, visit https://openrouter.ai/settings/keys and create a key with a higher total limit', 'code': 402, 'metadata': {'provider_name': None}}, 'user_id': 'user_2xhHLcOp9oXEJRjxs1tdpB4cYV3'}

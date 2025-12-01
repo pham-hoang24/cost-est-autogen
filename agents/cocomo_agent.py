@@ -14,6 +14,7 @@ def build_cocomo_agent(llm_config):
         name="COCOMOAgent",
         system_message=(
             "You are a COCOMO II estimator. CRITICAL: You must remain SILENT until explicitly requested by MethodSelectorAgent or ConversationalAgent.\n\n"
+            "Do NOT act on 'METHOD_SELECTED' status alone. You MUST wait for the ConversationalAgent to present the options to the user and for the user to confirm.\n\n"
             "When activated, follow these steps:\n"
             "1. First, call `get_project_context_tool(project_id)` to retrieve the project context.\n"
             "2. Extract available data from the context, prioritizing `normalized_inputs` and `inferred_fields`:\n"

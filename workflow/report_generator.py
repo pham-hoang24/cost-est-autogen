@@ -447,6 +447,96 @@ class ReportGeneratorService:
             return 1
         team_size = max(1, int(effort_months / duration_months))
         return min(team_size, 20)  # Cap at reasonable size
+    
+    def _generate_team_composition(
+        self,
+        team_size: int,
+        effort_months: float,
+    ) -> TeamComposition:
+        """
+        Build a simple team composition model from team size and effort.
+
+        team_size: average team size (people)
+        effort_months: total effort in person-months for the project
+        """
+
+        # Guard: if we somehow got zero or negative, fall back to 1
+        if team_size <= 0:
+            team_size = 1
+
+        # Very simple role mix heuristic.
+        # You should adjust this to match your actual business logic
+        # and the fields of your TeamComposition schema.
+        role_mix = [
+            ("Tech Lead / Architect", 0.10),
+            ("Senior Engineer", 0.25),
+            ("Engineer", 0.35),
+            ("QA / Test Engineer", 0.20),
+            ("Project Manager / BA", 0.10),
+        ]
+
+        # Compute integer headcounts per role
+        roles = []
+        remaining = team_size
+        for name, share in role_mix:
+            count = int(round(team_size * share))
+            if count <= 0:
+                continue
+            remaining -= count
+            roles.append(
+                {
+                    "role": name,
+                    "count": count,
+                    # distribute effort proportionally to headcount
+                    "effort_person_months": effort_months * (count / team_size),
+                }
+            )
+
+        # If rounding left us short, put the remainder on the "Engineer" role
+        # or the role with the highest count if Engineer not found
+        if remaining > 0:
+            if not roles:
+                # Fallback if no roles were created (e.g. very small team_size)
+                roles.append({
+                    "role": "Engineer",
+                    "count": remaining,
+                    "effort_person_months": effort_months
+                })
+            else:
+                # Try to find "Engineer"
+                target_role = next((r for r in roles if r["role"] == "Engineer"), None)
+                if not target_role:
+                    # Fallback to the first role (usually Tech Lead) or largest
+                    target_role = roles[0]
+                
+                target_role["count"] += remaining
+                # Adjust effort for the added headcount
+                # Note: This is a rough heuristic; strictly speaking effort is input, 
+                # but we attribute it to roles.
+                target_role["effort_person_months"] += (effort_months / team_size) * remaining
+
+        total_members = sum(r["count"] for r in roles)
+        total_effort_person_months = effort_months  # already person-months
+
+        # ⚠️ IMPORTANT:
+        # You MUST adapt this part to match your actual TeamComposition dataclass
+        # in .schemas. Below is a common pattern:
+        return TeamComposition(
+            total_members=total_members,
+            total_effort_person_months=total_effort_person_months,
+            average_team_size=team_size,
+            roles=[
+                # if you have a TeamMemberRole / TeamRole dataclass, use it here.
+                # Example (adjust to your schema):
+                # TeamRole(
+                #     name=r["role"],
+                #     count=r["count"],
+                #     effort_person_months=r["effort_person_months"],
+                # )
+                r  # or just pass dicts if TeamComposition.roles is a List[Dict]
+                for r in roles
+            ]
+        )
 
     def _generate_charts(
         self, total_cost: float, duration_months: int

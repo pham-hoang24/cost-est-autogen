@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any, Union
+import traceback
 import uvicorn
 import os
 import autogen
@@ -364,7 +365,6 @@ async def chat_endpoint(request: ChatRequest):
                 )
     except Exception as e:
         print(f"Error in confirmation flow: {e}")
-        import traceback
         traceback.print_exc()
     
     # ============================================================================
@@ -414,6 +414,7 @@ async def chat_endpoint(request: ChatRequest):
             "config_list": config_list,
             "temperature": 0.7,
             "timeout": 120,  # Increase timeout for OpenRouter
+            "max_tokens": 500,  # Limit output tokens to avoid 402 errors (low credit)
         }
         
         # User Proxy Agent
@@ -609,7 +610,6 @@ async def chat_endpoint(request: ChatRequest):
         # Log error to file
         with open("error.log", "w") as f:
             f.write(f"Chat error: {str(e)}\n")
-            import traceback
             traceback.print_exc(file=f)
             
         # Fallback for demo if error occurs
