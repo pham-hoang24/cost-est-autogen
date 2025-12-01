@@ -275,101 +275,11 @@ async def chat_endpoint(request: ChatRequest):
         print(f"Could not load context: {e}")
     
     # ============================================================================
-    # NEW: Confirmation Flow Logic
+    # Confirmation Flow Logic REMOVED
     # ============================================================================
-    # Check if we need to handle summary confirmation flow
-    try:
-        from tools.orchestrator_tools import get_project_context_tool
-        context = get_project_context_tool(session_id)
-        
-        # Check if expansion is confirmed and we should show summary
-        if context.get("status") == "EXPANSION_CONFIRMED" and context.get("expansion_confirmed"):
-            # Phase 1: Generate and show summary for confirmation
-            expansion = context["expansion_confirmed"]
-            
-            # Check if user is responding to confirm or modify the summary
-            message_lower = request.message.lower()
-            confirmation_keywords = ["yes", "correct", "looks good", "look good", "right", "yep", "approve", "confirmed", "confirm", "ok", "okay", "good"]
-            modification_keywords = ["change", "modify", "update", "wrong", "no", "not", "different", "should be"]
-            
-            is_confirmation = any(kw in message_lower for kw in confirmation_keywords)
-            is_modification = any(kw in message_lower for kw in modification_keywords)
-            
-            if is_confirmation and not is_modification:
-                # Phase 2: User confirmed! Now show methods
-                # Let agents process and return methods
-                # We'll mark this so agents know to proceed with method selection
-                pass  # Continue to agent processing below
-            elif is_modification:
-                # User wants to change something - let agents handle the modification
-                pass  # Continue to agent processing
-            else:
-                # First time seeing EXPANSION_CONFIRMED - show summary
-                # Build readable summary from expansion_confirmed
-                summary_parts = [
-                    "Based on your description, here's what I understand:\n"
-                ]
-                
-                baseline = context.get("baseline", {})
-                if baseline.get("project_type"):
-                    summary_parts.append(f"- **Project Type**: {baseline['project_type']}")
-                if baseline.get("complexity"):
-                    summary_parts.append(f"- **Complexity**: {baseline['complexity']}")
-                if baseline.get("tech_stack"):
-                    summary_parts.append(f"- **Tech Stack**: {baseline['tech_stack']}")
-                if baseline.get("team_pref"):
-                    summary_parts.append(f"- **Team Size**: {baseline['team_pref']}")
-                if baseline.get("region"):
-                    summary_parts.append(f"- **Region**: {baseline['region']}")
-                
-                # Add features if available
-                features = expansion.get("features", [])
-                if features:
-                    summary_parts.append("\n**Features Detected:**")
-                    for feature in features[:5]:  # Show top 5 features
-                        if isinstance(feature, dict):
-                            name = feature.get("name", "Unknown")
-                            summary_parts.append(f"  • {name}")
-                        else:
-                            summary_parts.append(f"  • {feature}")
-                
-                # Add assumptions if available
-                assumptions = expansion.get("assumptions", [])
-                if assumptions:
-                    summary_parts.append("\n**Assumptions:**")
-                    for assumption in assumptions[:3]:  # Show top 3 assumptions
-                        summary_parts.append(f"  • {assumption}")
-                
-                summary_parts.append("\n**Is this understanding correct?** Please confirm or tell me what to change.")
-                
-                summary_text = "\n".join(summary_parts)
-                
-                # Log summary generation
-                store.add_event(session_id, TraceEvent(
-                    session_id=session_id,
-                    event_type=TraceEventType.AGENT_RESPONSE,
-                    agent_name="ChatBot_SummaryGeneration",
-                    output_data={
-                        "response": summary_text[:200],
-                        "is_ready": True,
-                        "recommended_methods": [],
-                        "summary_confirmed": False
-                    }
-                ))
-                
-                return ChatResponse(
-                    response=summary_text,
-                    is_ready=True,
-                    recommended_methods=[],  # Don't show methods yet
-                    summary_confirmed=False
-                )
-    except Exception as e:
-        print(f"Error in confirmation flow: {e}")
-        traceback.print_exc()
-    
-    # ============================================================================
-    # End of Confirmation Flow Logic
-    # ============================================================================
+    # The confirmation flow is now handled entirely by the agents (ConversationalAgent).
+    # We do not intercept here to avoid state loops.
+
     
     # Check for OpenRouter API key only  
     api_key = os.environ.get("OPENROUTER_API_KEY")
