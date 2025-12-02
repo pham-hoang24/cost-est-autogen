@@ -64,7 +64,14 @@ def build_conversational_agent(llm_config, session_id: str = None) -> Conversabl
         
         "IF status='AWAITING_EXPANSION':\n"
         "  → Present the expansion_draft to the user in natural language.\n"
-        "  → Show: summary, features, platforms, constraints, assumptions.\n"
+        "  → ALWAYS include the BASELINE DATA from Step 1 at the top:\n"
+        "    - Project Type: (from baseline.project_type)\n"
+        "    - Complexity: (from baseline.complexity)\n"
+        "    - Tech Stack: (from baseline.tech_stack)\n"
+        "    - Team Size: (from baseline.team_pref)\n"
+        "    - Region: (from baseline.region)\n"
+        "    - Duration: (from baseline.project_duration)\n"
+        "  → Then show: summary, features, platforms, constraints, assumptions.\n"
         "  → Ask: 'Does this look correct? Please confirm or suggest changes.'\n"
         "  → WAIT for user response.\n\n"
         

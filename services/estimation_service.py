@@ -244,11 +244,24 @@ class EstimationService:
             team_size = injected_context.get("team_size") or injected_context.get("team_pref_size") or 5
             
             if backend_method == "cocomo2":
+                # Get KSLOC from context or estimate based on complexity
                 ksloc = (
                     injected_context.get("cocomo_ksloc") or 
                     injected_context.get("ksloc") or 
-                    (injected_context.get("loc", 0) / 1000 if injected_context.get("loc") else 10)
+                    (injected_context.get("loc", 0) / 1000 if injected_context.get("loc") else None)
                 )
+                
+                # If no KSLOC provided, estimate based on complexity
+                if not ksloc:
+                    # Complexity-based KSLOC defaults (more realistic)
+                    complexity_to_ksloc = {
+                        0.8: 2,    # low complexity: ~2 KSLOC
+                        1.0: 5,    # medium complexity: ~5 KSLOC
+                        1.2: 15,   # high complexity: ~15 KSLOC
+                        1.5: 30,   # very high complexity: ~30 KSLOC
+                    }
+                    ksloc = complexity_to_ksloc.get(complexity_factor, 5)
+                    print(f"[EstimationService] No KSLOC provided, using complexity-based default: {ksloc} KSLOC (complexity_factor={complexity_factor})")
                 
                 # Get scale factors and cost drivers from context or use defaults
                 scale_factors = injected_context.get("cocomo_scale_factors") or {
@@ -260,10 +273,13 @@ class EstimationService:
                 }
                 
                 # Adjust cost drivers based on complexity
-                if complexity_factor > 1.1:
-                    cost_drivers["cplx"] = "high"
+                if complexity_factor <= 0.8:
+                    cost_drivers["cplx"] = "low"
+                    cost_drivers["rely"] = "low"  # Lower reliability requirements for simple projects
                 elif complexity_factor > 1.3:
                     cost_drivers["cplx"] = "very_high"
+                elif complexity_factor > 1.1:
+                    cost_drivers["cplx"] = "high"
                 
                 estimate = generate_cocomo_ii_estimation(
                     project_name=project_name,
