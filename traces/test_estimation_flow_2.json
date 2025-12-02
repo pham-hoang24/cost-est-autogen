@@ -1,0 +1,507 @@
+{
+  "session_id": "test_estimation_flow_2",
+  "created_at": "2025-12-02T12:47:37.536276",
+  "updated_at": "2025-12-02T12:50:33.394421",
+  "events": [
+    {
+      "event_id": "2d25954e-c66d-44cb-b367-2b7e1f681476",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:47:37.536269",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x1060311d0>, 'test_estimation_flow_2')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "5e4a2174-8835-4d39-85d3-0c004764740c",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:47:37.539292",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test_estimation_flow_2' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='web application', complexity='high', tech_stack='React, Node.js', team_pref=5, region='Europe', project_duration=None) user_description='A complex e-commerce platform with 50+ features' expansion_draft=ExpansionV1(summary='Overview: A complex e-commerce platform with 50+ features\\nProject Type: web application\\nComplexity: high\\nTech Stack Focus: React, Node.js', features=[NamedItem(name='A complex e-commerce platform with 50+ features', source='inferred', confidence=None)], non_functionals=[], platforms=[], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A complex e-commerce platform with 50+ features', source='inferred', note='auto')], missing_signals=[]) expansion_confirmed=None parsed_context=None selection=None estimates=[] explanation=None events=[EventEntry(type='PROJECT_STARTED', at=datetime.datetime(2025, 12, 2, 12, 47, 37, 497791), data={"
+      },
+      "metadata": {},
+      "duration_ms": 2.9680728912353516,
+      "parent_event_id": "2d25954e-c66d-44cb-b367-2b7e1f681476"
+    },
+    {
+      "event_id": "40a029df-6404-4e81-989f-18eab98757c8",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:47:37.544838",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x1060311d0>, 'test_estimation_flow_2')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "b5d9f3a0-ca4d-4c47-ab61-c60e61e36669",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:47:37.548535",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test_estimation_flow_2' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='web application', complexity='high', tech_stack='React, Node.js', team_pref=5, region='Europe', project_duration=None) user_description='A complex e-commerce platform with 50+ features' expansion_draft=ExpansionV1(summary='Overview: A complex e-commerce platform with 50+ features\\nProject Type: web application\\nComplexity: high\\nTech Stack Focus: React, Node.js', features=[NamedItem(name='A complex e-commerce platform with 50+ features', source='inferred', confidence=None)], non_functionals=[], platforms=[], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A complex e-commerce platform with 50+ features', source='inferred', note='auto')], missing_signals=[]) expansion_confirmed=ExpansionV1(summary='Overview: A complex e-commerce platform with 50+ features\\nProject Type: web application\\nComplexity: high\\nTech Stack Focus: React, Node.js', features=[Nam"
+      },
+      "metadata": {},
+      "duration_ms": 3.570079803466797,
+      "parent_event_id": "40a029df-6404-4e81-989f-18eab98757c8"
+    },
+    {
+      "event_id": "f3ff391b-0937-4c9d-9d93-d958cfe0adf5",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:47:37.552801",
+      "event_type": "agent_call",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "method_id": "cocomo",
+        "inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/run-estimation"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "0d1ebb66-4f83-4bb5-89b3-d43363323006",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:47:52.011367",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "web application",
+          "complexity": "high",
+          "tech_stack": "React, Node.js",
+          "team_pref": 5,
+          "region": "Europe",
+          "duration": null,
+          "description": null
+        },
+        "method_name": "cocomo",
+        "additional_inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d61dc28d-66c6-4810-b13f-41175e5d1f70",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:47:52.015372",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_full_report",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x110633750>,)",
+        "kwargs_keys": [
+          "project_id",
+          "estimation_config",
+          "selected_method"
+        ]
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "8b610c28-088d-417c-bd74-a450434e3367",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:47:52.016106",
+      "event_type": "error",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_full_report",
+        "error": "'ReportGeneratorService' object has no attribute '_calculate_cost_breakdown'",
+        "error_type": "AttributeError"
+      },
+      "metadata": {},
+      "duration_ms": 0.7390975952148438,
+      "parent_event_id": "d61dc28d-66c6-4810-b13f-41175e5d1f70"
+    },
+    {
+      "event_id": "f42602f9-ba05-4d14-a0f0-c77130e024c9",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:47:52.016330",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "error": "'ReportGeneratorService' object has no attribute '_calculate_cost_breakdown'",
+        "error_type": "AttributeError"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "dfa140b0-e996-4dfa-9577-89193bfb3594",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:48:46.995067",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "web application",
+          "complexity": "high",
+          "tech_stack": "React, Node.js",
+          "team_pref": 5,
+          "region": "Europe",
+          "duration": null,
+          "description": null
+        },
+        "method_name": "cocomo",
+        "additional_inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "21e9b750-95fd-428b-a156-bd9b6f9d636c",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:48:46.999552",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_full_report",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x109817750>,)",
+        "kwargs_keys": [
+          "project_id",
+          "estimation_config",
+          "selected_method"
+        ]
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "52b39781-87ca-48d9-b0fd-110d7b1579b2",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:48:47.000512",
+      "event_type": "error",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_full_report",
+        "error": "cannot import name 'CostRange' from 'workflow.schemas' (/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/workflow/schemas.py)",
+        "error_type": "ImportError"
+      },
+      "metadata": {},
+      "duration_ms": 0.9648799896240234,
+      "parent_event_id": "21e9b750-95fd-428b-a156-bd9b6f9d636c"
+    },
+    {
+      "event_id": "90408e6d-dc47-403f-bc39-23d159b6f1d1",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:48:47.000788",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "error": "cannot import name 'CostRange' from 'workflow.schemas' (/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/workflow/schemas.py)",
+        "error_type": "ImportError"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "43155760-1064-4d39-8da7-017fac980309",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:49:15.578931",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "web application",
+          "complexity": "high",
+          "tech_stack": "React, Node.js",
+          "team_pref": 5,
+          "region": "Europe",
+          "duration": null,
+          "description": null
+        },
+        "method_name": "cocomo",
+        "additional_inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "ed3e0b72-241b-47ca-a798-cfdf2ea0dd3e",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:49:15.583327",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_full_report",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x1074d3890>,)",
+        "kwargs_keys": [
+          "project_id",
+          "estimation_config",
+          "selected_method"
+        ]
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "8df585e6-1e94-4c88-b71c-73d57080d443",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:49:15.584198",
+      "event_type": "error",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_full_report",
+        "error": "'ReportGeneratorService' object has no attribute '_generate_timeline'",
+        "error_type": "AttributeError"
+      },
+      "metadata": {},
+      "duration_ms": 0.8766651153564453,
+      "parent_event_id": "ed3e0b72-241b-47ca-a798-cfdf2ea0dd3e"
+    },
+    {
+      "event_id": "9f1f824c-07c5-4592-87e0-d3004fbb2df6",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:49:15.584515",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "error": "'ReportGeneratorService' object has no attribute '_generate_timeline'",
+        "error_type": "AttributeError"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d3fcc377-9451-4958-b4aa-7d518b7f65db",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:49:53.567606",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "web application",
+          "complexity": "high",
+          "tech_stack": "React, Node.js",
+          "team_pref": 5,
+          "region": "Europe",
+          "duration": null,
+          "description": null
+        },
+        "method_name": "cocomo",
+        "additional_inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "8816ed5f-b58e-47ee-b2d8-99e3e69b55c2",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:49:53.571994",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_full_report",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x107e63890>,)",
+        "kwargs_keys": [
+          "project_id",
+          "estimation_config",
+          "selected_method"
+        ]
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "7c84728d-47df-4bea-bef1-ae455e4777b6",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:49:53.573461",
+      "event_type": "error",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_full_report",
+        "error": "1 validation error for EstimationResult\ntimeline.0\n  Input should be a valid dictionary or instance of TimelinePhase [type=model_type, input_value=('total_duration', '5 months'), input_type=tuple]\n    For further information visit https://errors.pydantic.dev/2.12/v/model_type",
+        "error_type": "ValidationError"
+      },
+      "metadata": {},
+      "duration_ms": 1.1560916900634766,
+      "parent_event_id": "8816ed5f-b58e-47ee-b2d8-99e3e69b55c2"
+    },
+    {
+      "event_id": "a8058bdd-8794-4b5b-b45f-8dd7647b467a",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:49:53.573830",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "error": "1 validation error for EstimationResult\ntimeline.0\n  Input should be a valid dictionary or instance of TimelinePhase [type=model_type, input_value=('total_duration', '5 months'), input_type=tuple]\n    For further information visit https://errors.pydantic.dev/2.12/v/model_type",
+        "error_type": "ValidationError"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "43258c86-f972-4341-855d-a69edd4492ed",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:50:33.378790",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "web application",
+          "complexity": "high",
+          "tech_stack": "React, Node.js",
+          "team_pref": 5,
+          "region": "Europe",
+          "duration": null,
+          "description": null
+        },
+        "method_name": "cocomo",
+        "additional_inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d3a22def-2727-400f-9dda-4f2831122529",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:50:33.383446",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_full_report",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x105283890>,)",
+        "kwargs_keys": [
+          "project_id",
+          "estimation_config",
+          "selected_method"
+        ]
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "3a2d31b1-7d4d-4238-8e72-94ba46ba4daa",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:50:33.393481",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_full_report",
+        "result_type": "CostEstimationReport",
+        "result_preview": "report_title='Cost Estimation Report' generated_at='12/02/2025, 02:50:33 PM' project_details={'project_type': 'web application', 'complexity': 'high', 'tech_stack': 'React, Node.js', 'team_pref': 5, 'region': 'Europe', 'project_duration': None} estimation_config={'includeRisk': True, 'includeContingency': True, 'includeOverhead': True, 'includeProfit': True, 'currency': 'EUR', 'accuracy': 'high'} timestamp='2025-12-02T12:50:33.386879Z' project_data=ProjectData(original_project_type='web application', project_type='organic', technical_complexity={'high_complexity': True}, project_context_description='This project aims to develop a web application with high complexity, designed to meet the evolving needs of modern users. The platform will provide core functionality including user authentication, data management, and comprehensive reporting capabilities.\\n\\nThe application will be built with scalability and maintainability in mind, ensuring that it can grow with the business. By leveragin"
+      },
+      "metadata": {},
+      "duration_ms": 9.940862655639648,
+      "parent_event_id": "d3a22def-2727-400f-9dda-4f2831122529"
+    },
+    {
+      "event_id": "13ad11e3-beec-4ca1-85cc-65ecbb6b93d0",
+      "session_id": "test_estimation_flow_2",
+      "timestamp": "2025-12-02T12:50:33.393979",
+      "event_type": "session_end",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "status": "completed"
+      },
+      "metadata": {
+        "total_cost": 75393.59,
+        "methods_used": [
+          "cocomo2",
+          "agile_sp",
+          "parametric"
+        ],
+        "duration": "5 months"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "completed"
+}

@@ -1,0 +1,282 @@
+{
+  "session_id": "session_1764678454425_vfxz3nyhf",
+  "created_at": "2025-12-02T12:27:46.892588",
+  "updated_at": "2025-12-02T12:28:34.236377",
+  "events": [
+    {
+      "event_id": "b0256f56-9bc5-44f6-b000-f4468f727c6d",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:27:46.892535",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1764678454425_vfxz3nyhf",
+        "project_type": "mobile-app",
+        "complexity": "high",
+        "tech_stack": "mobile",
+        "team_pref": 20,
+        "region": "europe",
+        "project_duration": "6-12-months",
+        "description": "A high mobile-app project using mobile in europe."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "f42435f2-f123-42dd-984f-6853443c37a0",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:27:46.964446",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1_complete",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "error_count": 0,
+        "missing_methods_count": 4
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "3a1f6fad-2d32-4d6d-98c5-d788cde23794",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:27:51.311938",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "A comprehensive e-commerce mobile application for fashion retail. The app will enable users to browse products, add items to cart, make secure payments, track orders, and manage their profiles. Key features:  - Product catalog with advanced filtering (category, size, color, price range) - Personalized recommendations using ML algorithms - Shopping cart and wishlist management - Multiple payment methods (credit card, PayPal, Apple Pay, Google Pay) - Real-time order tracking with push notifications - User reviews and ratings system - Social sharing features - Augmented reality try-on for clothing items - Multi-language support (English, French, German, Spanish) - Admin dashboard for inventory and order management  The app must handle 50,000+ concurrent users during peak shopping seasons, integrate with existing ERP systems, and comply with GDPR regulations.",
+        "history_length": 1
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "7a71cbb1-6b33-4ae8-a656-b65b69bf7c78",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:00.467463",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x106290980>, 'session_1764678454425_vfxz3nyhf')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "915895b5-fb1e-4d7e-bf9a-47bbfbdce62e",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:00.481208",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='session_1764678454425_vfxz3nyhf' version=21 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='mobile-app', complexity='high', tech_stack='mobile', team_pref=20, region='europe', project_duration='6-12-months') user_description='A comprehensive e-commerce mobile application for fashion retail. The app will enable users to browse products, add items to cart, make secure payments, track orders, and manage their profiles. Key features: - Product catalog with advanced filtering (category, size, color, price range) - Personalized recommendations using ML algorithms - Shopping cart and wishlist management - Multiple payment methods (credit card, PayPal, Apple Pay, Google Pay) - Real-time order tracking with push notifications - User reviews and ratings system - Social sharing features - Augmented reality try-on for clothing items - Multi-language support (English, French, German, Spanish) - Admin dashboard for inventory and order management. The app must handle 50,"
+      },
+      "metadata": {},
+      "duration_ms": 13.57412338256836,
+      "parent_event_id": "7a71cbb1-6b33-4ae8-a656-b65b69bf7c78"
+    },
+    {
+      "event_id": "268a59ac-0841-4a59-877d-7e63c1e7f047",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:07.145092",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "I've drafted the expansion for your project based on the comprehensive details you provided. Here\u2019s the summary of the project expansion:\n\n### Overview\nA comprehensive e-commerce mobile application fo",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "6ac99f7d-bf36-4ec2-a4e1-cddbb765425d",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:19.033648",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "Looks correct, please continue",
+        "history_length": 3
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d69d47b2-fa76-4096-988c-7efcc246a34c",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:23.660637",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x106290980>, 'session_1764678454425_vfxz3nyhf')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "814f71ea-25c9-402f-8e5e-f1c8864c125a",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:23.673820",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='session_1764678454425_vfxz3nyhf' version=27 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='mobile-app', complexity='high', tech_stack='mobile', team_pref=20, region='europe', project_duration='6-12-months') user_description='A comprehensive e-commerce mobile application for fashion retail. The app will enable users to browse products, add items to cart, make secure payments, track orders, and manage their profiles. Key features: - Product catalog with advanced filtering (category, size, color, price range) - Personalized recommendations using ML algorithms - Shopping cart and wishlist management - Multiple payment methods (credit card, PayPal, Apple Pay, Google Pay) - Real-time order tracking with push notifications - User reviews and ratings system - Social sharing features - Augmented reality try-on for clothing items - Multi-language support (English, French, German, Spanish) - Admin dashboard for inventory and order management. The app must handle 50,000"
+      },
+      "metadata": {},
+      "duration_ms": 12.697935104370117,
+      "parent_event_id": "d69d47b2-fa76-4096-988c-7efcc246a34c"
+    },
+    {
+      "event_id": "a701c78c-1ed0-4305-b9e5-27cbe5d53049",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:26.757144",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Based on your project profile, I recommend COCOMO II because it has a high completeness score of 1.00 and all necessary inputs are available, making it well-suited for estimating the effort required f",
+        "is_ready": true,
+        "recommended_methods": [
+          "cocomo",
+          "function-points",
+          "story-points",
+          "analogous",
+          "parametric",
+          "bottom-up"
+        ]
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "9c898e65-bc3e-4da4-b4d5-8cad8a4e8817",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:34.195035",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "mobile-app",
+          "complexity": "high",
+          "tech_stack": "mobile",
+          "team_pref": 20,
+          "region": "europe",
+          "duration": null,
+          "description": "A high mobile-app project using mobile in europe."
+        },
+        "method_name": "cocomo",
+        "additional_inputs": {
+          "selected_methods": [
+            "cocomo"
+          ],
+          "estimation_config": {
+            "includeRisk": true,
+            "includeContingency": true,
+            "includeOverhead": true,
+            "includeProfit": true,
+            "currency": "EUR",
+            "accuracy": "high"
+          }
+        }
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "27d2adca-50d6-4f74-abaf-999765965ba8",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:34.233672",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_full_report",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x107171f90>,)",
+        "kwargs_keys": [
+          "project_id",
+          "estimation_config",
+          "selected_method"
+        ]
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "31573ac1-dba4-4505-9dcf-6d9b0ea0d0e3",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:34.235165",
+      "event_type": "error",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_full_report",
+        "error": "'ReportGeneratorService' object has no attribute '_calculate_cost_breakdown'",
+        "error_type": "AttributeError"
+      },
+      "metadata": {},
+      "duration_ms": 1.5158653259277344,
+      "parent_event_id": "27d2adca-50d6-4f74-abaf-999765965ba8"
+    },
+    {
+      "event_id": "740e344c-3244-4b3b-8da2-e4d3585d8146",
+      "session_id": "session_1764678454425_vfxz3nyhf",
+      "timestamp": "2025-12-02T12:28:34.235730",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "error": "'ReportGeneratorService' object has no attribute '_calculate_cost_breakdown'",
+        "error_type": "AttributeError"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "error"
+}

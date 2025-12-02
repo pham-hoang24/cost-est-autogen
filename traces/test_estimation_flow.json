@@ -1,0 +1,111 @@
+{
+  "session_id": "test_estimation_flow",
+  "created_at": "2025-12-02T12:46:57.350146",
+  "updated_at": "2025-12-02T12:46:57.367623",
+  "events": [
+    {
+      "event_id": "ff1082aa-13ab-45fa-8d0b-76ed5dd85705",
+      "session_id": "test_estimation_flow",
+      "timestamp": "2025-12-02T12:46:57.350140",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10571d310>, 'test_estimation_flow')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "9ddb114f-bc5a-4366-9a8a-0b30c72a9e97",
+      "session_id": "test_estimation_flow",
+      "timestamp": "2025-12-02T12:46:57.352491",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test_estimation_flow' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='web application', complexity='high', tech_stack='React, Node.js', team_pref=5, region='Europe', project_duration=None) user_description='A complex e-commerce platform with 50+ features' expansion_draft=ExpansionV1(summary='Overview: A complex e-commerce platform with 50+ features\\nProject Type: web application\\nComplexity: high\\nTech Stack Focus: React, Node.js', features=[NamedItem(name='A complex e-commerce platform with 50+ features', source='inferred', confidence=None)], non_functionals=[], platforms=[], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A complex e-commerce platform with 50+ features', source='inferred', note='auto')], missing_signals=[]) expansion_confirmed=None parsed_context=None selection=None estimates=[] explanation=None events=[EventEntry(type='PROJECT_STARTED', at=datetime.datetime(2025, 12, 2, 12, 46, 57, 312383), data={'s"
+      },
+      "metadata": {},
+      "duration_ms": 2.307891845703125,
+      "parent_event_id": "ff1082aa-13ab-45fa-8d0b-76ed5dd85705"
+    },
+    {
+      "event_id": "786f9b1e-48d6-4cef-aa79-ba9c6bcad2c6",
+      "session_id": "test_estimation_flow",
+      "timestamp": "2025-12-02T12:46:57.356904",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10571d310>, 'test_estimation_flow')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "dd167e06-6dbb-4267-9c9c-0687a4045715",
+      "session_id": "test_estimation_flow",
+      "timestamp": "2025-12-02T12:46:57.360196",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test_estimation_flow' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='web application', complexity='high', tech_stack='React, Node.js', team_pref=5, region='Europe', project_duration=None) user_description='A complex e-commerce platform with 50+ features' expansion_draft=ExpansionV1(summary='Overview: A complex e-commerce platform with 50+ features\\nProject Type: web application\\nComplexity: high\\nTech Stack Focus: React, Node.js', features=[NamedItem(name='A complex e-commerce platform with 50+ features', source='inferred', confidence=None)], non_functionals=[], platforms=[], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A complex e-commerce platform with 50+ features', source='inferred', note='auto')], missing_signals=[]) expansion_confirmed=ExpansionV1(summary='Overview: A complex e-commerce platform with 50+ features\\nProject Type: web application\\nComplexity: high\\nTech Stack Focus: React, Node.js', features=[Named"
+      },
+      "metadata": {},
+      "duration_ms": 3.1690597534179688,
+      "parent_event_id": "786f9b1e-48d6-4cef-aa79-ba9c6bcad2c6"
+    },
+    {
+      "event_id": "3b31ac27-fd7f-4a63-b757-34e08d5214a6",
+      "session_id": "test_estimation_flow",
+      "timestamp": "2025-12-02T12:46:57.363616",
+      "event_type": "agent_call",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "method_id": "cocomo",
+        "inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/run-estimation"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "14bbc175-546a-41e7-8722-41d4ee3d5256",
+      "session_id": "test_estimation_flow",
+      "timestamp": "2025-12-02T12:46:57.367618",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "error": "'ParsedContextV1' object has no attribute 'size_metrics'",
+        "error_type": "AttributeError"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

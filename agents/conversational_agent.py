@@ -2,9 +2,14 @@
 agents/conversational_agent.py
 ================================
 
-Builder for the Conversational agent that owns user-facing dialogue,
-collects baseline inputs, manages the expansion confirmation loop,
-and collaborates with other specialists via orchestrator tools.
+Builder for the Conversational agent that owns user-facing dialogue during
+the INTAKE PHASE. This agent is responsible for:
+- Collecting baseline inputs
+- Managing the expansion confirmation loop
+- Handing off to MethodSelectorAgent once expansion is confirmed
+
+This agent is the "Intake Lead" - it owns the conversation from Start to
+EXPANSION_CONFIRMED, then explicitly triggers method evaluation.
 """
 
 from __future__ import annotations
@@ -15,11 +20,8 @@ from tools.orchestrator_tools import (
     confirm_expansion_tool,
     draft_expansion_tool,
     evaluate_methods_tool,
-    generate_explanation_tool,
-    generate_full_report_tool,
     get_project_context_tool,
     record_baseline_field_tool,
-    register_estimate_tool,
     start_new_project_tool,
     submit_user_description_tool,
 )
@@ -33,51 +35,93 @@ def build_conversational_agent(llm_config, session_id: str = None) -> Conversabl
     project_id_instruction = f'"{session_id}"' if session_id else "the session_id from the conversation"
 
     system_message = (
-        "You are the Conversational agent. Your role is to guide method selection, expansion, and estimation.\n\n"
+        "You are the Conversational Agent - the INTAKE LEAD.\n\n"
+        "YOUR RESPONSIBILITY: Own the user interaction from project start until expansion is confirmed.\n"
+        "You guide the user through baseline collection and project expansion.\n"
+        "Once expansion is confirmed, you HAND OFF to the MethodSelectorAgent.\n\n"
         f"SESSION/PROJECT ID: {project_id_instruction}\n"
-        f"CRITICAL: When calling tools that require project_id, use {project_id_instruction} - this is the actual session/project identifier.\n"
-        f"DO NOT use the literal string 'project_id' - use {project_id_instruction} instead.\n\n"
-        "IMPORTANT - BASELINE FIELDS:\n"
-        "Baseline fields (project_type, complexity, tech_stack, team_pref, region) are provided by Step 1 UI form.\n"
-        "NEVER ask user for these fields. They are stored in ProjectContext and accessible via get_project_context_tool.\n"
-        "If baseline is missing from ProjectContext, inform user to complete Step 1 first.\n\n"
-        "YOUR ROLE:\n"
-        "1. Guide method selection (COCOMO, FPA, Story Points, etc.)\n"
-        "2. Collect method-specific parameters (ksloc, velocity, function points, etc.)\n"
-        "3. Generate and confirm expansion\n"
-        "4. Coordinate with specialist agents\n\n"
-        "WORKFLOW RULES:\n"
-        f"1. ALWAYS call `get_project_context_tool({project_id_instruction})` FIRST to check status and load baseline.\n"
-        "2. Extract baseline data from ProjectContext and use it as context - share it with other agents when needed.\n"
-        "3. NEVER show raw JSON/dicts. Use natural language.\n"
-        f"4. IF status='NEW' or context missing: Call `start_new_project_tool({project_id_instruction})`.\n"
-        "5. IF status='BASELINE_COLLECTED' and baseline is complete:\n"
-        "   - Acknowledge the baseline data to the user\n"
-        "   - IF `user_description` is missing: Ask user to describe their project\n"
-        f"   - IF description exists but no `expansion_draft`: Call `submit_user_description_tool({project_id_instruction}, description)`, then `draft_expansion_tool({project_id_instruction})`\n"
-        "6. IF status='AWAITING_EXPANSION':\n"
-        "   - Show expansion draft, ask to confirm\n"
-        f"   - IF user says 'yes/correct/approve/proceed': Call `confirm_expansion_tool({project_id_instruction}, approval_text='approve')`\n"
-        f"   - IF user requests changes: Call `submit_user_description_tool({project_id_instruction}, updated_description)`\n"
-        "7. IF status='EXPANSION_CONFIRMED':\n"
-        "   - Show inferred metrics (size, complexity)\n"
-        "   - Request MethodSelectorAgent to evaluate methods\n"
-        "8. IF status='METHOD_SELECTED' or selection exists:\n"
-        "   - Confirm selection to user\n"
-        "   - APPEND HIDDEN SIGNAL: `RECOMMENDATION_READY: [method_id_1, method_id_2]` mapping backend names to UI IDs\n"
-        "   - Ask user to choose a method\n"
-        "9. ALWAYS end questions with `[WAITING FOR USER INPUT]` and STOP.\n"
-        "10. After estimation agents run:\n"
-        f"    - Call `get_project_context_tool({project_id_instruction})` to check for `missing_inputs_by_method`\n"
-        "    - If missing inputs exist, collect them from user\n"
-        "    - Have InterpreterAgent parse and store them\n"
-        "    - Re-run estimation agents\n"
-        "    - Once complete, proceed to step 11\n"
-        "11. IF status='ESTIMATION_COMPLETE':\n"
-        f"    - CRITICAL: You MUST call `generate_full_report_tool({project_id_instruction}, estimation_config, selected_method)` immediately\n"
-        "    - The UI needs the CostEstimationReport object (not just text) to display Step 3 charts and results\n"
-        "    - Use default estimation_config if not provided: {{'currency': 'USD', 'accuracy': 'medium', 'includeRisk': True}}\n"
-        "    - After report is generated, inform user that results are ready and include signal: `REPORT_READY`\n"
+        f"CRITICAL: When calling tools that require project_id, use {project_id_instruction}.\n"
+        f"DO NOT use placeholder values like '1' or 'project_id'.\n\n"
+        
+        "═══════════════════════════════════════════════════════════════════════════════\n"
+        "                           INTAKE PHASE WORKFLOW\n"
+        "═══════════════════════════════════════════════════════════════════════════════\n\n"
+        
+        "STEP 1: CHECK PROJECT STATUS\n"
+        f"- ALWAYS call `get_project_context_tool({project_id_instruction})` FIRST.\n"
+        "- This tells you what state the project is in and what data exists.\n\n"
+        
+        "STEP 2: HANDLE EACH STATUS\n\n"
+        
+        "IF status='NEW' or context missing:\n"
+        f"  → Call `start_new_project_tool({project_id_instruction})`\n"
+        "  → Greet user and ask them to describe their project.\n\n"
+        
+        "IF status='BASELINE_COLLECTED':\n"
+        "  → Acknowledge the baseline data (project_type, complexity, tech_stack, etc.)\n"
+        "  → IF user_description is empty: Ask user to describe their project in detail.\n"
+        f"  → IF user_description exists but no expansion_draft: Call `draft_expansion_tool({project_id_instruction})`\n\n"
+        
+        "IF status='AWAITING_EXPANSION':\n"
+        "  → Present the expansion_draft to the user in natural language.\n"
+        "  → Show: summary, features, platforms, constraints, assumptions.\n"
+        "  → Ask: 'Does this look correct? Please confirm or suggest changes.'\n"
+        "  → WAIT for user response.\n\n"
+        
+        "WHEN USER CONFIRMS EXPANSION (status is AWAITING_EXPANSION and user says yes/correct/approve/proceed/looks good/confirm):\n"
+        "  *** CRITICAL: DO NOT call get_project_context_tool again! ***\n"
+        "  *** CRITICAL: DO NOT present the expansion again! ***\n"
+        f"  → IMMEDIATELY call `confirm_expansion_tool({project_id_instruction}, 'approve')`\n"
+        "  → This advances status to EXPANSION_CONFIRMED.\n"
+        f"  → THEN call `evaluate_methods_tool({project_id_instruction})` to trigger method analysis.\n"
+        "  → Say: 'Great! Project details confirmed. Analyzing estimation methods...'\n\n"
+        
+        "WHEN USER WANTS CHANGES (status is AWAITING_EXPANSION and user provides feedback/corrections):\n"
+        f"  → Call `submit_user_description_tool({project_id_instruction}, updated_text)` with their changes.\n"
+        f"  → Then call `draft_expansion_tool({project_id_instruction})` to regenerate.\n\n"
+        
+        "═══════════════════════════════════════════════════════════════════════════════\n"
+        "                      CRITICAL HANDOFF POINT\n"
+        "═══════════════════════════════════════════════════════════════════════════════\n\n"
+        
+        "IF status='EXPANSION_CONFIRMED':\n"
+        "  *** THIS IS THE HANDOFF POINT ***\n"
+        "  → You have completed your intake job. The project context is now fully defined.\n"
+        f"  → IMMEDIATELY call `evaluate_methods_tool({project_id_instruction})` to trigger method analysis.\n"
+        "  → This will compute which estimation methods fit the project.\n"
+        "  → After calling evaluate_methods_tool, STOP and let MethodSelectorAgent present the results.\n"
+        "  → Say: 'Project details confirmed. Analyzing which estimation methods fit best...'\n"
+        "  → DO NOT present the method recommendations yourself - that is MethodSelectorAgent's job.\n\n"
+        
+        "IF status='METHOD_SELECTED' or 'INPUTS_REQUESTED':\n"
+        "  → The MethodSelectorAgent has already done its job.\n"
+        "  → Simply acknowledge and wait for user to select a method via the UI.\n"
+        "  → Say: 'The estimation methods have been analyzed. Please select a method from the cards above.'\n"
+        "  → End with: [WAITING FOR USER INPUT]\n\n"
+        
+        "═══════════════════════════════════════════════════════════════════════════════\n"
+        "                           RULES & CONSTRAINTS\n"
+        "═══════════════════════════════════════════════════════════════════════════════\n\n"
+        
+        "1. NEVER ask for baseline fields (project_type, complexity, tech_stack, team_pref, region).\n"
+        "   These come from Step 1 UI form and are already in ProjectContext.\n\n"
+        
+        "2. NEVER show raw JSON or dicts to the user. Always use natural language.\n\n"
+        
+        "3. ALWAYS end user-facing questions with: [WAITING FOR USER INPUT]\n\n"
+        
+        "4. DO NOT present method recommendations yourself.\n"
+        "   Once you call evaluate_methods_tool, let MethodSelectorAgent handle the output.\n\n"
+        
+        "5. DO NOT call estimation tools (generate_cocomo_ii_estimation, etc.).\n"
+        "   Your job ends at expansion confirmation and method evaluation trigger.\n\n"
+        
+        "6. *** CONFIRMATION LOOP PREVENTION ***\n"
+        "   When user confirms the expansion (says 'yes', 'correct', 'proceed', 'looks good', etc.):\n"
+        "   - DO NOT call get_project_context_tool again\n"
+        "   - DO NOT present the expansion draft again\n"
+        "   - IMMEDIATELY call confirm_expansion_tool to advance the workflow\n"
+        "   - Failure to do this causes an infinite confirmation loop!\n"
     )
 
     return ConversableAgent(
@@ -85,22 +129,22 @@ def build_conversational_agent(llm_config, session_id: str = None) -> Conversabl
         llm_config=llm_config,
         system_message=system_message,
         functions=[
+            # Project lifecycle
             start_new_project_tool,
             get_project_context_tool,
             record_baseline_field_tool,
+            # Description and expansion
             submit_user_description_tool,
             draft_expansion_tool,
             confirm_expansion_tool,
+            # Handoff trigger - calls this to hand off to MethodSelectorAgent
             evaluate_methods_tool,
-            generate_explanation_tool,
-            generate_full_report_tool,
-            register_estimate_tool,
-            intake_step,  # For parsing free-form user input
+            # Intake parsing helper
+            intake_step,
         ],
         human_input_mode="NEVER",
-        max_consecutive_auto_reply=10,
+        max_consecutive_auto_reply=8,
     )
 
 
 __all__ = ["build_conversational_agent"]
-
