@@ -253,7 +253,14 @@ class TeamMember(BaseModel):
 
 class TeamComposition(BaseModel):
     """Complete team structure"""
-    developers: List[TeamMember]
+    # New fields from report generator
+    total_members: int = 0
+    total_effort_person_months: float = 0.0
+    average_team_size: int = 0
+    roles: List[Dict[str, Any]] = Field(default_factory=list)
+    
+    # Legacy fields for backward compatibility
+    developers: List[TeamMember] = Field(default_factory=list)
     designers: List[TeamMember] = Field(default_factory=list)
     other_roles: List[TeamMember] = Field(default_factory=list)
 

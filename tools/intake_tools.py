@@ -270,7 +270,13 @@ def _update_fields_from_text(method: str, text: str, session: Dict[str, Any]) ->
 
 def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
     """
-    Process a conversational turn, updating session state and determining next steps.
+    Process a conversational turn for method selection and method-specific parameters.
+    
+    NOTE: Baseline fields (project_type, complexity, tech_stack, team_pref, region)
+    are now collected exclusively via Step 1 form and stored in ProjectContext.
+    This function only handles:
+    - Method selection (cocomo, fpa, storypoints, etc.)
+    - Method-specific parameters (ksloc, velocity, story_points, etc.)
     """
     session = _ensure_session(session_id)
     response: Dict[str, Any] = {"session_id": session_id}
@@ -278,30 +284,7 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
     text = user_text.strip()
     lowered = text.lower()
 
-    # Handle pending baseline field
-    if session.get("pending_baseline"):
-        baseline_field = session["pending_baseline"]
-        validator = _BASELINE_FIELDS[baseline_field]["validator"]
-        try:
-            value = validator(text)
-            session["baseline"][baseline_field] = value
-        except Exception:
-            response.update(
-                {
-                    "message": f"Couldn't parse {baseline_field}. {_BASELINE_FIELDS[baseline_field]['question']}",
-                    "baseline_collected": session["baseline"],
-                    "method": session["method"],
-                    "collected": session["fields"],
-                    "missing": [],
-                    "ready": False,
-                    "next_question": _BASELINE_FIELDS[baseline_field]["question"],
-                }
-            )
-            _save_session(session_id, session)
-            return response
-        finally:
-            session["pending_baseline"] = None
-
+    # Handle pending method-specific field
     if session["pending_field"]:
         field = session["pending_field"]
         if field == "project_name" and text:
@@ -311,26 +294,6 @@ def intake_step(session_id: str, user_text: str) -> Dict[str, Any]:
             if value is not None:
                 session["fields"][field] = value
         session["pending_field"] = None
-
-    # Determine missing baseline inputs
-    missing_baseline = [field for field in _BASELINE_ORDER if field not in session["baseline"]]
-    if missing_baseline:
-        next_baseline = missing_baseline[0]
-        session["pending_baseline"] = next_baseline
-        question = _BASELINE_FIELDS[next_baseline]["question"]
-        response.update(
-            {
-                "message": "Before selecting an estimation method, please provide more project context.",
-                "baseline_collected": session["baseline"],
-                "method": session["method"],
-                "collected": session["fields"],
-                "missing": [],
-                "ready": False,
-                "next_question": question,
-            }
-        )
-        _save_session(session_id, session)
-        return response
 
     if session["method"] is None:
         inferred = _infer_method(lowered)

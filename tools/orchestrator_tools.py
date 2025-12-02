@@ -20,6 +20,26 @@ def record_baseline_field_tool(project_id: str, field: str, value: str) -> Dict[
     return _serialize_context(context)
 
 
+def update_project_baseline_tool(project_id: str, updates: Dict[str, str]) -> Dict[str, object]:
+    """
+    Bulk update multiple baseline fields at once.
+    
+    Args:
+        project_id: Project identifier
+        updates: Dictionary of field->value pairs (e.g., {"complexity": "High", "region": "Europe"})
+        
+    Returns:
+        Serialized project context
+    """
+    # Validate all fields before updating
+    for field in updates.keys():
+        if field not in _BASELINE_FIELDS:
+            raise ValueError(f"Unsupported baseline field '{field}'. Expected one of {_BASELINE_FIELDS}.")
+    
+    context = _ORCHESTRATOR.update_baseline_bulk(project_id, updates)
+    return _serialize_context(context)
+
+
 def submit_user_description_tool(project_id: str, description: str) -> Dict[str, object]:
     context = _ORCHESTRATOR.submit_description(project_id, description)
     return _serialize_context(context)

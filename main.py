@@ -17,6 +17,7 @@ from agents.method_selector_agent import build_method_selector_agent
 from tools.orchestrator_tools import (
     start_new_project_tool,
     record_baseline_field_tool,
+    update_project_baseline_tool,
     submit_user_description_tool,
     draft_expansion_tool,
     confirm_expansion_tool,
@@ -218,14 +219,20 @@ async def chat_endpoint(request: ChatRequest):
             # Baseline is complete from Step 1 form OR auto-intake
             baseline_from_step1 = True
             baseline_summary = (
-                f"Session {session_id} has complete baseline data:\n"
-                f"- Project Type: {baseline_data.get('project_type', 'N/A')}\n"
-                f"- Complexity: {baseline_data.get('complexity', 'N/A')}\n"
-                f"- Tech Stack: {baseline_data.get('tech_stack', 'N/A')}\n"
-                f"- Team Preference: {baseline_data.get('team_pref', 'N/A')}\n"
-                f"- Region: {baseline_data.get('region', 'N/A')}\n"
-                f"- Project Duration: {baseline_data.get('project_duration', 'N/A')}\n"
-                f"IMPORTANT: Do NOT re-ask for these baseline fields. Proceed directly to the next workflow step."
+                f"BASELINE DATA ALREADY PROVIDED (from Step 1 UI form):\\n"
+                f"Session {session_id} has complete baseline information stored in ProjectContext:\\n"
+                f"- Project Type: {baseline_data.get('project_type', 'N/A')}\\n"
+                f"- Complexity: {baseline_data.get('complexity', 'N/A')}\\n"
+                f"- Tech Stack: {baseline_data.get('tech_stack', 'N/A')}\\n"
+                f"- Team Preference: {baseline_data.get('team_pref', 'N/A')} people\\n"
+                f"- Region: {baseline_data.get('region', 'N/A')}\\n"
+                f"- Project Duration: {baseline_data.get('project_duration', 'N/A')}\\n\\n"
+                f"CRITICAL INSTRUCTION: These baseline fields are COMPLETE. Do NOT ask the user for these fields again.\\n"
+                f"Proceed directly with:\\n"
+                f"1. Asking for project description (if not provided)\\n"
+                f"2. Generating expansion draft\\n"
+                f"3. Method selection and method-specific parameters\\n\\n"
+                f"Use the baseline data above as context when communicating with other agents."
             )
     except Exception as e:
         # Context doesn't exist yet or error loading - proceed normally
@@ -307,27 +314,60 @@ async def chat_endpoint(request: ChatRequest):
         # Initialize agents (in a real app, these would be persistent or cached)
         # For now, we create them per request for simplicity, but pass history
         
-        # Configure AutoGen for OpenRouter
-        config_list = [
-            {
-                "model": model,
+        # ============================================================================
+        # 1. Model Tiering Configuration
+        # ============================================================================
+        
+        # Cheap Config (Tier 1) - For chat, routing, and basic logic
+        cheap_model = os.environ.get("CHEAP_MODEL_NAME", "openai/gpt-4o-mini")
+        cheap_llm_config = {
+            "config_list": [{
+                "model": cheap_model,
                 "api_key": api_key,
                 "base_url": "https://openrouter.ai/api/v1",
-                "api_type": "openai",  # OpenRouter is OpenAI-compatible
-                "price": [0.01, 0.03]  # Silence warning about missing model price
-            }
-        ]
-        
-        print(f"Using OpenRouter API with model: {model}")
-        
-        llm_config = {
-            "config_list": config_list,
-            "temperature": 0.7,
-            "timeout": 120,  # Increase timeout for OpenRouter
-            "max_tokens": 500,  # Limit output tokens to avoid 402 errors (low credit)
+                "api_type": "openai",
+                "price": [0.0, 0.0],  # Silence warnings
+            }],
+            "temperature": 0.5,
+            "timeout": 60,
+            "max_tokens": 1000,
+            "cache_seed": 42,
+        }
+
+        # Advanced Config (Tier 2) - For estimation and complex reasoning
+        advanced_model = os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o")
+        advanced_llm_config = {
+            "config_list": [{
+                "model": advanced_model,
+                "api_key": api_key,
+                "base_url": "https://openrouter.ai/api/v1",
+                "api_type": "openai",
+                "price": [0.01, 0.03],
+            }],
+            "temperature": 0.2,
+            "timeout": 120,
+            "max_tokens": 4000,
+            "cache_seed": 42,
         }
         
-        # User Proxy Agent
+        print(f"Tier 1 Model: {cheap_model}")
+        print(f"Tier 2 Model: {advanced_model}")
+
+        # ============================================================================
+        # 2. Agent Instantiation (Phase-Based)
+        # ============================================================================
+        
+        # Determine Phase based on Project Status
+        # Default to Phase 1 (Intake)
+        is_estimation_phase = False
+        if context:
+            status = context.get("status", "NEW")
+            if status in ["METHOD_SELECTED", "ESTIMATION_GENERATED"]:
+                is_estimation_phase = True
+        
+        print(f"Workflow Phase: {'ESTIMATION' if is_estimation_phase else 'INTAKE'}")
+
+        # Common Agents
         def check_termination(msg):
             content = msg.get("content", "")
             if content and "WAITING FOR USER INPUT" in content:
@@ -338,10 +378,38 @@ async def chat_endpoint(request: ChatRequest):
         user_proxy = autogen.UserProxyAgent(
             name="User",
             human_input_mode="NEVER",
-            max_consecutive_auto_reply=10,
+            max_consecutive_auto_reply=5,  # Reduced from 10
             code_execution_config=False,
             is_termination_msg=check_termination,
+            llm_config=cheap_llm_config,  # Use cheap model
         )
+
+        conversational_agent = build_conversational_agent(cheap_llm_config, session_id=session_id)
+        
+        # Dynamic Agent List
+        agents_list = [user_proxy, conversational_agent]
+        
+        if not is_estimation_phase:
+            # Phase 1: Intake & Selection
+            interpreter_agent = build_interpreter_agent(cheap_llm_config, session_id=session_id)
+            method_selector_agent = build_method_selector_agent(advanced_llm_config, session_id=session_id) # Keep advanced for selection logic
+            
+            agents_list.extend([interpreter_agent, method_selector_agent])
+            
+            # Add specific estimators only if needed for selection context, but usually not needed yet
+            # We keep the list short to save tokens
+            
+        else:
+            # Phase 2: Estimation
+            # We need the estimators now
+            cocomo_agent = build_cocomo_agent(advanced_llm_config)
+            explainer_agent = build_explainer_agent(advanced_llm_config)
+            
+            # Add other agents as needed (placeholders for now)
+            # storypoints_agent = build_storypoints_agent(advanced_llm_config)
+            # ...
+            
+            agents_list.extend([cocomo_agent, explainer_agent])
         
         # Register all orchestrator tools with user_proxy for execution
         from tools.intake_tools import intake_step
@@ -357,6 +425,7 @@ async def chat_endpoint(request: ChatRequest):
                 # Orchestrator tools
                 "start_new_project_tool": start_new_project_tool,
                 "record_baseline_field_tool": record_baseline_field_tool,
+                "update_project_baseline_tool": update_project_baseline_tool,
                 "submit_user_description_tool": submit_user_description_tool,
                 "get_project_context_tool": get_project_context_tool,
                 "draft_expansion_tool": draft_expansion_tool,
@@ -379,55 +448,24 @@ async def chat_endpoint(request: ChatRequest):
             }
         )
         
-        # Instantiate the real agents
-        from agents.conversational_agent import build_conversational_agent
-        from agents.interpreter_agent import build_interpreter_agent
-        from agents.method_selector_agent import build_method_selector_agent
-        from agents.cocomo_agent import build_cocomo_agent
-        from agents.storypoints_agent import build_storypoints_agent
-        from agents.fpa_agent import build_fpa_agent
-        from agents.parametric_agent import build_parametric_agent
-        from agents.bottomup_agent import build_bottomup_agent
-        from agents.analogous_agent import build_analogous_agent
-        from agents.explainer_agent import build_explainer_agent
-
-        conversational_agent = build_conversational_agent(llm_config, session_id=session_id)
-        interpreter_agent = build_interpreter_agent(llm_config)
-        method_selector_agent = build_method_selector_agent(llm_config)
+        # ============================================================================
+        # 3. History Truncation
+        # ============================================================================
+        MAX_HISTORY = 6
+        truncated_history = (request.history or [])[-MAX_HISTORY:]
         
-        # Instantiate estimation agents
-        cocomo_agent = build_cocomo_agent(llm_config)
-        storypoints_agent = build_storypoints_agent(llm_config)
-        fpa_agent = build_fpa_agent(llm_config)
-        parametric_agent = build_parametric_agent(llm_config)
-        bottomup_agent = build_bottomup_agent(llm_config)
-        analogous_agent = build_analogous_agent(llm_config)
-        explainer_agent = build_explainer_agent(llm_config)
-        
-        # Create GroupChat
-        # We pass the history so the agents have context of previous turns
+        # Create GroupChat with dynamic agents list
         groupchat = autogen.GroupChat(
-            agents=[
-                user_proxy, 
-                conversational_agent, 
-                interpreter_agent, 
-                method_selector_agent,
-                cocomo_agent,
-                storypoints_agent,
-                fpa_agent,
-                parametric_agent,
-                bottomup_agent,
-                analogous_agent,
-                explainer_agent
-            ],
-            messages=request.history or [],
-            max_round=30,  # Increased to allow full workflow completion
-            speaker_selection_method="auto"
+            agents=agents_list,
+            messages=truncated_history,
+            max_round=15,  # Reduced from 30
+            speaker_selection_method="auto",
+            allow_repeat_speaker=False,
         )
         
         manager = autogen.GroupChatManager(
             groupchat=groupchat,
-            llm_config=llm_config
+            llm_config=cheap_llm_config,  # Manager uses cheap model for routing
         )
         
         # Initiate chat with the user's message
@@ -783,8 +821,8 @@ async def generate_report(request: EstimationRequest):
             orchestrator.record_baseline_field(project_id, "team_pref", str(baseline.team_pref))
             orchestrator.record_baseline_field(project_id, "region", baseline.region)
             
-            if baseline.description:
-                orchestrator.submit_description(project_id, baseline.description)
+            # Description is handled separately, not part of BaselineInputs schema
+            # It's stored in ProjectContext.user_description via submit_description call
             
             # Generate expansion and select methods
             orchestrator.generate_expansion(project_id)

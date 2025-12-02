@@ -83,6 +83,41 @@ class WorkflowOrchestrator:
         )
         return context
 
+    def update_baseline_bulk(self, project_id: str, updates: Dict[str, str]) -> ProjectContext:
+        """
+        Update multiple baseline fields at once.
+        
+        Args:
+            project_id: Project identifier
+            updates: Dictionary of field->value pairs
+            
+        Returns:
+            Updated ProjectContext
+        """
+        context = self.load_context(project_id, create_if_missing=True)
+        
+        for field, value in updates.items():
+            if field == "team_pref":
+                try:
+                    coerced = int(float(value))
+                except ValueError as exc:
+                    raise ValueError("team_pref must be numeric.") from exc
+                setattr(context.baseline, field, coerced)
+            else:
+                setattr(context.baseline, field, value)
+        
+        # Check if all baseline fields are now collected
+        if not self._missing_baseline(context):
+            context.status = "BASELINE_COLLECTED"
+        
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "BASELINE_BULK_UPDATED",
+            {"fields": list(updates.keys()), "status": context.status},
+        )
+        return context
+
     def submit_description(self, project_id: str, description: str) -> ProjectContext:
         context = self.load_context(project_id, create_if_missing=True)
         context.user_description = description.strip()
@@ -253,14 +288,16 @@ class WorkflowOrchestrator:
     @trace_agent_call("WorkflowOrchestrator")
     def evaluate_methods(self, project_id: str) -> ProjectContext:
         context = self.load_context(project_id)
-        if context.expansion_confirmed is None:
-            raise ValueError("Expansion must be confirmed before method selection.")
+        # Use confirmed expansion if available, otherwise fall back to draft
+        expansion = context.expansion_confirmed or context.expansion_draft
+        if expansion is None:
+            raise ValueError("Expansion draft must be generated before method selection.")
 
         prior = context.baseline.model_dump(exclude_none=True)
         parsed = self.parser_service.parse(
             context.user_description, 
             prior, 
-            context.expansion_confirmed,
+            expansion,  # Use confirmed or draft expansion
             inferred_fields=context.inferred_fields
         )
         selection = self.selector.evaluate(parsed)

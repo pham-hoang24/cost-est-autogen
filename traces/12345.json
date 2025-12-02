@@ -1,7 +1,7 @@
 {
   "session_id": "12345",
   "created_at": "2025-11-28T07:50:24.771621",
-  "updated_at": "2025-11-30T12:16:23.055066",
+  "updated_at": "2025-12-02T08:39:15.883565",
   "events": [
     {
       "event_id": "fd46c5b2-1650-4b8e-8729-2036d4a25fd0",
@@ -104,6 +104,40 @@
       "metadata": {},
       "duration_ms": 2.8951168060302734,
       "parent_event_id": "ba3bd159-9e83-41ae-849e-3eca18c50a53"
+    },
+    {
+      "event_id": "34b1e6b1-64de-45a2-b88f-952d59bf4ef7",
+      "session_id": "12345",
+      "timestamp": "2025-12-02T08:39:15.870714",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x106f68830>, '12345')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "95202b5d-4c01-4d5d-be2c-d886f7a3ff1f",
+      "session_id": "12345",
+      "timestamp": "2025-12-02T08:39:15.883542",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='12345' version=7 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='mobile application', complexity='High', tech_stack='AI/ML Technologies, Mobile Development', team_pref=5, region='Europe', project_duration=None) user_description='We are looking to develop a mobile application for both iOS and Android platforms. The app will cater to a user base of 50k+ users and will utilize AI/ML technologies for personalized recommendations. We expect high scalability and want to ensure it can handle real-time data processing. We prefer a small team for this project and are based in Europe.' expansion_draft=ExpansionV1(summary='Overview: We are looking to develop a mobile application for both iOS and Android platforms. The app will cater to a user base of 50k+ users and will utilize AI/ML technologies for personalized recommendations. We expect high scalability and want to ensure it can handle real-time data processing. We prefer a small team for this project and are base"
+      },
+      "metadata": {},
+      "duration_ms": 12.709856033325195,
+      "parent_event_id": "34b1e6b1-64de-45a2-b88f-952d59bf4ef7"
     }
   ],
   "metadata": {},
