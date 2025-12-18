@@ -1,0 +1,343 @@
+{
+  "session_id": "session_1764688978832_4yf6dw877",
+  "created_at": "2025-12-02T15:23:15.041204",
+  "updated_at": "2025-12-02T15:24:24.959138",
+  "events": [
+    {
+      "event_id": "d9e6065b-b24d-44ff-afed-c33e8a7b206e",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:23:15.041192",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1764688978832_4yf6dw877",
+        "project_type": "web-application",
+        "complexity": "low",
+        "tech_stack": "web",
+        "team_pref": 5,
+        "region": "north-america",
+        "project_duration": "1-3-months",
+        "description": "A low web-application project using web in north-america."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "ca21425e-8e00-40ce-a1f6-2591345a451a",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:23:15.089120",
+      "event_type": "agent_response",
+      "agent_name": "InterpreterAgent",
+      "step_name": "validate_step1",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "errors": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "cd468bea-9d73-4710-979e-a35bb8db028c",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:23:20.541679",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "A simple informational website for a local restaurant. The site will showcase the menu, allow online reservations, and display location information. Features include:  - Homepage with hero image and welcome message - Menu page with food items, descriptions, and prices - Online reservation form - Contact page with address, phone, email, and embedded Google Maps - Photo gallery of dishes and restaurant interior - Basic mobile responsiveness  The website will use WordPress for easy content management by the restaurant staff. Expected traffic: 500-1000 visitors per month.",
+        "history_length": 1
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "2232603a-a9d6-4b85-ab37-6b5a4d711af3",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:23:30.642862",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x105fa9940>, 'session_1764688978832_4yf6dw877')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "6d4a26e0-c834-4392-8eaa-ef4748251370",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:23:30.648305",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='session_1764688978832_4yf6dw877' version=21 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='web-application', complexity='low', tech_stack='web', team_pref=5, region='north-america', project_duration='1-3-months') user_description='A simple informational website for a local restaurant. The site will showcase the menu, allow online reservations, and display location information. Features include:  - Homepage with hero image and welcome message - Menu page with food items, descriptions, and prices - Online reservation form - Contact page with address, phone, email, and embedded Google Maps - Photo gallery of dishes and restaurant interior - Basic mobile responsiveness. The website will use WordPress for easy content management by the restaurant staff. Expected traffic: 500-1000 visitors per month.' expansion_draft=ExpansionV1(summary='Overview: A simple informational website for a local restaurant. The site will showcase the menu, allow online reservations, "
+      },
+      "metadata": {},
+      "duration_ms": 5.295038223266602,
+      "parent_event_id": "2232603a-a9d6-4b85-ab37-6b5a4d711af3"
+    },
+    {
+      "event_id": "aefd08d1-152c-4ed1-8788-26e2bf53b6ae",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:23:35.752313",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Here's the expansion draft for your project:\n\n### Project Overview\nA simple informational website for a local restaurant. The site will showcase the menu, allow online reservations, and display locati",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "96f7fcc9-94e1-4f57-a3d3-1112224ae726",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:00.528829",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "Correct",
+        "history_length": 3
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "de607bbe-3ed9-460b-921f-067fea2d25ff",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:04.641763",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x105fa9940>, 'session_1764688978832_4yf6dw877')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "38fef91c-7628-4b38-8ffb-6c4003ac80ed",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:04.646344",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='session_1764688978832_4yf6dw877' version=27 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='web-application', complexity='low', tech_stack='web', team_pref=5, region='north-america', project_duration='1-3-months') user_description='A simple informational website for a local restaurant. The site will showcase the menu, allow online reservations, and display location information. Features include:  - Homepage with hero image and welcome message - Menu page with food items, descriptions, and prices - Online reservation form - Contact page with address, phone, email, and embedded Google Maps - Photo gallery of dishes and restaurant interior - Basic mobile responsiveness. The website will use WordPress for easy content management by the restaurant staff. Expected traffic: 500-1000 visitors per month.' expansion_draft=ExpansionV1(summary='Overview: A simple informational website for a local restaurant. The site will showcase the menu, allow online reservations, and"
+      },
+      "metadata": {},
+      "duration_ms": 4.225969314575195,
+      "parent_event_id": "de607bbe-3ed9-460b-921f-067fea2d25ff"
+    },
+    {
+      "event_id": "6d484d94-90fe-4bcf-b929-acf9afb8b6ef",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:09.045696",
+      "event_type": "agent_response",
+      "agent_name": "GroupChatManager",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Based on your project profile, I recommend using the COCOMO II method because it has the highest completeness score (1.00) and all necessary inputs are available, making it a reliable choice for estim",
+        "is_ready": true,
+        "recommended_methods": [
+          "cocomo",
+          "function-points",
+          "story-points",
+          "analogous",
+          "parametric",
+          "bottom-up"
+        ]
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "e3fad1d0-804f-47af-85ac-aad09ee2d206",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:15.033894",
+      "event_type": "agent_call",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "method_id": "hybrid",
+        "inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/run-estimation"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "b3a4cb22-300e-44b6-8cd0-f2383af20eaf",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:15.045620",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "web-application",
+          "complexity": "low",
+          "tech_stack": "web",
+          "team_pref": 5,
+          "region": "north-america",
+          "duration": null,
+          "description": "A low web-application project using web in north-america."
+        },
+        "method_name": "hybrid",
+        "additional_inputs": {
+          "selected_methods": [
+            "hybrid"
+          ],
+          "estimation_config": {
+            "includeRisk": true,
+            "includeContingency": true,
+            "includeOverhead": true,
+            "includeProfit": true,
+            "currency": "USD",
+            "accuracy": "high"
+          }
+        }
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "951a75c4-f268-4c4f-8199-2412e346d866",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:15.049071",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_full_report",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x1063f2710>,)",
+        "kwargs_keys": [
+          "project_id",
+          "estimation_config",
+          "selected_method"
+        ]
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "1d2c9c88-871a-4786-bbeb-f38aae6e88fe",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:15.060336",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_full_report",
+        "result_type": "CostEstimationReport",
+        "result_preview": "report_title='Cost Estimation Report' generated_at='12/02/2025, 05:24:15 PM' project_details={'project_type': 'web-application', 'complexity': 'low', 'tech_stack': 'web', 'team_pref': 5, 'region': 'north-america', 'project_duration': '1-3-months'} estimation_config={'includeRisk': True, 'includeContingency': True, 'includeOverhead': True, 'includeProfit': True, 'currency': 'EUR', 'accuracy': 'high'} timestamp='2025-12-02T15:24:15.054632Z' project_data=ProjectData(original_project_type='web-application', project_type='organic', technical_complexity={'high_complexity': False}, project_context_description='This project aims to develop a web-application with low complexity, designed to meet the evolving needs of modern users. The platform will provide core functionality including user authentication, data management, and comprehensive reporting capabilities.\\n\\nThe application will be built with scalability and maintainability in mind, ensuring that it can grow with the business. By levera"
+      },
+      "metadata": {},
+      "duration_ms": 11.26408576965332,
+      "parent_event_id": "951a75c4-f268-4c4f-8199-2412e346d866"
+    },
+    {
+      "event_id": "eb42547d-3105-4749-9d20-c5ea2f2c49f8",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:15.060725",
+      "event_type": "session_end",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "status": "completed"
+      },
+      "metadata": {
+        "total_cost": 250000.0,
+        "methods_used": [
+          "blend",
+          "agile_sp",
+          "bottomup"
+        ],
+        "duration": "12 months"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "8b08bb25-f53d-456d-b518-732ab74661ad",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:24.925183",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1764688978832_4yf6dw877",
+        "project_type": "web-application",
+        "complexity": "low",
+        "tech_stack": "web",
+        "team_pref": 5,
+        "region": "north-america",
+        "project_duration": "1-3-months",
+        "description": "A low web-application project using web in north-america."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "c337282c-1f5b-4542-9c50-543fc2ceb954",
+      "session_id": "session_1764688978832_4yf6dw877",
+      "timestamp": "2025-12-02T15:24:24.959128",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {},
+      "output_data": {
+        "error": "'dict' object has no attribute 'cocomo2'"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "completed"
+}

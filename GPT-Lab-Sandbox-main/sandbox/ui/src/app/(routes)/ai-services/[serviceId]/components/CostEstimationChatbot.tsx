@@ -192,7 +192,7 @@ export default function CostEstimationChatbot({
     }
 
     try {
-      const response = await fetch('http://localhost:8000/chat', {
+      const response = await fetch('http://localhost:8000/chat/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

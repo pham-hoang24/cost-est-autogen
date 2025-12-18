@@ -12,6 +12,7 @@ fi
 
 # Install any missing dependencies
 echo "📦 Checking dependencies..."
+pip install -q -r requirements.txt --pre 2>/dev/null || true
 pip install -q fastapi uvicorn 2>/dev/null || true
 
 # Start the server

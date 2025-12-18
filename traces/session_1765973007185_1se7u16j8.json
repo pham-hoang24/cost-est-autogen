@@ -1,0 +1,47 @@
+{
+  "session_id": "session_1765973007185_1se7u16j8",
+  "created_at": "2025-12-17T12:03:52.585627",
+  "updated_at": "2025-12-17T12:03:52.618579",
+  "events": [
+    {
+      "event_id": "cb9715f9-c711-48af-8c67-7786177daca5",
+      "session_id": "session_1765973007185_1se7u16j8",
+      "timestamp": "2025-12-17T12:03:52.585612",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1765973007185_1se7u16j8",
+        "project_type": "web-application",
+        "complexity": "medium",
+        "tech_stack": "web",
+        "team_pref": 10,
+        "region": "north-america",
+        "project_duration": "3-6-months",
+        "description": "A medium web-application project using web in north-america."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "7c845c77-1c4c-4a5f-8d9a-af41ba336f1c",
+      "session_id": "session_1765973007185_1se7u16j8",
+      "timestamp": "2025-12-17T12:03:52.618570",
+      "event_type": "agent_response",
+      "agent_name": "InterpreterAgent",
+      "step_name": "validate_step1",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "errors": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}
