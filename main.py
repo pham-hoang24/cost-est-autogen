@@ -661,16 +661,94 @@ async def select_method(request: SelectMethodRequest):
         
         # 2. Check requirements for the selected method
         from tools.orchestrator_tools import get_method_requirements_tool
-        requirements = get_method_requirements_tool(session_id, method_id)
-        
-        missing_fields = requirements.get("missing_fields", [])
-        
-        if missing_fields:
-            # Return list of missing inputs so UI can prompt user
+        from tools.orchestrator_tools import update_method_coeffs_tool
+        import re
+
+        # Map UI IDs to backend requirement keys
+        method_map = {
+            "cocomo": "cocomo2",
+            "function-points": "fpa",
+            "fpa": "fpa",
+            "story-points": "story_points",
+            "story_points": "story_points",
+            "analogous": "analogous",
+            "parametric": "parametric",
+            "bottom-up": "bottomup",
+            "bottomup": "bottomup",
+            "hybrid": "blend",
+            "blend": "blend",
+        }
+        backend_method = method_map.get(method_id, method_id)
+
+        requirements = get_method_requirements_tool(session_id, backend_method)
+
+        # If the user provided an answer, attempt to consume it into method coeffs
+        user_response = None
+        if request.input_overrides and isinstance(request.input_overrides, dict):
+            user_response = request.input_overrides.get("user_response")
+
+        missing_list = requirements.get("missing", []) or requirements.get("missing_fields", [])
+
+        if user_response and missing_list:
+            # Naive consumption: apply the first missing field based on a numeric/enum parse.
+            field_to_fill = missing_list[0]
+            text = str(user_response).strip().lower()
+
+            def first_number(s: str):
+                m = re.search(r"(-?\\d+(?:\\.\\d+)?)", s.replace(",", ""))
+                return float(m.group(1)) if m else None
+
+            value = None
+            if field_to_fill in ("size_value", "team_velocity", "total_story_points", "ufp", "vaf", "language_gearing"):
+                value = first_number(text)
+            elif field_to_fill == "mode":
+                for mode in ["organic", "semi_detached", "embedded"]:
+                    if mode in text:
+                        value = mode
+                        break
+            elif field_to_fill == "tshirt_size":
+                for size in ["xs", "s", "m", "l", "xl"]:
+                    if re.search(rf"\\b{size}\\b", text):
+                        value = size
+                        break
+
+            if value is not None:
+                update_method_coeffs_tool(session_id, backend_method, {field_to_fill: value})
+                requirements = get_method_requirements_tool(session_id, backend_method)
+                missing_list = requirements.get("missing", []) or requirements.get("missing_fields", [])
+
+        # Build UI-friendly missing_inputs with prompts
+        prompt_map = {
+            "cocomo2": {
+                "mode": "Which COCOMO mode should we use? (organic, semi_detached, embedded)",
+                "size_value": "Roughly how many KLOC (thousands of source lines) are in scope?",
+            },
+            "story_points": {
+                "total_story_points": "How many total story points are in scope?",
+                "team_velocity": "What is the team's velocity (points per sprint)?",
+            },
+            "fpa": {
+                "ufp": "What is the Unadjusted Function Points (UFP) count?",
+                "vaf": "What Value Adjustment Factor (VAF) should we use? (e.g., 0.65 - 1.35)",
+            },
+            "analogous": {
+                "tshirt_size": "Choose a T-shirt size for the project (xs, s, m, l, xl).",
+            },
+        }
+
+        missing_inputs = []
+        for field in (missing_list or [])[:5]:
+            prompt = prompt_map.get(backend_method, {}).get(field) or f"Please provide '{field}'."
+            missing_inputs.append({"field": field, "prompt": prompt, "priority": "critical"})
+
+        if missing_inputs:
             return {
                 "status": "INPUTS_REQUIRED",
                 "method_id": method_id,
-                "missing_fields": missing_fields,
+                "backend_method": backend_method,
+                "missing_inputs": missing_inputs,
+                # Backward-compat aliases
+                "missing_fields": [mi["field"] for mi in missing_inputs],
                 "message": f"Please provide the following inputs for {method_id} estimation."
             }
         else:

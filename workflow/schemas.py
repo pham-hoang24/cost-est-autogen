@@ -222,6 +222,11 @@ class ProjectContext(BaseModel):
     fsm_state: str = "INTAKE"
     asked_fields: Dict[str, List[str]] = Field(default_factory=dict)
 
+    # NEW: Chat + LLM extraction persistence (append-only)
+    # chat_log stores structured messages; user_description remains as the canonical text view.
+    chat_log: List[Dict[str, Any]] = Field(default_factory=list)
+    llm_extractions: List[Dict[str, Any]] = Field(default_factory=list)
+
 
 # Appending new schema models to workflow/schemas.py
 

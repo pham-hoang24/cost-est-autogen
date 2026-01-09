@@ -1,0 +1,77 @@
+{
+  "session_id": "test-fpa-a4a90cea-94fd-4f36-adc3-1908ed100937",
+  "created_at": "2026-01-09T18:55:52.119282",
+  "updated_at": "2026-01-09T18:55:52.134090",
+  "events": [
+    {
+      "event_id": "45b0f43f-8b1e-4d30-bb24-060838cb5a80",
+      "session_id": "test-fpa-a4a90cea-94fd-4f36-adc3-1908ed100937",
+      "timestamp": "2026-01-09T18:55:52.119268",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10d5e8d50>, 'test-fpa-a4a90cea-94fd-4f36-adc3-1908ed100937')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "4de362b0-4464-445f-b91b-254c04c646b5",
+      "session_id": "test-fpa-a4a90cea-94fd-4f36-adc3-1908ed100937",
+      "timestamp": "2026-01-09T18:55:52.123007",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-fpa-a4a90cea-94fd-4f36-adc3-1908ed100937' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='software development', complexity='high', tech_stack='web application', team_pref=7, region='North America', project_duration=None) user_description='Checkout revamp project with external inputs (18 average), external outputs (10 average), external inquiries (6 low), internal logical files (4 high), and external interface files (3 average).' expansion_draft=ExpansionV1(summary='Overview: Checkout revamp project with external inputs (18 average), external outputs (10 average), external inquiries (6 low), internal logical files (4 high), and external interface files (3 average).\\nProject Type: software development\\nComplexity: high\\nTech Stack Focus: web application', features=[NamedItem(name='Checkout revamp project with external inputs (18 average)', source='inferred', confidence=None), NamedItem(name='external outputs (10 average)', source='inferred',"
+      },
+      "metadata": {},
+      "duration_ms": 3.6249160766601562,
+      "parent_event_id": "45b0f43f-8b1e-4d30-bb24-060838cb5a80"
+    },
+    {
+      "event_id": "28fe8b04-5f9e-47fc-b0ab-731e6f4d4642",
+      "session_id": "test-fpa-a4a90cea-94fd-4f36-adc3-1908ed100937",
+      "timestamp": "2026-01-09T18:55:52.129658",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10d5e8d50>, 'test-fpa-a4a90cea-94fd-4f36-adc3-1908ed100937')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "e6bb3dcf-e681-4a2a-8e3e-9ed3992fd1fb",
+      "session_id": "test-fpa-a4a90cea-94fd-4f36-adc3-1908ed100937",
+      "timestamp": "2026-01-09T18:55:52.134080",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-fpa-a4a90cea-94fd-4f36-adc3-1908ed100937' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='software development', complexity='high', tech_stack='web application', team_pref=7, region='North America', project_duration=None) user_description='Checkout revamp project with external inputs (18 average), external outputs (10 average), external inquiries (6 low), internal logical files (4 high), and external interface files (3 average).' expansion_draft=ExpansionV1(summary='Overview: Checkout revamp project with external inputs (18 average), external outputs (10 average), external inquiries (6 low), internal logical files (4 high), and external interface files (3 average).\\nProject Type: software development\\nComplexity: high\\nTech Stack Focus: web application', features=[NamedItem(name='Checkout revamp project with external inputs (18 average)', source='inferred', confidence=None), NamedItem(name='external outputs (10 average)', source='inferred', co"
+      },
+      "metadata": {},
+      "duration_ms": 4.166126251220703,
+      "parent_event_id": "28fe8b04-5f9e-47fc-b0ab-731e6f4d4642"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

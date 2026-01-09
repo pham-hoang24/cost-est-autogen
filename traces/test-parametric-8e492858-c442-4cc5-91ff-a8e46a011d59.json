@@ -1,0 +1,77 @@
+{
+  "session_id": "test-parametric-8e492858-c442-4cc5-91ff-a8e46a011d59",
+  "created_at": "2026-01-09T18:50:23.033301",
+  "updated_at": "2026-01-09T18:50:23.047039",
+  "events": [
+    {
+      "event_id": "3933f876-6f10-40d5-818e-720636de00ab",
+      "session_id": "test-parametric-8e492858-c442-4cc5-91ff-a8e46a011d59",
+      "timestamp": "2026-01-09T18:50:23.033288",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x107d7e580>, 'test-parametric-8e492858-c442-4cc5-91ff-a8e46a011d59')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "acbd9574-3a14-402a-89c4-f30e108467cc",
+      "session_id": "test-parametric-8e492858-c442-4cc5-91ff-a8e46a011d59",
+      "timestamp": "2026-01-09T18:50:23.036707",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-parametric-8e492858-c442-4cc5-91ff-a8e46a011d59' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='system integration', complexity='high', tech_stack='data warehouse', team_pref=6, region='Europe', project_duration=None) user_description='Data warehouse migration project with 520 total units. ETL pipelines: 200 units, Reporting views: 180 units, Validation scripts: 140 units.' expansion_draft=ExpansionV1(summary='Overview: Data warehouse migration project with 520 total units. ETL pipelines: 200 units, Reporting views: 180 units, Validation scripts: 140 units.\\nProject Type: system integration\\nComplexity: high\\nTech Stack Focus: data warehouse', features=[NamedItem(name='Data warehouse migration project with 520 total units. ETL pipelines: 200 units', source='inferred', confidence=None), NamedItem(name='Reporting views: 180 units', source='inferred', confidence=None), NamedItem(name='Validation scripts: 140 units.', source='inferred', confid"
+      },
+      "metadata": {},
+      "duration_ms": 3.325939178466797,
+      "parent_event_id": "3933f876-6f10-40d5-818e-720636de00ab"
+    },
+    {
+      "event_id": "b06d8ae7-4a7e-4f8a-b26a-48984a745691",
+      "session_id": "test-parametric-8e492858-c442-4cc5-91ff-a8e46a011d59",
+      "timestamp": "2026-01-09T18:50:23.043274",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x107d7e580>, 'test-parametric-8e492858-c442-4cc5-91ff-a8e46a011d59')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "3817409c-b79a-4a0e-978b-99e0b714ca6a",
+      "session_id": "test-parametric-8e492858-c442-4cc5-91ff-a8e46a011d59",
+      "timestamp": "2026-01-09T18:50:23.047029",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-parametric-8e492858-c442-4cc5-91ff-a8e46a011d59' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='system integration', complexity='high', tech_stack='data warehouse', team_pref=6, region='Europe', project_duration=None) user_description='Data warehouse migration project with 520 total units. ETL pipelines: 200 units, Reporting views: 180 units, Validation scripts: 140 units.' expansion_draft=ExpansionV1(summary='Overview: Data warehouse migration project with 520 total units. ETL pipelines: 200 units, Reporting views: 180 units, Validation scripts: 140 units.\\nProject Type: system integration\\nComplexity: high\\nTech Stack Focus: data warehouse', features=[NamedItem(name='Data warehouse migration project with 520 total units. ETL pipelines: 200 units', source='inferred', confidence=None), NamedItem(name='Reporting views: 180 units', source='inferred', confidence=None), NamedItem(name='Validation scripts: 140 units.', source='inferred', confidenc"
+      },
+      "metadata": {},
+      "duration_ms": 3.5300254821777344,
+      "parent_event_id": "b06d8ae7-4a7e-4f8a-b26a-48984a745691"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

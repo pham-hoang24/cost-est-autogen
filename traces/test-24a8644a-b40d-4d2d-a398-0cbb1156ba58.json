@@ -1,0 +1,77 @@
+{
+  "session_id": "test-24a8644a-b40d-4d2d-a398-0cbb1156ba58",
+  "created_at": "2026-01-09T18:55:51.962514",
+  "updated_at": "2026-01-09T18:55:51.979016",
+  "events": [
+    {
+      "event_id": "9ced8617-400b-43ec-9c71-93eaed0fb808",
+      "session_id": "test-24a8644a-b40d-4d2d-a398-0cbb1156ba58",
+      "timestamp": "2026-01-09T18:55:51.962483",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10cce6c30>, 'test-24a8644a-b40d-4d2d-a398-0cbb1156ba58')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "06ecc1c2-1c5c-4159-a5a7-00e4b9a0dec9",
+      "session_id": "test-24a8644a-b40d-4d2d-a398-0cbb1156ba58",
+      "timestamp": "2026-01-09T18:55:51.966422",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-24a8644a-b40d-4d2d-a398-0cbb1156ba58' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='software development', complexity='medium', tech_stack='web technologies', team_pref=8, region='North America', project_duration=None) user_description='We plan a subscription web platform with roughly 160 story points of work. The cross-functional squad averages 20 story points per sprint with two-week sprints.' expansion_draft=ExpansionV1(summary='Overview: We plan a subscription web platform with roughly 160 story points of work. The cross-functional squad averages 20 story points per sprint with two-week sprints.\\nProject Type: software development\\nComplexity: medium\\nTech Stack Focus: web technologies', features=[NamedItem(name='We plan a subscription web platform with roughly 160 story points of work. The cross-functional squad averages 20 story points per sprint with two-week sprints.', source='inferred', confidence=None)], non_functionals=[], plat"
+      },
+      "metadata": {},
+      "duration_ms": 3.9212703704833984,
+      "parent_event_id": "9ced8617-400b-43ec-9c71-93eaed0fb808"
+    },
+    {
+      "event_id": "edde5f41-2374-41c7-8784-b11ea53df6a3",
+      "session_id": "test-24a8644a-b40d-4d2d-a398-0cbb1156ba58",
+      "timestamp": "2026-01-09T18:55:51.973684",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10cce6c30>, 'test-24a8644a-b40d-4d2d-a398-0cbb1156ba58')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "9c7b2f01-d24d-4d37-b726-c9823df11cb6",
+      "session_id": "test-24a8644a-b40d-4d2d-a398-0cbb1156ba58",
+      "timestamp": "2026-01-09T18:55:51.979002",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-24a8644a-b40d-4d2d-a398-0cbb1156ba58' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='software development', complexity='medium', tech_stack='web technologies', team_pref=8, region='North America', project_duration=None) user_description='We plan a subscription web platform with roughly 160 story points of work. The cross-functional squad averages 20 story points per sprint with two-week sprints.' expansion_draft=ExpansionV1(summary='Overview: We plan a subscription web platform with roughly 160 story points of work. The cross-functional squad averages 20 story points per sprint with two-week sprints.\\nProject Type: software development\\nComplexity: medium\\nTech Stack Focus: web technologies', features=[NamedItem(name='We plan a subscription web platform with roughly 160 story points of work. The cross-functional squad averages 20 story points per sprint with two-week sprints.', source='inferred', confidence=None)], non_functionals=[], platfor"
+      },
+      "metadata": {},
+      "duration_ms": 5.072832107543945,
+      "parent_event_id": "edde5f41-2374-41c7-8784-b11ea53df6a3"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

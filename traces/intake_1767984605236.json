@@ -1,0 +1,62 @@
+{
+  "session_id": "intake_1767984605236",
+  "created_at": "2026-01-09T18:50:05.237034",
+  "updated_at": "2026-01-09T18:50:05.268684",
+  "events": [
+    {
+      "event_id": "4b8a0c8d-a8b0-4c9a-bae4-6acb7050e5ff",
+      "session_id": "intake_1767984605236",
+      "timestamp": "2026-01-09T18:50:05.237016",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "intake",
+      "input_data": {
+        "project_type": "web application",
+        "complexity": "medium",
+        "tech_stack": "python, react",
+        "team_pref": 5,
+        "region": "US",
+        "duration": null,
+        "description": "A simple web app for tracking expenses."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "aba59823-25e4-421f-abb8-654fcc1669b7",
+      "session_id": "intake_1767984605236",
+      "timestamp": "2026-01-09T18:50:05.268668",
+      "event_type": "agent_response",
+      "agent_name": "InterpreterAgent",
+      "step_name": "validate_step1",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "errors": [],
+        "missing_by_method": {
+          "cocomo2": [
+            "mode",
+            "size_value"
+          ],
+          "analogous": [
+            "tshirt_size"
+          ],
+          "fpa": [
+            "ufp",
+            "vaf"
+          ],
+          "story_points": [
+            "team_velocity"
+          ]
+        }
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

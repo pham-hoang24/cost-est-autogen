@@ -17,7 +17,7 @@ from workflow.channels import IntakeChannel
 
 # Instantiate the repository. Using a file-based DB is simple and effective
 # for session management in many environments.
-_repo = ProjectContextRepository(db_path="autogen_sessions.db")
+_repo = ProjectContextRepository()
 
 
 _FLOAT_RE = re.compile(r"(-?\d+(?:\.\d+)?)")

@@ -1,0 +1,77 @@
+{
+  "session_id": "test-cocomo-cb0ce400-3ae0-4e3d-9dfc-ba86f8debd11",
+  "created_at": "2026-01-09T18:57:08.880274",
+  "updated_at": "2026-01-09T18:57:08.894603",
+  "events": [
+    {
+      "event_id": "9c413c5a-c392-46ec-979d-9b5baab49016",
+      "session_id": "test-cocomo-cb0ce400-3ae0-4e3d-9dfc-ba86f8debd11",
+      "timestamp": "2026-01-09T18:57:08.880255",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x110669850>, 'test-cocomo-cb0ce400-3ae0-4e3d-9dfc-ba86f8debd11')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "874628d7-d161-4571-a6fc-4752dfeccb7e",
+      "session_id": "test-cocomo-cb0ce400-3ae0-4e3d-9dfc-ba86f8debd11",
+      "timestamp": "2026-01-09T18:57:08.883794",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-cocomo-cb0ce400-3ae0-4e3d-9dfc-ba86f8debd11' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='software development', complexity='high', tech_stack='web application', team_pref=8, region='North America', project_duration=None) user_description='Checkout revamp project estimated at 85 KSLOC. High precedence, nominal flexibility, high architecture resolution, nominal team cohesion, and nominal process maturity.' expansion_draft=ExpansionV1(summary='Overview: Checkout revamp project estimated at 85 KSLOC. High precedence, nominal flexibility, high architecture resolution, nominal team cohesion, and nominal process maturity.\\nProject Type: software development\\nComplexity: high\\nTech Stack Focus: web application', features=[NamedItem(name='Checkout revamp project estimated at 85 KSLOC. High precedence', source='inferred', confidence=None), NamedItem(name='nominal flexibility', source='inferred', confidence=None), NamedItem(name='high architecture"
+      },
+      "metadata": {},
+      "duration_ms": 3.4189224243164062,
+      "parent_event_id": "9c413c5a-c392-46ec-979d-9b5baab49016"
+    },
+    {
+      "event_id": "bbbaa8e8-4454-4298-802f-f0a48c5bcb49",
+      "session_id": "test-cocomo-cb0ce400-3ae0-4e3d-9dfc-ba86f8debd11",
+      "timestamp": "2026-01-09T18:57:08.890484",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x110669850>, 'test-cocomo-cb0ce400-3ae0-4e3d-9dfc-ba86f8debd11')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "8d5f2400-abd8-4de5-94ef-8e9fd19953a6",
+      "session_id": "test-cocomo-cb0ce400-3ae0-4e3d-9dfc-ba86f8debd11",
+      "timestamp": "2026-01-09T18:57:08.894593",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-cocomo-cb0ce400-3ae0-4e3d-9dfc-ba86f8debd11' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='software development', complexity='high', tech_stack='web application', team_pref=8, region='North America', project_duration=None) user_description='Checkout revamp project estimated at 85 KSLOC. High precedence, nominal flexibility, high architecture resolution, nominal team cohesion, and nominal process maturity.' expansion_draft=ExpansionV1(summary='Overview: Checkout revamp project estimated at 85 KSLOC. High precedence, nominal flexibility, high architecture resolution, nominal team cohesion, and nominal process maturity.\\nProject Type: software development\\nComplexity: high\\nTech Stack Focus: web application', features=[NamedItem(name='Checkout revamp project estimated at 85 KSLOC. High precedence', source='inferred', confidence=None), NamedItem(name='nominal flexibility', source='inferred', confidence=None), NamedItem(name='high architecture re"
+      },
+      "metadata": {},
+      "duration_ms": 3.8318634033203125,
+      "parent_event_id": "bbbaa8e8-4454-4298-802f-f0a48c5bcb49"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

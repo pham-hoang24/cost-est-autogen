@@ -1,0 +1,77 @@
+{
+  "session_id": "test-bottomup-1f450e5a-79f1-42ce-b6e1-c325e575b528",
+  "created_at": "2026-01-09T18:55:52.017037",
+  "updated_at": "2026-01-09T18:55:52.039557",
+  "events": [
+    {
+      "event_id": "11c266c7-9e62-4dc6-8689-b156ee601175",
+      "session_id": "test-bottomup-1f450e5a-79f1-42ce-b6e1-c325e575b528",
+      "timestamp": "2026-01-09T18:55:52.017021",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10d5be030>, 'test-bottomup-1f450e5a-79f1-42ce-b6e1-c325e575b528')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "27560a50-ab33-4d7f-987a-a25f650d04b5",
+      "session_id": "test-bottomup-1f450e5a-79f1-42ce-b6e1-c325e575b528",
+      "timestamp": "2026-01-09T18:55:52.025136",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-bottomup-1f450e5a-79f1-42ce-b6e1-c325e575b528' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='software development', complexity='medium', tech_stack='web technologies', team_pref=5, region='North America', project_duration=None) user_description='We need to build a mobile app with API layer enhancements (180 hours), mobile UI refresh (140 hours), automation testing (160 hours), and deployment & monitoring (80 hours).' expansion_draft=ExpansionV1(summary='Overview: We need to build a mobile app with API layer enhancements (180 hours), mobile UI refresh (140 hours), automation testing (160 hours), and deployment & monitoring (80 hours).\\nProject Type: software development\\nComplexity: medium\\nTech Stack Focus: web technologies', features=[NamedItem(name='We need to build a mobile app with API layer enhancements (180 hours)', source='inferred', confidence=None), NamedItem(name='mobile UI refresh (140 hours)', source='inferred', confidence=Non"
+      },
+      "metadata": {},
+      "duration_ms": 7.6999664306640625,
+      "parent_event_id": "11c266c7-9e62-4dc6-8689-b156ee601175"
+    },
+    {
+      "event_id": "965ca6c4-ea5d-45f3-85f5-379c91084f25",
+      "session_id": "test-bottomup-1f450e5a-79f1-42ce-b6e1-c325e575b528",
+      "timestamp": "2026-01-09T18:55:52.035184",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10d5be030>, 'test-bottomup-1f450e5a-79f1-42ce-b6e1-c325e575b528')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "4d30f40a-bafc-4a63-ba58-046b5df828f1",
+      "session_id": "test-bottomup-1f450e5a-79f1-42ce-b6e1-c325e575b528",
+      "timestamp": "2026-01-09T18:55:52.039543",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-bottomup-1f450e5a-79f1-42ce-b6e1-c325e575b528' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='software development', complexity='medium', tech_stack='web technologies', team_pref=5, region='North America', project_duration=None) user_description='We need to build a mobile app with API layer enhancements (180 hours), mobile UI refresh (140 hours), automation testing (160 hours), and deployment & monitoring (80 hours).' expansion_draft=ExpansionV1(summary='Overview: We need to build a mobile app with API layer enhancements (180 hours), mobile UI refresh (140 hours), automation testing (160 hours), and deployment & monitoring (80 hours).\\nProject Type: software development\\nComplexity: medium\\nTech Stack Focus: web technologies', features=[NamedItem(name='We need to build a mobile app with API layer enhancements (180 hours)', source='inferred', confidence=None), NamedItem(name='mobile UI refresh (140 hours)', source='inferred', confidence=None),"
+      },
+      "metadata": {},
+      "duration_ms": 4.0988922119140625,
+      "parent_event_id": "965ca6c4-ea5d-45f3-85f5-379c91084f25"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

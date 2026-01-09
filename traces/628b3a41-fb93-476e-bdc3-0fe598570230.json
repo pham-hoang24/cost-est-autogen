@@ -1,0 +1,43 @@
+{
+  "session_id": "628b3a41-fb93-476e-bdc3-0fe598570230",
+  "created_at": "2026-01-09T18:50:05.431386",
+  "updated_at": "2026-01-09T18:50:10.526653",
+  "events": [
+    {
+      "event_id": "1b379dca-3a95-4f85-8fb3-54230b50a016",
+      "session_id": "628b3a41-fb93-476e-bdc3-0fe598570230",
+      "timestamp": "2026-01-09T18:50:05.431366",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "Hi, I want to build a mobile app.",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "e0e4ded7-15cd-4f54-bd8f-12340fde9624",
+      "session_id": "628b3a41-fb93-476e-bdc3-0fe598570230",
+      "timestamp": "2026-01-09T18:50:10.526539",
+      "event_type": "agent_response",
+      "agent_name": "FSMController",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Before we proceed, please complete Step 1 project settings. Missing: Select project type (software development, ai/ml project, system integration, cloud migration, mobile application, web application)",
+        "state": "INTAKE",
+        "is_ready": false,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

@@ -8,8 +8,10 @@ class TestFSMFlow(unittest.IsolatedAsyncioTestCase):
     async def test_fsm_flow(self):
         # Mock dependencies
         with patch("workflow.fsm_controller.get_project_context_tool") as mock_get_context, \
-             patch("workflow.fsm_controller.intake_step") as mock_intake, \
-             patch("workflow.fsm_controller.draft_expansion_tool") as mock_draft, \
+             patch("workflow.fsm_controller.append_user_message_tool") as mock_append_msg, \
+             patch("workflow.fsm_controller.extract_keywords_for_message", new_callable=AsyncMock) as mock_extract, \
+             patch("workflow.fsm_controller.append_llm_extraction_tool") as mock_append_extraction, \
+             patch("workflow.fsm_controller.normalize_and_infer_tool") as mock_infer, \
              patch("workflow.fsm_controller.confirm_expansion_tool") as mock_confirm, \
              patch("workflow.fsm_controller.evaluate_methods_tool") as mock_evaluate, \
              patch("workflow.fsm_controller.generate_full_report_tool") as mock_report, \
@@ -22,6 +24,7 @@ class TestFSMFlow(unittest.IsolatedAsyncioTestCase):
                 "fsm_state": "INTAKE",
                 "baseline": {"project_type": "web"},
                 "user_description": "A simple web app",
+                "missing_baseline": {},
                 "asked_fields": {}
             }
             mock_get_context.return_value = context
@@ -29,7 +32,7 @@ class TestFSMFlow(unittest.IsolatedAsyncioTestCase):
             controller = FSMController()
             
             # 1. Test INTAKE -> CONFIRMING
-            mock_intake.return_value = {"ready": True}
+            mock_extract.return_value = {"features": ["auth"], "non_functionals": [], "platforms": [], "numeric_hints": {}, "confidence": 0.7}
             response = await controller.process_message("test_session", "I want to build a web app")
             
             self.assertEqual(response.current_state, WorkflowState.CONFIRMING)
@@ -53,7 +56,7 @@ class TestFSMFlow(unittest.IsolatedAsyncioTestCase):
             # In the real flow, the user would select via UI, which calls /select-method, updating state to METHOD_SELECTED
             # Let's simulate that update
             context["fsm_state"] = "COLLECTING_METHOD_INPUTS"
-            context["selected_method"] = "cocomo2"
+            context["selected_method"] = "cocomo"
             
             # 4. Test COLLECTING_INPUTS (Missing Input)
             mock_requirements.return_value = {
@@ -72,10 +75,10 @@ class TestFSMFlow(unittest.IsolatedAsyncioTestCase):
             args, _ = mock_update_state.call_args
             self.assertEqual(args[0], "test_session")
             self.assertEqual(args[1], "COLLECTING_METHOD_INPUTS")
-            self.assertEqual(args[2]["cocomo2"], ["ksloc"])
+            self.assertEqual(args[2]["cocomo"], ["ksloc"])
             
             # Update context with asked field
-            context["asked_fields"] = {"cocomo2": ["ksloc"]}
+            context["asked_fields"] = {"cocomo": ["ksloc"]}
             
             # 5. Test COLLECTING_INPUTS (Loop Prevention / Input Provided)
             # Now we assume the user provided the input (or we skip it if missing)

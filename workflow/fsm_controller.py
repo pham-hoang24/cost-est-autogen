@@ -14,13 +14,15 @@ import os
 from core.contract import WorkflowState, WorkflowContext
 from tools.orchestrator_tools import (
     get_project_context_tool,
-    submit_user_description_tool,
-    draft_expansion_tool,
+    append_user_message_tool,
+    append_llm_extraction_tool,
     confirm_expansion_tool,
     evaluate_methods_tool,
     generate_full_report_tool,
+    normalize_and_infer_tool,
 )
-from tools.intake_tools import intake_step
+
+from tools.keyword_tools import extract_keywords_for_message
 
 
 
@@ -73,6 +75,29 @@ class FSMController:
             current_state = WorkflowState.INTAKE
         
         print(f"FSM State: {current_state}")
+
+        # Always persist the user message and run keyword extraction on every user message.
+        # This runs before state handling so downstream handlers always see fresh context.
+        try:
+            # Append message into persisted conversation (append semantics; no overwrite)
+            append_user_message_tool(session_id, message, role="user")
+
+            # Extract keywords/signals and persist them (schema-safe) for downstream inference
+            ctx = get_project_context_tool(session_id)
+            baseline = ctx.get("baseline", {}) if isinstance(ctx, dict) else {}
+            prior_extractions = ctx.get("llm_extractions", []) if isinstance(ctx, dict) else []
+
+            extraction = await extract_keywords_for_message(
+                message=message,
+                baseline=baseline,
+                prior_extractions=prior_extractions,
+            )
+            append_llm_extraction_tool(session_id, extraction)
+
+            # Keep inferred_fields fresh (merge-safe, preserves llm_hints)
+            normalize_and_infer_tool(session_id)
+        except Exception as e:
+            print(f"Pre-processing (append/extract/infer) failed: {e}")
         
         # 2. Route to appropriate handler based on state
         response = None
@@ -117,37 +142,48 @@ class FSMController:
         return response
 
     async def _handle_intake(self, session_id: str, message: str, context: Dict) -> FSMResponse:
-        """Handle INTAKE state - collecting baseline requirements."""
-        
-        # Use the intake tool to process the message
-        result = intake_step(session_id, message)
-        
-        if result.get("ready", False):
-            # Baseline collection complete, move to confirmation
-            try:
-                # Trigger expansion draft
-                draft_expansion_tool(session_id)
-                
-                # Call Summarizer Agent (simulated for now, or use tool)
-                context = get_project_context_tool(session_id)
-                summary = self._build_summary(context.get("baseline", {}), context.get("user_description", ""))
-                
-                return FSMResponse(
-                    response=f"Great! I've collected the baseline information.\n\n**Project Summary:**\n{summary}\n\nI've also drafted a detailed project expansion based on your description. Does this summary look correct?",
-                    current_state=WorkflowState.CONFIRMING
-                )
-            except Exception as e:
-                print(f"Error generating expansion: {e}")
-                return FSMResponse(
-                    response="I've collected the baseline information. Ready to proceed to method selection?",
-                    current_state=WorkflowState.CONFIRMING
-                )
-        else:
-            # Still collecting info
+        """Handle INTAKE state - baseline must come from Step 1; chat collects description + keywords."""
+
+        ctx = get_project_context_tool(session_id)
+        missing_baseline = (ctx.get("missing_baseline") or {}) if isinstance(ctx, dict) else {}
+        if missing_baseline:
+            # Ask for the first missing baseline field prompt (Step 1 should provide these)
+            _, prompt = next(iter(missing_baseline.items()))
             return FSMResponse(
-                response=result.get("next_question") or result.get("message", "Please provide more details."),
-                current_state=WorkflowState.INTAKE
+                response=f"Before we proceed, please complete Step 1 project settings. Missing: {prompt}",
+                current_state=WorkflowState.INTAKE,
+                is_ready=False,
             )
+
+        baseline = ctx.get("baseline", {}) if isinstance(ctx, dict) else {}
+        user_desc = (ctx.get("user_description") or "") if isinstance(ctx, dict) else ""
+        expansion = (ctx.get("expansion_draft") or {}) if isinstance(ctx, dict) else {}
+
+        features = [f.get("name") for f in (expansion.get("features") or []) if isinstance(f, dict) and f.get("name")]
+        non_functionals = [f.get("name") for f in (expansion.get("non_functionals") or []) if isinstance(f, dict) and f.get("name")]
+        platforms = [p.get("name") for p in (expansion.get("platforms") or []) if isinstance(p, dict) and p.get("name")]
+
+        summary = self._build_summary(baseline, user_desc)
+        lines = [
+            "Great — I’ve captured your project details and extracted initial keywords.",
+            "",
+            "**Project Summary (please confirm):**",
+            summary,
+        ]
+        if features:
+            lines += ["", "**Extracted feature keywords:**", "- " + "\n- ".join(features[:12])]
+        if non_functionals:
+            lines += ["", "**Non-functional signals:**", "- " + "\n- ".join(non_functionals[:12])]
+        if platforms:
+            lines += ["", "**Platforms:**", "- " + "\n- ".join(platforms[:8])]
+        lines += ["", "Does this look correct? (Yes/No)"]
+
+        return FSMResponse(
+            response="\n".join(lines),
+            current_state=WorkflowState.CONFIRMING,
+            is_ready=True,
+            recommended_methods=[],
+        )
 
     async def _handle_confirming(self, session_id: str, message: str, context: Dict) -> FSMResponse:
         """Handle CONFIRMING state - user confirms project details."""
@@ -173,22 +209,43 @@ class FSMController:
 
     async def _handle_clarifying(self, session_id: str, message: str, context: Dict) -> FSMResponse:
         """Handle CLARIFYING state - user provides updates."""
-        
-        # Update description with new info
-        current_desc = context.get("user_description", "")
-        new_desc = f"{current_desc}\n\nUser clarification: {message}"
-        submit_user_description_tool(session_id, new_desc)
-        
-        # Re-generate expansion
-        draft_expansion_tool(session_id)
-        
+
+        # Message is already appended in process_message() pre-processing.
+        # We simply re-run inference (already done) and ask for confirmation again.
         return FSMResponse(
-            response="I've updated the project description. Does it look better now?",
+            response="Got it — I’ve incorporated that. Does the updated summary look correct now? (Yes/No)",
             current_state=WorkflowState.CONFIRMING
         )
 
     async def _handle_recommending(self, session_id: str, message: str, context: Dict) -> FSMResponse:
         """Handle RECOMMENDING state - suggest estimation methods."""
+        msg_lower = (message or "").lower()
+
+        # Allow text-based method selection (useful for CLI/testing).
+        # In the UI flow, selection typically happens via method cards + /select-method.
+        chosen_method = None
+        if "cocomo" in msg_lower:
+            chosen_method = "cocomo"
+        elif "function point" in msg_lower or "fpa" in msg_lower:
+            chosen_method = "function-points"
+        elif "story" in msg_lower or "agile" in msg_lower:
+            chosen_method = "story-points"
+        elif "parametric" in msg_lower:
+            chosen_method = "parametric"
+        elif "analogous" in msg_lower:
+            chosen_method = "analogous"
+        elif "bottom" in msg_lower:
+            chosen_method = "bottom-up"
+        elif "hybrid" in msg_lower:
+            chosen_method = "hybrid"
+
+        if chosen_method:
+            from tools.orchestrator_tools import select_method_tool, update_fsm_state_tool
+
+            select_method_tool(session_id, chosen_method)
+            update_fsm_state_tool(session_id, WorkflowState.COLLECTING_METHOD_INPUTS.value)
+            ctx = get_project_context_tool(session_id)
+            return await self._handle_collecting_inputs(session_id, message, ctx)
         
         # Run method evaluation
         eval_result = evaluate_methods_tool(session_id)
@@ -207,15 +264,33 @@ class FSMController:
         backups = selection.get("backups", [])
         rationale = selection.get("rationale", "")
         
-        response_text = self._build_method_recommendation(
-            primary, backups, {}, rationale
-        )
+        # Map backend method IDs to the IDs the UI expects.
+        # Backend: cocomo2, fpa, agile_sp, analogous, parametric, bottomup, blend
+        # UI: cocomo, function-points, story-points, analogous, parametric, bottom-up
+        id_map = {
+            "cocomo2": "cocomo",
+            "fpa": "function-points",
+            "agile_sp": "story-points",
+            "analogous": "analogous",
+            "parametric": "parametric",
+            "bottomup": "bottom-up",
+        }
+
+        # If backend recommends a blend, pick the first backup as the primary UI recommendation.
+        if primary == "blend":
+            primary = backups[0] if backups else "analogous"
+            backups = backups[1:] if len(backups) > 1 else []
+
+        primary_ui = id_map.get(primary, primary)
+        backups_ui = [id_map.get(b, b) for b in backups]
+
+        response_text = self._build_method_recommendation(primary_ui, backups_ui, {}, rationale)
         
         return FSMResponse(
             response=response_text,
             current_state=WorkflowState.RECOMMENDING, # Stay here until user selects
             is_ready=True,
-            recommended_methods=[primary] + backups[:2]
+            recommended_methods=[primary_ui] + backups_ui[:2]
         )
 
     async def _handle_collecting_inputs(self, session_id: str, message: str, context: Dict, estimation_config: Dict = None) -> FSMResponse:
@@ -232,8 +307,28 @@ class FSMController:
 
         # Check for missing inputs
         from tools.orchestrator_tools import get_method_requirements_tool
-        requirements = get_method_requirements_tool(session_id, method_id)
-        missing_fields = requirements.get("missing_fields", [])
+
+        # Map UI IDs to backend requirement keys
+        method_map = {
+            "cocomo": "cocomo2",
+            "function-points": "fpa",
+            "story-points": "story_points",
+            "analogous": "analogous",
+            "parametric": "parametric",
+            "bottom-up": "bottomup",
+            "hybrid": "blend",
+        }
+        backend_method = method_map.get(method_id, method_id)
+
+        requirements = get_method_requirements_tool(session_id, backend_method)
+        missing_fields = requirements.get("missing_fields")
+        if missing_fields is None:
+            # Tool contract: "missing" may be a list[str]
+            missing = requirements.get("missing", [])
+            if isinstance(missing, list):
+                missing_fields = [{"field": f, "prompt": f"Please provide '{f}'.", "priority": "critical"} for f in missing]
+            else:
+                missing_fields = []
         
         # Loop prevention: Check asked_fields
         asked_fields_map = context.get("asked_fields", {})

@@ -1,0 +1,77 @@
+{
+  "session_id": "test-bottom-up-estimation-1767984605",
+  "created_at": "2026-01-09T18:50:05.133414",
+  "updated_at": "2026-01-09T18:50:05.149894",
+  "events": [
+    {
+      "event_id": "86e9fc76-5617-4b3a-b7e1-352bce9efbba",
+      "session_id": "test-bottom-up-estimation-1767984605",
+      "timestamp": "2026-01-09T18:50:05.133393",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x106fb3490>, 'test-bottom-up-estimation-1767984605')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d99c459c-c0a3-41f1-a459-0342b995da20",
+      "session_id": "test-bottom-up-estimation-1767984605",
+      "timestamp": "2026-01-09T18:50:05.137527",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-bottom-up-estimation-1767984605' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='software development', complexity='high', tech_stack='web technologies', team_pref=6, region='North America', project_duration=None) user_description='Data migration project: ETL development (200h), testing (100h), deployment (50h).' expansion_draft=ExpansionV1(summary='Overview: Data migration project: ETL development (200h), testing (100h), deployment (50h).\\nProject Type: software development\\nComplexity: high\\nTech Stack Focus: web technologies', features=[NamedItem(name='Data migration project: ETL development (200h)', source='inferred', confidence=None), NamedItem(name='testing (100h)', source='inferred', confidence=None), NamedItem(name='deployment (50h).', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='Data migratio"
+      },
+      "metadata": {},
+      "duration_ms": 4.0378570556640625,
+      "parent_event_id": "86e9fc76-5617-4b3a-b7e1-352bce9efbba"
+    },
+    {
+      "event_id": "53ea4048-c658-4d95-a2f2-751123a903b4",
+      "session_id": "test-bottom-up-estimation-1767984605",
+      "timestamp": "2026-01-09T18:50:05.145455",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x106fb3490>, 'test-bottom-up-estimation-1767984605')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "f335bb48-0079-4acd-9e33-10574508558e",
+      "session_id": "test-bottom-up-estimation-1767984605",
+      "timestamp": "2026-01-09T18:50:05.149883",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-bottom-up-estimation-1767984605' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='software development', complexity='high', tech_stack='web technologies', team_pref=6, region='North America', project_duration=None) user_description='Data migration project: ETL development (200h), testing (100h), deployment (50h).' expansion_draft=ExpansionV1(summary='Overview: Data migration project: ETL development (200h), testing (100h), deployment (50h).\\nProject Type: software development\\nComplexity: high\\nTech Stack Focus: web technologies', features=[NamedItem(name='Data migration project: ETL development (200h)', source='inferred', confidence=None), NamedItem(name='testing (100h)', source='inferred', confidence=None), NamedItem(name='deployment (50h).', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='Data migration p"
+      },
+      "metadata": {},
+      "duration_ms": 4.19306755065918,
+      "parent_event_id": "53ea4048-c658-4d95-a2f2-751123a903b4"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

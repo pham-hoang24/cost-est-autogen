@@ -131,6 +131,143 @@ class WorkflowOrchestrator:
         )
         return context
 
+    def append_user_message(
+        self, project_id: str, message: str, *, role: str = "user"
+    ) -> ProjectContext:
+        """
+        Append a chat message to the project's persisted conversation.
+
+        Notes:
+        - `submit_description()` is overwrite-only; this method provides append semantics.
+        - We persist both:
+          - `chat_log`: structured list of messages (preferred for machine use)
+          - `user_description`: a readable transcript (for backwards compatibility)
+        """
+        text = (message or "").strip()
+        if not text:
+            return self.load_context(project_id, create_if_missing=True)
+
+        context = self.load_context(project_id, create_if_missing=True)
+
+        ts = datetime.utcnow().isoformat()
+        context.chat_log.append({"ts": ts, "role": role, "content": text})
+
+        header = f"[{ts}] {role}: "
+        if context.user_description:
+            context.user_description = f"{context.user_description}\n\n{header}{text}"
+        else:
+            context.user_description = f"{header}{text}"
+
+        if context.status == "NEW" and not self._missing_baseline(context):
+            context.status = "BASELINE_COLLECTED"
+
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "CHAT_MESSAGE_APPENDED",
+            {"role": role, "ts": ts, "len": len(text)},
+        )
+        return context
+
+    def append_llm_extraction(self, project_id: str, extraction: Dict[str, Any]) -> ProjectContext:
+        """
+        Persist an LLM keyword/signal extraction and merge it into structured context.
+
+        - Appends raw extraction to `llm_extractions` (audit trail)
+        - Merges keywords into `expansion_draft` using schema types (NamedItem/PlatformEntry)
+        - Stores numeric hints under `inferred_fields['llm_hints']` (non-clobbering)
+        """
+        from .schemas import ExpansionV1, NamedItem, PlatformEntry, PlatformType
+
+        context = self.load_context(project_id, create_if_missing=True)
+
+        # 1) Append raw extraction (audit)
+        payload = dict(extraction or {})
+        context.llm_extractions.append(payload)
+
+        # 2) Ensure an expansion draft exists to hold merged keywords
+        if context.expansion_draft is None:
+            context.expansion_draft = ExpansionV1(summary="(LLM draft pending)")
+
+        # Helper: merge NamedItem lists by name
+        def _merge_named_items(items: List[NamedItem], names: List[str], *, confidence: Optional[float]) -> List[NamedItem]:
+            existing = {i.name.lower(): i for i in items}
+            for raw in names:
+                name = str(raw).strip()
+                if not name:
+                    continue
+                key = name.lower()
+                if key in existing:
+                    # Keep highest confidence if we have it
+                    if confidence is not None:
+                        prior = existing[key].confidence
+                        if prior is None or confidence > prior:
+                            existing[key].confidence = confidence
+                    continue
+                existing[key] = NamedItem(name=name, source="inferred", confidence=confidence)
+            return list(existing.values())
+
+        confidence = None
+        try:
+            if payload.get("confidence") is not None:
+                confidence = float(payload.get("confidence"))
+        except Exception:
+            confidence = None
+
+        features = payload.get("features") or []
+        non_functionals = payload.get("non_functionals") or []
+        platforms = payload.get("platforms") or []
+
+        if isinstance(features, list):
+            context.expansion_draft.features = _merge_named_items(context.expansion_draft.features, features, confidence=confidence)
+        if isinstance(non_functionals, list):
+            context.expansion_draft.non_functionals = _merge_named_items(
+                context.expansion_draft.non_functionals, non_functionals, confidence=confidence
+            )
+
+        # Helper: normalize platforms into PlatformType and merge
+        def _to_platform(value: str) -> PlatformType:
+            token = (value or "").strip().lower()
+            allowed = {"web", "ios", "android", "desktop", "cloud", "other"}
+            return token if token in allowed else "other"  # type: ignore[return-value]
+
+        existing_platforms = {(p.name, p.source) for p in context.expansion_draft.platforms}
+        if isinstance(platforms, list):
+            for raw in platforms:
+                p = _to_platform(str(raw))
+                candidate = PlatformEntry(name=p, source="inferred")
+                if (candidate.name, candidate.source) not in existing_platforms:
+                    context.expansion_draft.platforms.append(candidate)
+                    existing_platforms.add((candidate.name, candidate.source))
+
+        # 3) Store numeric hints in a merge-safe location
+        if not isinstance(context.inferred_fields, dict):
+            context.inferred_fields = {}
+        llm_hints = context.inferred_fields.get("llm_hints")
+        if not isinstance(llm_hints, dict):
+            llm_hints = {}
+
+        numeric_hints = payload.get("numeric_hints") or {}
+        if isinstance(numeric_hints, dict):
+            # Only set keys that are provided and parseable.
+            for k in ["ksloc", "story_points", "velocity", "ufp", "team_velocity"]:
+                if k in numeric_hints and numeric_hints[k] is not None:
+                    llm_hints[k] = numeric_hints[k]
+
+        context.inferred_fields["llm_hints"] = llm_hints
+
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "LLM_EXTRACTION_APPENDED",
+            {
+                "features": len(features) if isinstance(features, list) else 0,
+                "non_functionals": len(non_functionals) if isinstance(non_functionals, list) else 0,
+                "platforms": len(platforms) if isinstance(platforms, list) else 0,
+            },
+        )
+        return context
+
     # ------------------------------------------------------------------
     # Expansion workflow
     # ------------------------------------------------------------------
@@ -237,17 +374,18 @@ class WorkflowOrchestrator:
         if "documentation" in desc_lower or "compliance" in desc_lower:
             cost_drivers["docu"] = "high"
             
-        # Store in context for agents to use
-        if not context.inferred_fields:
-            context.inferred_fields = {}
-        context.inferred_fields["cost_drivers"] = cost_drivers
+        # Preserve any pre-existing inferred_fields (notably llm_hints) for merge-safe behavior.
+        existing_inferred: Dict[str, Any] = context.inferred_fields if isinstance(context.inferred_fields, dict) else {}
+        preserved_llm_hints = existing_inferred.get("llm_hints") if isinstance(existing_inferred.get("llm_hints"), dict) else None
         
         inference_service = InferenceService()
         
-        # Extract features from expansion
+        # Extract features from expansion (prefer confirmed, fall back to draft)
         features = []
         if context.expansion_confirmed:
             features = context.expansion_confirmed.features or []
+        elif context.expansion_draft:
+            features = context.expansion_draft.features or []
         
         # Run comprehensive inference
         inferred_result: InferenceResult = inference_service.infer_all_parameters(
@@ -257,8 +395,16 @@ class WorkflowOrchestrator:
             user_provided={}  # TODO: Check for user overrides in context
         )
         
-        # Convert InferenceResult to dict for storage
-        context.inferred_fields = inferred_result.model_dump(exclude_none=True)
+        # Convert InferenceResult to dict for storage (merge-safe, preserving LLM hints)
+        inferred_dict: Dict[str, Any] = inferred_result.model_dump(exclude_none=True)
+        inferred_dict["cost_drivers"] = cost_drivers
+        if preserved_llm_hints is not None:
+            inferred_dict["llm_hints"] = preserved_llm_hints
+        # Preserve any other keys that were previously present and prefixed with "llm_"
+        for k, v in existing_inferred.items():
+            if isinstance(k, str) and k.startswith("llm_") and k not in inferred_dict:
+                inferred_dict[k] = v
+        context.inferred_fields = inferred_dict
         
         # Calculate average confidence for logging
         confidences = []
@@ -554,8 +700,11 @@ class WorkflowOrchestrator:
                     value = team_map.get(value.lower(), 5)
                 self.record_baseline_field(project_id, field, value)
         
+        # Backward compatibility: older clients may send a description in Step 1.
+        # Chat is canonical; only set description here if we don't have one yet.
         if "description" in baseline_data and baseline_data["description"]:
-            self.submit_description(project_id, baseline_data["description"])
+            if not (context.user_description or "").strip():
+                self.submit_description(project_id, baseline_data["description"])
         
         context = self.load_context(project_id)
         context.step1_validated = True
@@ -616,6 +765,79 @@ class WorkflowOrchestrator:
         
         context.missing_by_method = missing_by_method
         self.repository.save(context)
+        return context
+
+    def update_method_coeffs(self, project_id: str, method_name: str, updates: Dict[str, Any]) -> ProjectContext:
+        """
+        Update method-specific coefficients/inputs and recompute missing fields.
+
+        This is used by the UI method-selection flow to iteratively collect
+        method-specific inputs (e.g., COCOMO size_value, Story Points velocity).
+        """
+        from .method_coefficients import MethodCoefficients
+
+        context = self.load_context(project_id, create_if_missing=True)
+
+        if context.method_coeffs is None:
+            context.method_coeffs = MethodCoefficients()
+        elif isinstance(context.method_coeffs, dict):
+            context.method_coeffs = MethodCoefficients(**context.method_coeffs) if context.method_coeffs else MethodCoefficients()
+
+        coeffs: MethodCoefficients = context.method_coeffs  # type: ignore[assignment]
+
+        # Normalize method name aliases
+        method_key = method_name
+        if method_key == "bottom-up":
+            method_key = "bottomup"
+
+        for field, value in (updates or {}).items():
+            if method_key == "cocomo2":
+                if field == "mode":
+                    coeffs.cocomo2.mode = str(value)
+                elif field == "size_value":
+                    coeffs.cocomo2.size_value = float(value)
+                elif field == "size_measure":
+                    coeffs.cocomo2.size_measure = str(value)
+
+            elif method_key in ("story_points", "story-points"):
+                if field == "team_velocity":
+                    coeffs.story_points.team_velocity = int(float(value))
+                elif field == "total_story_points":
+                    coeffs.story_points.total_story_points = int(float(value))
+                elif field == "sprint_length_weeks":
+                    coeffs.story_points.sprint_length_weeks = int(float(value))
+                elif field == "avg_hours_per_point":
+                    coeffs.story_points.avg_hours_per_point = float(value)
+
+            elif method_key in ("fpa", "function-points"):
+                if field == "ufp":
+                    coeffs.fpa.ufp = int(float(value))
+                elif field == "vaf":
+                    coeffs.fpa.vaf = float(value)
+                elif field == "language_gearing":
+                    coeffs.fpa.language_gearing = float(value)
+
+            elif method_key == "analogous":
+                if field == "tshirt_size":
+                    coeffs.analogous.tshirt_size = str(value)
+
+            # Parametric & bottom-up: accept generic dict updates for now.
+            elif method_key == "parametric":
+                if field == "parameters" and isinstance(value, dict):
+                    coeffs.parametric.parameters.update({str(k): float(v) for k, v in value.items() if v is not None})
+                else:
+                    coeffs.parametric.parameters[str(field)] = float(value)
+
+            elif method_key in ("bottomup", "bottom_up"):
+                if field == "identified_tasks_count":
+                    coeffs.bottom_up.identified_tasks_count = int(float(value))
+                elif field == "task_breakdown" and isinstance(value, list):
+                    coeffs.bottom_up.task_breakdown = value
+
+        context.method_coeffs = coeffs
+        context = self.repository.save(context)
+        context = self.compute_missing_by_method(project_id)
+        context = self.event_logger.log(project_id, "METHOD_COEFFS_UPDATED", {"method": method_name, "fields": list((updates or {}).keys())})
         return context
     
     def get_method_requirements(

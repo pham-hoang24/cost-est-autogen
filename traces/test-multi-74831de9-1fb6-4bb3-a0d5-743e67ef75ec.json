@@ -1,0 +1,77 @@
+{
+  "session_id": "test-multi-74831de9-1fb6-4bb3-a0d5-743e67ef75ec",
+  "created_at": "2026-01-09T18:50:23.247623",
+  "updated_at": "2026-01-09T18:50:23.262127",
+  "events": [
+    {
+      "event_id": "49cd3a98-afb3-49cd-8074-df33d65c6741",
+      "session_id": "test-multi-74831de9-1fb6-4bb3-a0d5-743e67ef75ec",
+      "timestamp": "2026-01-09T18:50:23.247612",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x1083dd0f0>, 'test-multi-74831de9-1fb6-4bb3-a0d5-743e67ef75ec')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "1e757166-f468-4839-a147-aa90d5d67b05",
+      "session_id": "test-multi-74831de9-1fb6-4bb3-a0d5-743e67ef75ec",
+      "timestamp": "2026-01-09T18:50:23.251033",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-multi-74831de9-1fb6-4bb3-a0d5-743e67ef75ec' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='software development', complexity='medium', tech_stack='web technologies', team_pref=8, region='North America', project_duration=None) user_description='A web platform project with 160 story points.' expansion_draft=ExpansionV1(summary='Overview: A web platform project with 160 story points.\\nProject Type: software development\\nComplexity: medium\\nTech Stack Focus: web technologies', features=[NamedItem(name='A web platform project with 160 story points.', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A web platform project with 160 story points.', source='inferred', note='auto'), TraceEntry(field='platforms', value='web', source='user', note='prior_answer')], missing_signals=[]) expansion_confirmed=None parsed_"
+      },
+      "metadata": {},
+      "duration_ms": 3.3349990844726562,
+      "parent_event_id": "49cd3a98-afb3-49cd-8074-df33d65c6741"
+    },
+    {
+      "event_id": "4f7d1405-3f83-44da-904a-ffb30310eea3",
+      "session_id": "test-multi-74831de9-1fb6-4bb3-a0d5-743e67ef75ec",
+      "timestamp": "2026-01-09T18:50:23.257973",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x1083dd0f0>, 'test-multi-74831de9-1fb6-4bb3-a0d5-743e67ef75ec')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "fd65942d-6ba8-40bf-82cd-fdcafa2a0727",
+      "session_id": "test-multi-74831de9-1fb6-4bb3-a0d5-743e67ef75ec",
+      "timestamp": "2026-01-09T18:50:23.262117",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-multi-74831de9-1fb6-4bb3-a0d5-743e67ef75ec' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='software development', complexity='medium', tech_stack='web technologies', team_pref=8, region='North America', project_duration=None) user_description='A web platform project with 160 story points.' expansion_draft=ExpansionV1(summary='Overview: A web platform project with 160 story points.\\nProject Type: software development\\nComplexity: medium\\nTech Stack Focus: web technologies', features=[NamedItem(name='A web platform project with 160 story points.', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='A web platform project with 160 story points.', source='inferred', note='auto'), TraceEntry(field='platforms', value='web', source='user', note='prior_answer')], missing_signals=[]) expansion_confirmed=ExpansionV1(sum"
+      },
+      "metadata": {},
+      "duration_ms": 3.9758682250976562,
+      "parent_event_id": "4f7d1405-3f83-44da-904a-ffb30310eea3"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

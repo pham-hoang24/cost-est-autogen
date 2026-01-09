@@ -1,0 +1,111 @@
+{
+  "session_id": "test-error-abf1259c-e61d-4616-b437-fc4eb50aa182",
+  "created_at": "2026-01-09T18:55:52.239449",
+  "updated_at": "2026-01-09T18:55:52.256671",
+  "events": [
+    {
+      "event_id": "9f9f4dc5-d761-463a-8320-880c266e9743",
+      "session_id": "test-error-abf1259c-e61d-4616-b437-fc4eb50aa182",
+      "timestamp": "2026-01-09T18:55:52.239425",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10d8b19a0>, 'test-error-abf1259c-e61d-4616-b437-fc4eb50aa182')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "072521b5-c620-440f-ab5b-64460252025b",
+      "session_id": "test-error-abf1259c-e61d-4616-b437-fc4eb50aa182",
+      "timestamp": "2026-01-09T18:55:52.240147",
+      "event_type": "error",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "error": "Cannot generate expansion without a user description.",
+        "error_type": "ValueError"
+      },
+      "metadata": {},
+      "duration_ms": 0.7281303405761719,
+      "parent_event_id": "9f9f4dc5-d761-463a-8320-880c266e9743"
+    },
+    {
+      "event_id": "eb2dba28-cd41-4144-a90b-0ae6edfedb1e",
+      "session_id": "test-error-abf1259c-e61d-4616-b437-fc4eb50aa182",
+      "timestamp": "2026-01-09T18:55:52.249230",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10d8b19a0>, 'test-error-abf1259c-e61d-4616-b437-fc4eb50aa182')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "47ec6173-c3c2-4ce3-b01e-0ec92e623056",
+      "session_id": "test-error-abf1259c-e61d-4616-b437-fc4eb50aa182",
+      "timestamp": "2026-01-09T18:55:52.252759",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-error-abf1259c-e61d-4616-b437-fc4eb50aa182' version=6 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type=None, complexity=None, tech_stack=None, team_pref=None, region=None, project_duration=None) user_description='Test description' expansion_draft=ExpansionV1(summary='Overview: Test description\\nProject Type: software project\\nComplexity: undisclosed complexity\\nTech Stack Focus: unspecified technologies', features=[NamedItem(name='Test description', source='inferred', confidence=None)], non_functionals=[], platforms=[], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='Test description', source='inferred', note='auto')], missing_signals=[]) expansion_confirmed=None parsed_context=None selection=None estimates=[] explanation=None events=[EventEntry(type='PROJECT_STARTED', at=datetime.datetime(2026, 1, 9, 18, 55, 52, 237606), data={'status': 'NEW'}), EventEntry(type='DESCRIPTION_CAPTURED', at=datetime.datetime(2026, 1, 9, 18, 55, "
+      },
+      "metadata": {},
+      "duration_ms": 3.4711360931396484,
+      "parent_event_id": "eb2dba28-cd41-4144-a90b-0ae6edfedb1e"
+    },
+    {
+      "event_id": "00c3906e-cc4e-4d54-9d53-8fc3ccb43cb9",
+      "session_id": "test-error-abf1259c-e61d-4616-b437-fc4eb50aa182",
+      "timestamp": "2026-01-09T18:55:52.253034",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10d8b19a0>, 'test-error-abf1259c-e61d-4616-b437-fc4eb50aa182')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "587efc5e-0b3c-4d46-b8d5-0c66149e45b0",
+      "session_id": "test-error-abf1259c-e61d-4616-b437-fc4eb50aa182",
+      "timestamp": "2026-01-09T18:55:52.256661",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-error-abf1259c-e61d-4616-b437-fc4eb50aa182' version=8 status='INPUTS_REQUESTED' baseline=BaselineInputs(project_type=None, complexity=None, tech_stack=None, team_pref=None, region=None, project_duration=None) user_description='Test description' expansion_draft=ExpansionV1(summary='Overview: Test description\\nProject Type: software project\\nComplexity: undisclosed complexity\\nTech Stack Focus: unspecified technologies', features=[NamedItem(name='Test description', source='inferred', confidence=None)], non_functionals=[], platforms=[], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='Test description', source='inferred', note='auto')], missing_signals=[]) expansion_confirmed=None parsed_context=ParsedContextV1(size=ParsedSize(ksloc=None, ufp=None, story_points=None), agile=ParsedAgile(velocity_sp_per_sprint=None, sprint_days=None), complexity_signals=ComplexitySignals(external_if_count=None, real_time=False, data_intensity=None, integrations_cou"
+      },
+      "metadata": {},
+      "duration_ms": 3.5028457641601562,
+      "parent_event_id": "00c3906e-cc4e-4d54-9d53-8fc3ccb43cb9"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

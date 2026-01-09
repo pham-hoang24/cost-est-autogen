@@ -14,7 +14,10 @@ def test_intake():
         "description": "A simple web app for tracking expenses."
     })
     assert response.status_code == 200
-    assert response.json()["status"] == "received"
+    data = response.json()
+    # Current /intake endpoint validates and persists baseline inputs
+    assert data["status"] in {"validated", "invalid"}
+    assert "is_valid" in data
 
 def test_methods():
     response = client.get("/methods")

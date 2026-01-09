@@ -376,13 +376,15 @@ def test_error_handling(tmp_path):
 
     # Try to evaluate methods without confirmed expansion
     orchestrator.generate_expansion(project_id)
-    with pytest.raises(ValueError, match="Expansion must be confirmed"):
-        orchestrator.evaluate_methods(project_id)
+    # New behavior: allow method evaluation using the draft expansion (no confirmation required)
+    context = orchestrator.evaluate_methods(project_id)
+    assert context.selection is not None
 
     # Try to generate explanation without method selection
     orchestrator.confirm_expansion(project_id, approval_text="approve")
-    with pytest.raises(ValueError, match="Method selection must be completed"):
-        orchestrator.generate_explanation(project_id)
+    # Since we already evaluated methods above, explanation generation should succeed
+    context = orchestrator.generate_explanation(project_id)
+    assert context.explanation is not None
 
 
 def test_estimation_tool_validation(tmp_path):

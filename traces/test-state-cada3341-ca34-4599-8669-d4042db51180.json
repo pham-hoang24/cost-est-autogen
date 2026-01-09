@@ -1,0 +1,77 @@
+{
+  "session_id": "test-state-cada3341-ca34-4599-8669-d4042db51180",
+  "created_at": "2026-01-09T18:55:52.217136",
+  "updated_at": "2026-01-09T18:55:52.231946",
+  "events": [
+    {
+      "event_id": "c4ffe6eb-dd6b-479c-ae27-7b0c8522d8bb",
+      "session_id": "test-state-cada3341-ca34-4599-8669-d4042db51180",
+      "timestamp": "2026-01-09T18:55:52.217123",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10d8b14f0>, 'test-state-cada3341-ca34-4599-8669-d4042db51180')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "c196a97d-1192-4443-ab69-0e98d61c6057",
+      "session_id": "test-state-cada3341-ca34-4599-8669-d4042db51180",
+      "timestamp": "2026-01-09T18:55:52.220538",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-state-cada3341-ca34-4599-8669-d4042db51180' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='software development', complexity='medium', tech_stack='web technologies', team_pref=8, region='North America', project_duration=None) user_description='Test project description' expansion_draft=ExpansionV1(summary='Overview: Test project description\\nProject Type: software development\\nComplexity: medium\\nTech Stack Focus: web technologies', features=[NamedItem(name='Test project description', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='Test project description', source='inferred', note='auto'), TraceEntry(field='platforms', value='web', source='user', note='prior_answer')], missing_signals=[]) expansion_confirmed=None parsed_context=None selection=None estimates=[] explanation=None events=[EventEntry(type='P"
+      },
+      "metadata": {},
+      "duration_ms": 3.331899642944336,
+      "parent_event_id": "c4ffe6eb-dd6b-479c-ae27-7b0c8522d8bb"
+    },
+    {
+      "event_id": "6e124064-1a27-4dee-ba33-3016deb43061",
+      "session_id": "test-state-cada3341-ca34-4599-8669-d4042db51180",
+      "timestamp": "2026-01-09T18:55:52.227870",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10d8b14f0>, 'test-state-cada3341-ca34-4599-8669-d4042db51180')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "fdad2630-48a3-43a7-be5a-aac92c1838eb",
+      "session_id": "test-state-cada3341-ca34-4599-8669-d4042db51180",
+      "timestamp": "2026-01-09T18:55:52.231935",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-state-cada3341-ca34-4599-8669-d4042db51180' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='software development', complexity='medium', tech_stack='web technologies', team_pref=8, region='North America', project_duration=None) user_description='Test project description' expansion_draft=ExpansionV1(summary='Overview: Test project description\\nProject Type: software development\\nComplexity: medium\\nTech Stack Focus: web technologies', features=[NamedItem(name='Test project description', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='Test project description', source='inferred', note='auto'), TraceEntry(field='platforms', value='web', source='user', note='prior_answer')], missing_signals=[]) expansion_confirmed=ExpansionV1(summary='Overview: Test project description\\nProject Type: software development\\nComple"
+      },
+      "metadata": {},
+      "duration_ms": 3.847837448120117,
+      "parent_event_id": "6e124064-1a27-4dee-ba33-3016deb43061"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

@@ -1,0 +1,77 @@
+{
+  "session_id": "test-parametric-estimation-1767984934",
+  "created_at": "2026-01-09T18:55:34.438847",
+  "updated_at": "2026-01-09T18:55:34.452993",
+  "events": [
+    {
+      "event_id": "05f73671-9f93-4830-bd40-9a055de87457",
+      "session_id": "test-parametric-estimation-1767984934",
+      "timestamp": "2026-01-09T18:55:34.438836",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_expansion",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10cb92650>, 'test-parametric-estimation-1767984934')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "12041b1e-bdff-499c-bd08-34d805f6011f",
+      "session_id": "test-parametric-estimation-1767984934",
+      "timestamp": "2026-01-09T18:55:34.442497",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_expansion",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-parametric-estimation-1767984934' version=16 status='AWAITING_EXPANSION' baseline=BaselineInputs(project_type='software development', complexity='low', tech_stack='web technologies', team_pref=6, region='North America', project_duration=None) user_description='API integration with 45 endpoints, averaging 4 hours per endpoint.' expansion_draft=ExpansionV1(summary='Overview: API integration with 45 endpoints, averaging 4 hours per endpoint.\\nProject Type: software development\\nComplexity: low\\nTech Stack Focus: web technologies', features=[NamedItem(name='API integration with 45 endpoints', source='inferred', confidence=None), NamedItem(name='averaging 4 hours per endpoint.', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='API integration with 45 endpoints', source='inferred', note='auto'), TraceEntry(field='features', value='averagin"
+      },
+      "metadata": {},
+      "duration_ms": 3.5698413848876953,
+      "parent_event_id": "05f73671-9f93-4830-bd40-9a055de87457"
+    },
+    {
+      "event_id": "21978147-c63b-474e-b0b9-c2b76ea3d29f",
+      "session_id": "test-parametric-estimation-1767984934",
+      "timestamp": "2026-01-09T18:55:34.449104",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "evaluate_methods",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10cb92650>, 'test-parametric-estimation-1767984934')",
+        "kwargs_keys": []
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "e5981a06-b5b4-4022-84e3-f1e195a529df",
+      "session_id": "test-parametric-estimation-1767984934",
+      "timestamp": "2026-01-09T18:55:34.452983",
+      "event_type": "agent_response",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "evaluate_methods",
+        "result_type": "ProjectContext",
+        "result_preview": "project_id='test-parametric-estimation-1767984934' version=22 status='METHOD_SELECTED' baseline=BaselineInputs(project_type='software development', complexity='low', tech_stack='web technologies', team_pref=6, region='North America', project_duration=None) user_description='API integration with 45 endpoints, averaging 4 hours per endpoint.' expansion_draft=ExpansionV1(summary='Overview: API integration with 45 endpoints, averaging 4 hours per endpoint.\\nProject Type: software development\\nComplexity: low\\nTech Stack Focus: web technologies', features=[NamedItem(name='API integration with 45 endpoints', source='inferred', confidence=None), NamedItem(name='averaging 4 hours per endpoint.', source='inferred', confidence=None)], non_functionals=[], platforms=[PlatformEntry(name='web', source='user')], constraints=[], assumptions=[], trace=[TraceEntry(field='features', value='API integration with 45 endpoints', source='inferred', note='auto'), TraceEntry(field='features', value='averaging 4"
+      },
+      "metadata": {},
+      "duration_ms": 3.6606788635253906,
+      "parent_event_id": "21978147-c63b-474e-b0b9-c2b76ea3d29f"
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

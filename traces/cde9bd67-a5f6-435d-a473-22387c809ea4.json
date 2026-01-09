@@ -1,0 +1,80 @@
+{
+  "session_id": "cde9bd67-a5f6-435d-a473-22387c809ea4",
+  "created_at": "2026-01-09T18:50:10.537007",
+  "updated_at": "2026-01-09T18:50:17.148835",
+  "events": [
+    {
+      "event_id": "7f83804d-2b46-4a84-978f-789f12a54e85",
+      "session_id": "cde9bd67-a5f6-435d-a473-22387c809ea4",
+      "timestamp": "2026-01-09T18:50:10.536985",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "cde9bd67-a5f6-435d-a473-22387c809ea4",
+        "project_type": "mobile application",
+        "complexity": "medium",
+        "tech_stack": "flutter, firebase",
+        "team_pref": 4,
+        "region": "US"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "09d71f99-551b-4c21-a6e1-6e3b032044a0",
+      "session_id": "cde9bd67-a5f6-435d-a473-22387c809ea4",
+      "timestamp": "2026-01-09T18:50:10.561046",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1_complete",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "error_count": 0,
+        "missing_methods_count": 4
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "bee7cf50-267d-483a-b210-4ca54d7d33e4",
+      "session_id": "cde9bd67-a5f6-435d-a473-22387c809ea4",
+      "timestamp": "2026-01-09T18:50:10.565006",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "I want to build a fitness tracking app.",
+        "history_length": 0
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "693a6ce0-9d41-4d2b-b695-6a4e35782570",
+      "session_id": "cde9bd67-a5f6-435d-a473-22387c809ea4",
+      "timestamp": "2026-01-09T18:50:17.148794",
+      "event_type": "agent_response",
+      "agent_name": "FSMController",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "response": "Great \u2014 I\u2019ve captured your project details and extracted initial keywords.\n\n**Project Summary (please confirm):**\n- **Project Type:** mobile application\n- **Complexity:** medium\n- **Tech Stack:** flut",
+        "state": "CONFIRMING",
+        "is_ready": true,
+        "recommended_methods": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

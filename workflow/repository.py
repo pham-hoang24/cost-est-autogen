@@ -9,6 +9,8 @@ with a database-backed repository.
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import List, Optional
 
 from sqlmodel import Field, Session, SQLModel, create_engine, select
@@ -31,8 +33,26 @@ class ProjectContextRepository:
     Manages persistence of ProjectContext objects using SQLite.
     """
 
-    def __init__(self, db_path: str = "app/autogen04202.db"):
-        self.engine = create_engine(f"sqlite:///{db_path}")
+    def __init__(self, db_path: Optional[str] = None):
+        """
+        Args:
+            db_path: Path to the sqlite file.
+                - If None: read from PROJECT_CONTEXT_DB_PATH, defaulting to 'autogen_sessions.db'
+                - If relative: resolve relative to the package root (cost-est-autogen/), not process CWD
+        """
+        if db_path is None:
+            db_path = os.getenv("PROJECT_CONTEXT_DB_PATH", "autogen_sessions.db")
+
+        db_file = Path(db_path)
+        if not db_file.is_absolute():
+            # repository.py is under cost-est-autogen/workflow/; package root is one level up.
+            package_root = Path(__file__).resolve().parents[1]
+            db_file = package_root / db_file
+
+        db_file = db_file.resolve()
+        db_file.parent.mkdir(parents=True, exist_ok=True)
+
+        self.engine = create_engine(f"sqlite:///{db_file}")
         SQLModel.metadata.create_all(self.engine)
 
     def list_project_ids(self) -> List[str]:

@@ -44,6 +44,15 @@ def submit_user_description_tool(project_id: str, description: str) -> Dict[str,
     context = _ORCHESTRATOR.submit_description(project_id, description)
     return _serialize_context(context)
 
+def append_user_message_tool(project_id: str, message: str, role: str = "user") -> Dict[str, object]:
+    context = _ORCHESTRATOR.append_user_message(project_id, message, role=role)
+    return _serialize_context(context)
+
+
+def append_llm_extraction_tool(project_id: str, extraction: Dict[str, Any]) -> Dict[str, object]:
+    context = _ORCHESTRATOR.append_llm_extraction(project_id, extraction)
+    return _serialize_context(context)
+
 
 def draft_expansion_tool(project_id: str) -> Dict[str, object]:
     context = _ORCHESTRATOR.generate_expansion(project_id)
@@ -67,6 +76,10 @@ def select_method_tool(project_id: str, method_id: str) -> Dict[str, object]:
 
 def normalize_and_infer_tool(project_id: str) -> Dict[str, object]:
     context = _ORCHESTRATOR.normalize_and_infer(project_id)
+    return _serialize_context(context)
+
+def update_method_coeffs_tool(project_id: str, method_name: str, updates: Dict[str, Any]) -> Dict[str, object]:
+    context = _ORCHESTRATOR.update_method_coeffs(project_id, method_name, updates)
     return _serialize_context(context)
 
 
@@ -97,6 +110,11 @@ def _serialize_context(context: ProjectContext) -> Dict[str, object]:
         "version": context.version,
         "baseline": context.baseline.model_dump(exclude_none=True),
         "user_description": context.user_description,
+        "chat_log": context.chat_log,
+        "llm_extractions": context.llm_extractions,
+        "inferred_fields": context.inferred_fields,
+        "fsm_state": getattr(context, "fsm_state", "INTAKE"),
+        "asked_fields": getattr(context, "asked_fields", {}),
         "missing_baseline": _missing_baseline(context),
         "events": [event.model_dump() for event in context.events],
     }
@@ -114,6 +132,8 @@ def _serialize_context(context: ProjectContext) -> Dict[str, object]:
         payload["explanation"] = context.explanation
     if context.missing_inputs_by_method:
         payload["missing_inputs_by_method"] = context.missing_inputs_by_method
+    if getattr(context, "full_report", None):
+        payload["full_report"] = context.full_report.model_dump() if hasattr(context.full_report, "model_dump") else context.full_report
     return payload
 
 
