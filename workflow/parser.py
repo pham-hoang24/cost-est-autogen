@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Iterable, Optional
+from typing import Dict, Iterable, Optional
 
 from .schemas import ParsedContextV1, ProvenanceEntry, PlatformType, ExpansionV1
 
@@ -269,23 +269,12 @@ class ParserService:
 
     def _compute_missing_signals(self, context: ParsedContextV1, seed: list[str]) -> list[str]:
         missing: list[str] = []
-        has_any_size = bool(context.size.ksloc or context.size.ufp or context.size.story_points)
-
-        if not has_any_size:
+        if not (context.size.ksloc or context.size.ufp or context.size.story_points):
             missing.append("Provide one: ksloc OR ufp counts (ILF/EIF/EI/EO/EQ) OR story_points+velocity")
         if context.reuse.dm_pct is None or context.reuse.cm_pct is None or context.reuse.im_pct is None:
             missing.append("If reuse: dm_pct, cm_pct, im_pct (and optional su_pct, unfm, aa_pct)")
         if context.rates.blended_rate is None and context.team.region is None:
             missing.append("Optional: region or blended rate for cost calibration")
-
-        # If size has been inferred/populated, drop any stale size prompts
-        if has_any_size:
-            seed = [
-                s
-                for s in seed
-                if not s.startswith("Provide one: ksloc OR ufp counts (ILF/EIF/EI/EO/EQ) OR story_points+velocity")
-            ]
-
         merged = seed + [item for item in missing if item not in seed]
         return merged[:3]
 

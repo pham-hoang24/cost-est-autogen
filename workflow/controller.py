@@ -322,6 +322,22 @@ class WorkflowOrchestrator:
         )
         return context
 
+    def select_method(self, project_id: str, method_id: str) -> ProjectContext:
+        """
+        Handle user selection of an estimation method.
+        """
+        context = self.load_context(project_id)
+        context.selected_method = method_id
+        context.status = "METHOD_SELECTED"
+        
+        context = self.repository.save(context)
+        context = self.event_logger.log(
+            project_id,
+            "USER_METHOD_SELECTED",
+            {"method_id": method_id}
+        )
+        return context
+
     def attach_estimate(
         self,
         project_id: str,
@@ -563,33 +579,37 @@ class WorkflowOrchestrator:
         if context.method_coeffs is None:
             context.method_coeffs = MethodCoefficients()
         
+        # Handle case where method_coeffs is a dict instead of MethodCoefficients
+        if isinstance(context.method_coeffs, dict):
+            context.method_coeffs = MethodCoefficients(**context.method_coeffs) if context.method_coeffs else MethodCoefficients()
+        
         coeffs = context.method_coeffs
         
         # COCOMO II
         cocomo_missing = []
-        if not coeffs.cocomo2.mode:
+        if not coeffs.cocomo2 or not coeffs.cocomo2.mode:
             cocomo_missing.append("mode")
-        if not coeffs.cocomo2.size_value:
+        if not coeffs.cocomo2 or not coeffs.cocomo2.size_value:
             cocomo_missing.append("size_value")
         if cocomo_missing:
             missing_by_method["cocomo2"] = cocomo_missing
         
         # Analogous
-        if not coeffs.analogous.tshirt_size:
+        if not coeffs.analogous or not coeffs.analogous.tshirt_size:
             missing_by_method["analogous"] = ["tshirt_size"]
         
         # FPA
         fpa_missing = []
-        if not coeffs.fpa.ufp:
+        if not coeffs.fpa or not coeffs.fpa.ufp:
             fpa_missing.append("ufp")
-        if not coeffs.fpa.vaf:
+        if not coeffs.fpa or not coeffs.fpa.vaf:
             fpa_missing.append("vaf")
         if fpa_missing:
             missing_by_method["fpa"] = fpa_missing
         
         # Story Points
         sp_missing = []
-        if not coeffs.story_points.team_velocity:
+        if not coeffs.story_points or not coeffs.story_points.team_velocity:
             sp_missing.append("team_velocity")
         if sp_missing:
             missing_by_method["story_points"] = sp_missing
@@ -631,3 +651,15 @@ class WorkflowOrchestrator:
 
 
 
+    def update_fsm_state(self, project_id: str, fsm_state: str, asked_fields: Optional[Dict[str, List[str]]] = None) -> ProjectContext:
+        """
+        Update the FSM state and optionally the asked_fields memory.
+        """
+        context = self.load_context(project_id)
+        context.fsm_state = fsm_state
+        if asked_fields is not None:
+            context.asked_fields = asked_fields
+        
+        context = self.repository.save(context)
+        # Log event if needed, but FSM transitions are frequent so maybe keep it quiet or debug level
+        return context

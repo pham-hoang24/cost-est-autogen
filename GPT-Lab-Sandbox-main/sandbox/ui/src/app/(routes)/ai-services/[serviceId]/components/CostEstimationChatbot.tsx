@@ -73,6 +73,8 @@ export default function CostEstimationChatbot({
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [selectedMethods, setSelectedMethods] = useState<string[]>([]);
+  const [isCollectingInputs, setIsCollectingInputs] = useState(false);
+  const [pendingMethodId, setPendingMethodId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const methodsDatabase: MethodCard[] = [
@@ -168,31 +170,130 @@ export default function CostEstimationChatbot({
     setInputValue('');
     setIsTyping(true);
 
+    // If collecting inputs for a method, send user's response back to /select-method
+    if (isCollectingInputs && pendingMethodId) {
+      try {
+        const response = await fetch('http://localhost:8000/select-method', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionId,
+            method_id: pendingMethodId,
+            input_overrides: { user_response: userMsg.content }
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to submit inputs');
+        
+        const data = await response.json();
+        
+        if (data.status === 'INPUTS_REQUIRED') {
+          // Still need more inputs
+          const moreInputsMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            type: 'bot',
+            content: `Thanks! I still need:\n\n${
+              data.missing_inputs.map((input: any) => `• ${input.prompt}`).join('\n')
+            }`,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, moreInputsMsg]);
+        } else if (data.status === 'ESTIMATION_COMPLETE') {
+          setIsCollectingInputs(false);
+          setPendingMethodId(null);
+          const successMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            type: 'bot',
+            content: 'Perfect! I have generated the cost estimation. You can now proceed to view the results.',
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, successMsg]);
+          if (onEstimationReady) onEstimationReady(true);
+        }
+        setIsTyping(false);
+      } catch (error) {
+        console.error('Input submission error:', error);
+        const errorMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'bot',
+          content: "I had trouble processing that. Could you try again?",
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMsg]);
+        setIsTyping(false);
+      }
+      return;
+    }
+
     // Check if user is confirming method selection
     const isMethodConfirmation = selectedMethods.length > 0 && !inputValue.trim();
     
     if (isMethodConfirmation) {
-      // Simulate backend validation check
-      setTimeout(() => {
-        const validationMsg: ChatMessage = {
+      // Call /select-method endpoint for the selected method
+      try {
+        const methodId = selectedMethods[0]; // Use first selected method
+        const response = await fetch('http://localhost:8000/select-method', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionId,
+            method_id: methodId,
+            input_overrides: {}
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to select method');
+        
+        const data = await response.json();
+        
+        if (data.status === 'INPUTS_REQUIRED') {
+          // Backend needs more inputs - display questions in chat
+          setIsCollectingInputs(true);
+          setPendingMethodId(methodId);
+          const missingInputsMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            type: 'bot',
+            content: `To estimate using this method, I need a bit more information:\n\n${
+              data.missing_inputs.map((input: any) => `• ${input.prompt}`).join('\n')
+            }\n\nPlease provide these details.`,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, missingInputsMsg]);
+          setIsTyping(false);
+        } else if (data.status === 'ESTIMATION_COMPLETE') {
+          // Estimation complete - notify parent
+          setIsCollectingInputs(false);
+          setPendingMethodId(null);
+          // Estimation complete - notify parent
+          const successMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            type: 'bot',
+            content: 'Perfect! I have generated the cost estimation. You can now proceed to view the results.',
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, successMsg]);
+          setIsTyping(false);
+          
+          if (onEstimationReady) {
+            onEstimationReady(true);
+          }
+        }
+      } catch (error) {
+        console.error('Method selection error:', error);
+        const errorMsg: ChatMessage = {
           id: (Date.now() + 1).toString(),
           type: 'bot',
-          content: 'Perfect! I have sufficient information to generate a cost estimation. You can now proceed with the estimation.',
+          content: "I'm having trouble processing your method selection. Please try again.",
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, validationMsg]);
+        setMessages(prev => [...prev, errorMsg]);
         setIsTyping(false);
-        
-        // Notify parent that estimation can be generated
-        if (onEstimationReady) {
-          onEstimationReady(true);
-        }
-      }, 1000);
+      }
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:8000/chat/send', {
+      const response = await fetch('http://localhost:8000/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -212,7 +313,8 @@ export default function CostEstimationChatbot({
             team_pref: parseInt(projectDetails.teamSize?.split('-')[0] || '1'),
             region: projectDetails.region,
             description: "" // Description comes from chat usually, or we could pass it if we had it
-          } : undefined
+          } : undefined,
+          estimation_config: estimationConfig
         }),
       });
 
@@ -234,7 +336,8 @@ export default function CostEstimationChatbot({
 
       // Check for validation success message
       if (data.response.includes("Perfect! I have sufficient information") || 
-          data.response.includes("You can now proceed with the estimation")) {
+          data.response.includes("You can now proceed with the estimation") ||
+          data.response.includes("Estimation Complete!")) {
         if (onEstimationReady) {
           onEstimationReady(true);
         }

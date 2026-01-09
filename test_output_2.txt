@@ -1,0 +1,7 @@
+FSM State: WorkflowState.INTAKE
+FSM State: WorkflowState.CONFIRMING
+FSM State: WorkflowState.COLLECTING_METHOD_INPUTS
+FSM State: WorkflowState.COLLECTING_METHOD_INPUTS
+DEBUG: Mock generate_full_report_tool called with ('test_session', {'currency': 'USD', 'hourly_rate': 100}) {}
+DEBUG RESPONSE: FSMResponse(response='✅ **Estimation Complete!**\n\n**Total Estimated Cost:** $100.00\n**Effort:** N/A person-months\n**Duration:** N/A months\n\nThe full report has been generated. You can view it in Step 3.', current_state=<WorkflowState.COMPLETED: 'COMPLETED'>, is_ready=True, recommended_methods=[], needs_input=True)
+Test passed!

@@ -1,0 +1,29 @@
+FSM State: WorkflowState.INTAKE
+FSM State: WorkflowState.CONFIRMING
+FSM State: WorkflowState.COLLECTING_METHOD_INPUTS
+FSM State: WorkflowState.COLLECTING_METHOD_INPUTS
+DEBUG: Mock generate_full_report_tool called with ('test_session', {'currency': 'USD', 'hourly_rate': 100}) {}
+Estimation error: Unknown format code 'f' for object of type 'str'
+DEBUG RESPONSE: FSMResponse(response="I had trouble generating the estimate. Error: Unknown format code 'f' for object of type 'str'\n\nWould you like to try again?", current_state=<WorkflowState.RECOMMENDING: 'RECOMMENDING'>, is_ready=False, recommended_methods=[], needs_input=True)
+Traceback (most recent call last):
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/tests/test_fsm_controller.py", line 101, in <module>
+    asyncio.run(t.test_fsm_flow())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/Users/phamhoang/Desktop/Cost-est-autogen but with anti/cost-est-autogen/tests/test_fsm_controller.py", line 94, in test_fsm_flow
+    self.assertEqual(response.current_state, WorkflowState.COMPLETED)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/case.py", line 907, in assertEqual
+    assertion_func(first, second, msg=msg)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/case.py", line 900, in _baseAssertEqual
+    raise self.failureException(msg)
+AssertionError: <WorkflowState.RECOMMENDING: 'RECOMMENDING'> != <WorkflowState.COMPLETED: 'COMPLETED'>

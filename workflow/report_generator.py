@@ -326,12 +326,9 @@ class ReportGeneratorService:
         # We assume estimates contains dicts with 'method' key or we try to map them
         
         for est in estimates:
-            # Extract cost, with robust fallbacks
+            # Extract cost
             cost = est.get("cost", est.get("total_cost", 0.0))
-            if (not cost or cost <= 0) and isinstance(est.get("cost_range"), dict):
-                cr = est["cost_range"]
-                cost = cr.get("likely") or cr.get("max") or cr.get("min") or 0.0
-            if not cost or cost <= 0:
+            if cost <= 0:
                 continue
                 
             # Identify method
@@ -343,10 +340,6 @@ class ReportGeneratorService:
             
             # Calculate duration (simple heuristic if not provided)
             duration_val = est.get("duration", int(cost / 15000)) 
-            # If duration not present, try duration_range
-            if (not duration_val) and isinstance(est.get("duration_range"), dict):
-                dr = est["duration_range"]
-                duration_val = dr.get("likely") or dr.get("max") or dr.get("min") or duration_val
             if isinstance(duration_val, str):
                 duration_str = duration_val
             else:
@@ -595,69 +588,6 @@ class ReportGeneratorService:
         elif variance_pct > 25:
             return f"⚠️ CAUTION: Moderate variance ({int(variance_pct)}%) between methods."
         return None
-
-    def _calculate_cost_breakdown(self, total_cost: float, confidence_level: str) -> "CostEstimate":
-        """
-        Generate cost breakdown with ranges based on confidence level.
-        """
-        from .schemas import CostEstimate
-        
-        # Cost breakdown percentages
-        labor_pct = 0.70
-        infrastructure_pct = 0.18
-        other_pct = 0.12
-        
-        # Confidence description
-        confidence_descriptions = {
-            "high": "HIGH - Based on detailed analysis with multiple validated methods",
-            "medium": "MEDIUM - Based on standard estimation with reasonable assumptions",
-            "low": "LOW - Preliminary estimate, requires further refinement"
-        }
-        confidence_desc = confidence_descriptions.get(confidence_level, confidence_descriptions["medium"])
-        
-        return CostEstimate(
-            total_cost=total_cost,
-            labor_cost=total_cost * labor_pct,
-            infrastructure_cost=total_cost * infrastructure_pct,
-            other_expenses=total_cost * other_pct,
-            confidence_level=confidence_desc
-        )
-
-    def _generate_timeline(self, duration_months: int) -> List["TimelinePhase"]:
-        """Generate timeline phases for the project."""
-        from .schemas import TimelinePhase
-        from datetime import datetime, timedelta
-        
-        # Calculate phase durations (in weeks)
-        total_weeks = duration_months * 4
-        
-        phases = [
-            ("Requirements & Planning", 0.15, ["Requirements document", "Project plan"]),
-            ("Design & Architecture", 0.15, ["System design", "Technical specifications"]),
-            ("Development", 0.40, ["Core functionality", "Feature implementation"]),
-            ("Testing & QA", 0.20, ["Test reports", "Bug fixes"]),
-            ("Deployment & Handover", 0.10, ["Deployed application", "Documentation"]),
-        ]
-        
-        timeline = []
-        start_date = datetime.now()
-        
-        for phase_name, pct, deliverables in phases:
-            phase_weeks = max(1, int(total_weeks * pct))
-            end_date = start_date + timedelta(weeks=phase_weeks)
-            
-            timeline.append(TimelinePhase(
-                task=phase_name,
-                description=f"{phase_name} phase of the project",
-                start_date=start_date.strftime("%Y-%m-%d"),
-                end_date=end_date.strftime("%Y-%m-%d"),
-                duration_weeks=phase_weeks,
-                deliverables=deliverables
-            ))
-            
-            start_date = end_date
-        
-        return timeline
 
     def _get_method_name(self, method_id: str) -> str:
         """Get human-readable method name."""

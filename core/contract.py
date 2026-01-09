@@ -35,6 +35,27 @@ class EstimationOutput(BaseModel):
     calibration_profile: CalibrationProfile = Field(..., description="The calibration profile used")
     details: Dict[str, Any] = Field(default_factory=dict, description="Detailed breakdown of the estimate")
 
+from enum import Enum
+
+class WorkflowState(str, Enum):
+    """States for the Cost Estimation FSM."""
+    INTAKE = "INTAKE"
+    CONFIRMING = "CONFIRMING"
+    CLARIFYING = "CLARIFYING"
+    RECOMMENDING = "RECOMMENDING"
+    COLLECTING_METHOD_INPUTS = "COLLECTING_METHOD_INPUTS"
+    ESTIMATING = "ESTIMATING"
+    COMPLETED = "COMPLETED"
+
+class FPAComponents(BaseModel):
+    """Function Point Analysis components."""
+    ei: Optional[int] = Field(default=None, description="External Inputs count")
+    eo: Optional[int] = Field(default=None, description="External Outputs count")
+    eq: Optional[int] = Field(default=None, description="External Inquiries count")
+    ilf: Optional[int] = Field(default=None, description="Internal Logical Files count")
+    eif: Optional[int] = Field(default=None, description="External Interface Files count")
+    complexity: str = Field(default="average", description="Complexity: low, average, high")
+
 class WorkflowContext(BaseModel):
     """The canonical contract for the workflow state."""
     project_id: str = Field(..., description="Unique identifier for the project")
@@ -43,3 +64,12 @@ class WorkflowContext(BaseModel):
     selection: Optional[MethodSelection] = None
     estimation: Optional[EstimationOutput] = None
     conversation_history: List[Dict[str, str]] = Field(default_factory=list, description="History of the conversation")
+    
+    # FSM State Tracking
+    state: WorkflowState = Field(default=WorkflowState.INTAKE, description="Current FSM state")
+    is_confirmed: bool = Field(default=False, description="Whether user confirmed the context summary")
+    recommended_methods: List[str] = Field(default_factory=list, description="Method IDs recommended to user")
+    
+    # Method-specific input collection
+    selected_method: Optional[str] = Field(default=None, description="User's selected estimation method")
+    fpa_components: Optional[FPAComponents] = Field(default=None, description="FPA component counts")

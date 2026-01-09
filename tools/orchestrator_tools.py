@@ -60,6 +60,11 @@ def evaluate_methods_tool(project_id: str) -> Dict[str, object]:
     return _serialize_context(context)
 
 
+def select_method_tool(project_id: str, method_id: str) -> Dict[str, object]:
+    context = _ORCHESTRATOR.select_method(project_id, method_id)
+    return _serialize_context(context)
+
+
 def normalize_and_infer_tool(project_id: str) -> Dict[str, object]:
     context = _ORCHESTRATOR.normalize_and_infer(project_id)
     return _serialize_context(context)
@@ -195,3 +200,7 @@ def get_method_requirements_tool(project_id: str, method_name: str) -> Dict[str,
         }
     """
     return _ORCHESTRATOR.get_method_requirements(project_id, method_name)
+
+def update_fsm_state_tool(project_id: str, fsm_state: str, asked_fields: Optional[Dict[str, List[str]]] = None) -> Dict[str, object]:
+    context = _ORCHESTRATOR.update_fsm_state(project_id, fsm_state, asked_fields)
+    return _serialize_context(context)

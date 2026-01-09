@@ -218,6 +218,10 @@ class ProjectContext(BaseModel):
     inferred_fields: Dict[str, Any] = Field(default_factory=dict)
     full_report: Optional["CostEstimationReport"] = None
 
+    # NEW: Explicit FSM State & Loop Prevention
+    fsm_state: str = "INTAKE"
+    asked_fields: Dict[str, List[str]] = Field(default_factory=dict)
+
 
 # Appending new schema models to workflow/schemas.py
 

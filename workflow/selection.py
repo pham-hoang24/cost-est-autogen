@@ -20,7 +20,7 @@ class MethodSelector:
             "bottomup": self._score_bottomup(context),
         }
 
-        primary, backups, blend_weights = self._choose(scores, context)
+        primary, backups, blend_weights = self._choose(scores)
         rationale = self._build_rationale(primary, backups, scores, context)
         required_inputs = self._build_required_inputs(context)
         confidence = self._confidence_from_scores(primary, scores)
@@ -36,18 +36,10 @@ class MethodSelector:
         )
 
     def _score_cocomo(self, context: ParsedContextV1) -> float:
-        """
-        Prefer COCOMO II when we have any reasonable size signal.
-        This matches the desired 'method A' behavior where rich descriptions
-        and inferred KSLOC should drive deterministic COCOMO selection.
-        """
         score = 0.0
-        has_ksloc = bool(context.size.ksloc)
-        has_other_size = bool(context.size.ufp or context.size.story_points)
-
-        if has_ksloc:
-            score += 0.7  # stronger weight on explicit/inferred KSLOC
-        if has_other_size:
+        if context.size.ksloc:
+            score += 0.6
+        if context.size.ufp:
             score += 0.3
         if context.reuse.dm_pct is not None:
             score += 0.05
@@ -75,15 +67,7 @@ class MethodSelector:
         return min(score, 1.0)
 
     def _score_analogous(self, context: ParsedContextV1) -> float:
-        """
-        Analogous is a good fallback when we lack hard size metrics.
-        If we already have KSLOC/FP/story points, de-prioritize it slightly
-        so COCOMO/FP-style methods win when close.
-        """
-        has_any_size = bool(context.size.ksloc or context.size.ufp or context.size.story_points)
-
-        # Lower baseline if hard size metrics are available
-        score = 0.25 if has_any_size else 0.4
+        score = 0.4  # baseline readiness
         if context.platforms:
             score += 0.2
         if context.team.pref_size:
@@ -119,22 +103,12 @@ class MethodSelector:
         return min(score, 1.0)
 
     def _choose(
-        self,
-        scores: Dict[MethodType, float],
-        context: ParsedContextV1,
+        self, scores: Dict[MethodType, float]
     ) -> Tuple[MethodType, List[MethodType], Optional[Dict[MethodType, float]]]:
         sorted_methods = sorted(scores.items(), key=lambda item: item[1], reverse=True)
         top_method, top_score = sorted_methods[0]
         second_score = sorted_methods[1][1] if len(sorted_methods) > 1 else 0.0
         backups: List[MethodType] = [method for method, score in sorted_methods[1:] if score > 0.0]
-
-        # If we have solid size information, bias tie-breaks towards COCOMO II
-        has_any_size = bool(context.size.ksloc or context.size.ufp or context.size.story_points)
-        cocomo_score = scores.get("cocomo2", 0.0)
-        if has_any_size and top_method != "cocomo2":
-            # If COCOMO is within 0.1 of the top method, promote it to primary.
-            if cocomo_score >= 0.5 and cocomo_score + 0.1 >= top_score:
-                top_method = "cocomo2"
 
         if top_score == 0.0:
             # Default fallback is analogous with priority to data gathering.

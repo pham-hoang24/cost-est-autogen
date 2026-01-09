@@ -1,0 +1,285 @@
+{
+  "session_id": "session_1767904271996_f2xc153ms",
+  "created_at": "2026-01-08T20:31:23.816311",
+  "updated_at": "2026-01-08T20:34:04.151220",
+  "events": [
+    {
+      "event_id": "ff9564c2-c706-44ad-8656-7f3d37a748f5",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:31:23.816292",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1767904271996_f2xc153ms",
+        "project_type": "web-application",
+        "complexity": "medium",
+        "tech_stack": "web",
+        "team_pref": 10,
+        "region": "europe",
+        "project_duration": "3-6-months",
+        "description": "A medium web-application project using web in europe."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "189ebdac-989d-4c23-b0da-73b1de25976f",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:31:23.846708",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1_complete",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "error_count": 0,
+        "missing_methods_count": 4
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "c3ae54c6-28ac-4ebb-8253-85df20e0527c",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:31:26.278885",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "We are building a customer relationship management (CRM) platform for small to medium-sized businesses. The system will help businesses manage their customer contacts, track sales opportunities, manage marketing campaigns, and generate sales reports. Key features include:  - User authentication and role-based access control (admin, sales manager, sales rep) - Contact management: add, edit, delete, and search customer contacts - Sales pipeline management: track deals through stages (lead, qualified, proposal, negotiation, closed-won, closed-lost) - Task and activity tracking: schedule meetings, set reminders, log calls and emails - Email integration: sync with Gmail and Outlook for email tracking - Reporting dashboard: visual analytics for sales performance, conversion rates, and revenue trends - Mobile responsive design: access from desktop and mobile devices  The platform needs to support up to 1000 concurrent users and should integrate with popular third-party services like Stripe for payments and Mailchimp for email marketing. We expect the MVP to launch in 6 months with core features, followed by iterative enhancements based on user feedback.",
+        "history_length": 1
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d663a9a4-458b-4770-b324-6d73e34197fe",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:31:26.282622",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {},
+      "output_data": {
+        "error": "'FSMController' object has no attribute '_handle_intake'"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "23685c0d-ea81-46e0-b464-f58145daf332",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:31:32.773568",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "select_method",
+      "input_data": {
+        "method_id": "cocomo"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "7d8e73b1-4675-40d7-a3e3-8a26af05eb29",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:31:32.778303",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "select_method",
+      "input_data": {},
+      "output_data": {
+        "error": "\"ProjectContext\" object has no field \"selected_method\""
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "ebfef2fd-13d4-4c4c-9576-da915d7fa3d2",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:32:32.651639",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "We are building a customer relationship management (CRM) platform for small to medium-sized businesses. The system will help businesses manage their customer contacts, track sales opportunities, manage marketing campaigns, and generate sales reports. Key features include:  - User authentication and role-based access control (admin, sales manager, sales rep) - Contact management: add, edit, delete, and search customer contacts - Sales pipeline management: track deals through stages (lead, qualified, proposal, negotiation, closed-won, closed-lost) - Task and activity tracking: schedule meetings, set reminders, log calls and emails - Email integration: sync with Gmail and Outlook for email tracking - Reporting dashboard: visual analytics for sales performance, conversion rates, and revenue trends - Mobile responsive design: access from desktop and mobile devices  The platform needs to support up to 1000 concurrent users and should integrate with popular third-party services like Stripe for payments and Mailchimp for email marketing. We expect the MVP to launch in 6 months with core features, followed by iterative enhancements based on user feedback.",
+        "history_length": 6
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "8f417ac7-78e3-4da7-9c47-865e8023365e",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:32:32.660447",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {},
+      "output_data": {
+        "error": "intake_step() takes 2 positional arguments but 3 were given"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "ea0c3d39-66b4-4b0d-a5c6-2e360cdd07b3",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:32:36.729166",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "select_method",
+      "input_data": {
+        "method_id": "cocomo"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "3b88222c-8c4e-4f72-be4d-dad1a0dce791",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:32:36.732015",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "select_method",
+      "input_data": {},
+      "output_data": {
+        "error": "\"ProjectContext\" object has no field \"selected_method\""
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "8b911a08-08e4-4eb6-a202-4d409bd346c0",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:33:53.880272",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {
+        "message": "We are building a customer relationship management (CRM) platform for small to medium-sized businesses. The system will help businesses manage their customer contacts, track sales opportunities, manage marketing campaigns, and generate sales reports. Key features include:  - User authentication and role-based access control (admin, sales manager, sales rep) - Contact management: add, edit, delete, and search customer contacts - Sales pipeline management: track deals through stages (lead, qualified, proposal, negotiation, closed-won, closed-lost) - Task and activity tracking: schedule meetings, set reminders, log calls and emails - Email integration: sync with Gmail and Outlook for email tracking - Reporting dashboard: visual analytics for sales performance, conversion rates, and revenue trends - Mobile responsive design: access from desktop and mobile devices  The platform needs to support up to 1000 concurrent users and should integrate with popular third-party services like Stripe for payments and Mailchimp for email marketing. We expect the MVP to launch in 6 months with core features, followed by iterative enhancements based on user feedback.",
+        "history_length": 11
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "0a65a2a3-d1ff-4dc7-b54e-35a80115288b",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:33:53.893497",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "chat",
+      "input_data": {},
+      "output_data": {
+        "error": "'next_prompt'"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "0675cd19-4cb8-4192-9518-1296c0de4e53",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:33:57.997820",
+      "event_type": "user_input",
+      "agent_name": null,
+      "step_name": "select_method",
+      "input_data": {
+        "method_id": "cocomo"
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "d89679bc-f09d-417c-8a75-7f8e0989e3a2",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:33:58.001566",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": "select_method",
+      "input_data": {},
+      "output_data": {
+        "error": "\"ProjectContext\" object has no field \"selected_method\""
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "37b11e68-8313-4de6-8543-1327cff3f895",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:34:04.118939",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "web-application",
+          "complexity": "medium",
+          "tech_stack": "web",
+          "team_pref": 10,
+          "region": "europe",
+          "duration": null,
+          "description": "A medium web-application project using web in europe."
+        },
+        "method_name": "cocomo",
+        "additional_inputs": {
+          "selected_methods": [
+            "cocomo"
+          ],
+          "estimation_config": {
+            "includeRisk": true,
+            "includeContingency": true,
+            "includeOverhead": true,
+            "includeProfit": true,
+            "currency": "EUR",
+            "accuracy": "high"
+          }
+        }
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "6ecbc3ff-6b06-4432-9659-d810afcca91d",
+      "session_id": "session_1767904271996_f2xc153ms",
+      "timestamp": "2026-01-08T20:34:04.151203",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "error": "Unsupported baseline field 'description'. Expected one of ['project_type', 'complexity', 'tech_stack', 'team_pref', 'region']."
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "active"
+}

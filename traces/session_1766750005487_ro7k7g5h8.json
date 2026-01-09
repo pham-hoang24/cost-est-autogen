@@ -1,0 +1,234 @@
+{
+  "session_id": "session_1766750005487_ro7k7g5h8",
+  "created_at": "2025-12-26T11:53:48.803331",
+  "updated_at": "2025-12-26T12:04:34.588307",
+  "events": [
+    {
+      "event_id": "1c583dfc-dbd3-4cc2-bbf6-c5c4f88f4bcd",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T11:53:48.802451",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1766750005487_ro7k7g5h8",
+        "project_type": "web-application",
+        "complexity": "medium",
+        "tech_stack": "web",
+        "team_pref": 10,
+        "region": "north-america",
+        "project_duration": "3-6-months",
+        "description": "A medium web-application project using web in north-america."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "809b2368-2fe9-4b6c-804a-ffc83226a261",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T11:53:48.882133",
+      "event_type": "agent_response",
+      "agent_name": "InterpreterAgent",
+      "step_name": "validate_step1",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "errors": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "59330985-6dcb-4cbf-8a19-ebea11cad227",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T11:54:36.474325",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1766750005487_ro7k7g5h8",
+        "project_type": "web-application",
+        "complexity": "medium",
+        "tech_stack": "web",
+        "team_pref": 10,
+        "region": "north-america",
+        "project_duration": "3-6-months",
+        "description": "A medium web-application project using web in north-america."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "738f974e-898e-4347-949c-1513132ae3b0",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T11:54:36.508977",
+      "event_type": "agent_response",
+      "agent_name": "InterpreterAgent",
+      "step_name": "validate_step1",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "errors": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "6fba4fb9-d775-448d-a9fe-335ddcdc180d",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T12:04:18.813622",
+      "event_type": "workflow_step",
+      "agent_name": null,
+      "step_name": "validate_step1",
+      "input_data": {
+        "session_id": "session_1766750005487_ro7k7g5h8",
+        "project_type": "web-application",
+        "complexity": "medium",
+        "tech_stack": "web",
+        "team_pref": 10,
+        "region": "north-america",
+        "project_duration": "3-6-months",
+        "description": "A medium web-application project using web in north-america."
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "18c23317-9809-4429-8ab0-4d2bbf3a9676",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T12:04:18.848912",
+      "event_type": "agent_response",
+      "agent_name": "InterpreterAgent",
+      "step_name": "validate_step1",
+      "input_data": {},
+      "output_data": {
+        "is_valid": true,
+        "errors": []
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "dc67d664-18f7-4728-992d-59b9db23b701",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T12:04:34.481253",
+      "event_type": "agent_call",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "method_id": "hybrid",
+        "inputs": {}
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/run-estimation"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "1b672f4b-72a8-4a22-a6e2-64ca1d1b5ec0",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T12:04:34.585384",
+      "event_type": "session_start",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {
+        "baseline_inputs": {
+          "project_type": "web-application",
+          "complexity": "medium",
+          "tech_stack": "web",
+          "team_pref": 10,
+          "region": "north-america",
+          "duration": null,
+          "description": "A medium web-application project using web in north-america."
+        },
+        "method_name": "hybrid",
+        "additional_inputs": {
+          "selected_methods": [
+            "hybrid"
+          ],
+          "estimation_config": {
+            "includeRisk": true,
+            "includeContingency": true,
+            "includeOverhead": true,
+            "includeProfit": true,
+            "currency": "USD",
+            "accuracy": "high"
+          }
+        }
+      },
+      "output_data": {},
+      "metadata": {
+        "endpoint": "/generate-report"
+      },
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "5674faf7-3529-49ae-a01e-45fad2138981",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T12:04:34.586431",
+      "event_type": "agent_call",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {
+        "function": "generate_full_report",
+        "args_preview": "(<workflow.controller.WorkflowOrchestrator object at 0x10f792fd0>,)",
+        "kwargs_keys": [
+          "project_id",
+          "estimation_config",
+          "selected_method"
+        ]
+      },
+      "output_data": {},
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    },
+    {
+      "event_id": "1e06b97c-65ac-4dda-a3d1-fb212b113673",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T12:04:34.587389",
+      "event_type": "error",
+      "agent_name": "WorkflowOrchestrator",
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "function": "generate_full_report",
+        "error": "No expansion context available. Make sure the expanded project summary has been generated (and ideally confirmed) before generating a full report.",
+        "error_type": "ValueError"
+      },
+      "metadata": {},
+      "duration_ms": 0.9710788726806641,
+      "parent_event_id": "5674faf7-3529-49ae-a01e-45fad2138981"
+    },
+    {
+      "event_id": "6563a327-08ce-4fc9-911a-37714f40beba",
+      "session_id": "session_1766750005487_ro7k7g5h8",
+      "timestamp": "2025-12-26T12:04:34.587780",
+      "event_type": "error",
+      "agent_name": null,
+      "step_name": null,
+      "input_data": {},
+      "output_data": {
+        "error": "No expansion context available. Make sure the expanded project summary has been generated (and ideally confirmed) before generating a full report.",
+        "error_type": "ValueError"
+      },
+      "metadata": {},
+      "duration_ms": null,
+      "parent_event_id": null
+    }
+  ],
+  "metadata": {},
+  "status": "error"
+}
